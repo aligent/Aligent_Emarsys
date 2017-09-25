@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<config>
+    <tabs>
+        <aligent translate="label" module="aligent_emarsys">
+            <label>Aligent</label>
+            <sort_order>9999</sort_order>
+        </aligent>
+    </tabs>
+    <sections>
+        <aligent_emarsys translate="label" module="aligent_emarsys">
+            <label>Emarsys</label>
+            <tab>aligent</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>1000</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <harmony_settings translate="label" module="aligent_emarsys">
+                    <label>Harmony Settings</label>
+                    <sort_order>5</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <harmony_ftp_server translate="label">
+                            <label>FTP Server</label>
+                            <sort_order>10</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_ftp_server>
+                        <harmony_ftp_port translate="label">
+                            <label>FTP Port</label>
+                            <sort_order>20</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_ftp_port>
+                        <harmony_ftp_user translate="label">
+                            <label>FTP Username</label>
+                            <sort_order>30</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_ftp_user>
+                        <harmony_ftp_password translate="label">
+                            <label>FTP Password</label>
+                            <sort_order>40</sort_order>
+                            <frontend_type>obscure</frontend_type>
+                            <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_ftp_password>
+                        <harmony_ftp_import_path translate="label">
+                            <label>FTP Import Path</label>
+                            <sort_order>50</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>The remote directory being monitored for data to IMPORT into Magento</comment>
+                        </harmony_ftp_import_path>
+                        <harmony_ftp_export_path translate="label">
+                            <label>FTP Export Path</label>
+                            <sort_order>50</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>The remote directory Magento should place CSV files for Harmony to pick up</comment>
+                        </harmony_ftp_export_path>
+                    </fields>
+                </harmony_settings>
+                <emarsys_api_settings translate="label" module="aligent_emarsys">
+                    <label>Emarsys API</label>
+                    <sort_order>10</sort_order>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <show_in_default>1</show_in_default>
+                    <fields>
+                        <emarsys_username translate="label">
+                            <label>API Username</label>
+                            <sort_order>10</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </emarsys_username>
+
+                        <emarsys_secret translate="label">
+                            <label>API Secret</label>
+                            <sort_order>20</sort_order>
+                            <frontend_type>obscure</frontend_type>
+                            <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </emarsys_secret>
+
+                        <emarsys_subscription_field_id translate="label">
+                            <label>Subscription Field Id</label>
+                            <sort_order>30</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>aligent_emarsys/system_config_source_select_emarsysfields</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </emarsys_subscription_field_id >
+
+                        <emarsys_voucher_field_id translate="label">
+                            <label>Voucher Field</label>
+                            <sort_order>40</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>aligent_emarsys/system_config_source_select_emarsysfields</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </emarsys_voucher_field_id>
+
+                    </fields>
+                </emarsys_api_settings>
+                <settings translate="label" module="aligent_emarsys">
+                    <label>Emarsys Web extend</label>
+                    <sort_order>30</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label">
+                            <label>Enabled</label>
+                            <sort_order>10</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        <cookie_key translate="label">
+                            <label>Cookie Name</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </cookie_key>
+                        <merchant_id translate="label">
+                            <label>Merchant Id</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </merchant_id>
+                        <scarab_url translate="label">
+                            <label>Scarab URL</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Scarab JS url including merchant ID: eg. //cdn.scarabresearch.com/js/INSERT_MERCHANT_ID/scarab-v2.js</comment>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </scarab_url>
+                        <send_email translate="label">
+                            <label>Send Email</label>
+                            <sort_order>50</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>Send the email from cookie to Emarsys. If no then will use the id field.</comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </send_email>
+                        <send_parent_sku translate="label">
+                            <label>Send parent SKU</label>
+                            <sort_order>60</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>Should the parent SKU be sent instead of the childs for cart items.</comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </send_parent_sku>
+                        <test_mode translate="label">
+                            <label>Test Mode</label>
+                            <sort_order>70</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>Disables logging for all commands contained in the current ScarabQueue JavaScript object. In effect, this will prevent data-collection events from being recorded.</comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </test_mode>
+                    </fields>
+                </settings>
+                <subscription translate="label" module="aligent_emarsys">
+                    <label>Emarsys subscription</label>
+                    <sort_order>20</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label">
+                            <label>Enabled</label>
+                            <sort_order>10</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        <base_url translate="label">
+                            <label>Emarsys signup URL</label>
+                            <sort_order>20</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <comment>eg. https://suite17.emarsys.net/u/register.php?CID767569672f587&amp;p2&amp;ar&amp;SID&amp;el&amp;llid&amp;counted&amp;c - The following will be added to the end of the array as requested by emarsys: &amp;optin[Opt-in]&amp;&amp;inp_1[*First Name]&amp;inp_2[*Last Name]&amp;inp_3[*Email]&amp;inp_4[Date of Birth]</comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </base_url>
+                        <curl_timeout>
+                            <label>Curl timeout</label>
+                            <sort_order>30</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>aligent_emarsys/system_config_source_select_timeoutvalues</source_model>
+                            <comment>The curl tiomeout</comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </curl_timeout>
+                    </fields>
+                </subscription>
+            </groups>
+        </aligent_emarsys>
+    </sections>
+</config>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <default>
+        <reference name="head">
+            <block type="aligent_emarsys/emarsys" name="aligent.emarsys.scarab" template="aligent/emarsys/scarab.phtml" />
+        </reference>
+        <reference name="before_body_end">
+            <block type="aligent_emarsys/emarsys" name="aligent.emarsys.page" template="aligent/emarsys/trigger.phtml"/>
+        </reference>
+    </default>
+    <catalog_product_view>
+        <reference name="head">
+            <block type="aligent_emarsys/emarsys" name="aligent.emarsys.pdp" template="aligent/emarsys/pdp.phtml" after="aligent.emarsys.scarab"/>
+        </reference>
+    </catalog_product_view>
+    <catalog_category_view>
+        <reference name="head">
+            <block type="aligent_emarsys/emarsys" name="aligent.emarsys.plp" template="aligent/emarsys/plp.phtml" after="aligent.emarsys.scarab"/>
+        </reference>
+    </catalog_category_view>
+    <catalogsearch_result_index>
+        <reference name="head">
+            <block type="aligent_emarsys/emarsys" name="aligent.emarsys.search" template="aligent/emarsys/search.phtml" after="aligent.emarsys.scarab"/>
+        </reference>
+    </catalogsearch_result_index>
+    <checkout_onepage_success>
+        <reference name="head">
+            <block type="aligent_emarsys/emarsys" name="aligent.emarsys.success" template="aligent/emarsys/success.phtml" after="aligent.emarsys.scarab"/>
+        </reference>
+    </checkout_onepage_success>
+</layout>

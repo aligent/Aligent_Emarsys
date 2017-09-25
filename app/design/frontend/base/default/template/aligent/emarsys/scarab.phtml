@@ -1,0 +1,17 @@
+<?php if ($this->isEnabled()): ?>
+    <script type="text/javascript">
+        document.observe("dom:loaded", function() {
+            var config = {
+                cookieName: '<?php echo($this->getCookieName()); ?>',
+                merchantId: '<?php echo($this->getMerchantId()); ?>',
+                scarabJsApiId: 'scarab-js-api',
+                scarabSource: '<?php echo($this->getScarabJsUrl()); ?>',
+                sendEmail: <?php echo($this->getSendEmail()); ?>,
+                testMode: <?php echo($this->isTestMode()); ?>,
+                sendParentSku: <?php echo($this->shouldSendParentSku()); ?>,
+            };
+
+            aligentEmarsys = new Aligent.Emarsys(config);
+        });
+    </script>
+<?php endif; ?>

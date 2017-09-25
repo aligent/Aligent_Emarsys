@@ -1,0 +1,6 @@
+<?php
+$helper = Mage::helper('aligent_emarsys');
+
+if ($helper->isSubscriptionEnabled()):
+    echo $helper->getSubscriptionBaseUrl();
+endif;

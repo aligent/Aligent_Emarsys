@@ -1,0 +1,9 @@
+<?php if ($this->isEnabled()): ?>
+    <?php $successInfo = $this->getSuccessInfo(); ?>
+    <script type="text/javascript">
+        document.observe("dom:loaded", function() {
+            Event.fire(document, 'emarsys_success:view', {orderid: '<?php echo addslashes($successInfo[0]); ?>', cart: <?php echo $successInfo[1]; ?> });
+        });
+    </script>
+<?php endif; ?>
+

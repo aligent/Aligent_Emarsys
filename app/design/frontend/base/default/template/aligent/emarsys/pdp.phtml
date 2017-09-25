@@ -1,0 +1,7 @@
+<?php if ($this->isEnabled()): ?>
+    <script type="text/javascript">
+        document.observe("dom:loaded", function() {
+            Event.fire(document, 'emarsys_pdp:view', {data: '<?php echo addslashes($this->getProductSku()); ?>'});
+        });
+    </script>
+<?php endif; ?>
