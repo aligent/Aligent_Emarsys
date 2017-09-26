@@ -48,7 +48,9 @@ class Aligent_Emarsys_Model_Cron {
          * of dealing with the data is done in IndexController:emarsyscallbackAction
          **/
         $url = Mage::getStoreConfig('web/secure/base_url') . "emarsys/index/emarsyscallback";
-        $emClient->exportChangesSince(date('Y-m-d H:i:s',strtotime('today -1 day')), $url);
+
+        $yesterdayGMT = strtotime(gmdate('Y-m-d H:i:s') . ' -1 day');
+        $emClient->exportChangesSince(date('Y-m-d H:i:s',$yesterdayGMT), $url);
     }
 
     public function importHarmonyData(){
@@ -84,8 +86,9 @@ class Aligent_Emarsys_Model_Cron {
         $exportDir = $helper->getHarmonyFTPExportDir();
 
         try{
+            $timeout = 15;
             $client = new FtpClient();
-            $client->connect($host, false, $port);
+            $client->connect($host, false, $port, $timeout);
             $client->login($user, $pass);
             $client->chdir($exportDir);
             $client->pasv(true);

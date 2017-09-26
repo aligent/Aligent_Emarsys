@@ -59,12 +59,17 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
                 $emarsysHelper->getLastnameField(),
                 $emarsysHelper->getDobField() ];
         $data = array(
-            'time_range' => [date('Y-m-d', strtotime($dateString)), date('Y-m-d')],
+            'time_range' => [date('Y-m-d', strtotime($dateString)), gmdate('Y-m-d')],
             'contact_fields' => $fields,
             'distribution_method' => 'local', 'origin' => 'all', 'origin_id' => 0 );
         if($callback) $data['notification_url'] = $callback;
         $results = $this->getContactChanges($data);
         if($callback) return $results;
+
+        // The code below should only EVER be reached in case of local development/debugging
+        // where ngrok is not being used to allow for the use of the callback parameter.
+        // It has been left as a convenience for future development but all production calls
+        // should include a callback parameter.
         if ($results->getReplyCode() == 0) {
             $jobId = $results->getData()['id'];
             sleep(10);

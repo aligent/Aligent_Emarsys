@@ -28,11 +28,11 @@ class Aligent_Emarsys_Model_HarmonyDiary
     }
 
     public function fillMagentoBillingAddress($addressId){
-        $this->populateAddress($addressId, ['address_1','address_2','address_3','address_4','postcode']);
+        $this->populateAddress($addressId, array('address_1','address_2','address_3','address_4','postcode'));
     }
 
     public function fillMagentoShippingAddress($addressId){
-        $this->populateAddress($addressId, ['deilvery_address_1','deilvery_address_2','deilvery_address_3','deilvery_address_4','deilvery_postcode']);
+        $this->populateAddress($addressId, array('deilvery_address_1','deilvery_address_2','deilvery_address_3','deilvery_address_4','deilvery_postcode'));
     }
 
     protected function ensureSyncData($customer){
