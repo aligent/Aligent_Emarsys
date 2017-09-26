@@ -3,7 +3,7 @@
     "description": "Emarsys API integration for Magento 1",
     "type": "magento-module",
     "require": {
-        "magento-hackathon/magento-composer-installer": "^3.1",
+        "magento-hackathon/magento-composer-installer": "*",
         "aligent/feeds" : "*"
     },
     "license": "MIT"
