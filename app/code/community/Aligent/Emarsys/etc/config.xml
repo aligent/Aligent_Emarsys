@@ -391,7 +391,7 @@
             </settings>
             <subscription>
                 <enabled>1</enabled>
-                <base_url>https://suite17.emarsys.net/u/register.php?CID767569672&amp;f587&amp;p2&amp;ar&amp;SID&amp;el&amp;llid&amp;counted&amp;c</base_url>
+                <base_url></base_url>
                 <curl_timeout>5</curl_timeout>
             </subscription>
             <feed>
