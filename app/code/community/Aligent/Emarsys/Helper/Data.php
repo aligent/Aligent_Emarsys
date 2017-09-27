@@ -1,5 +1,9 @@
 <?php
 class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
+    protected $_feedStockFromSimple = null;
+    protected $_includeSimpleParents = null;
+    protected $_includeDisabled = null;
+
     protected $_cookieName = null;
     protected $_enabled = null;
     protected $_merchantId = null;
@@ -23,6 +27,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysSubscriptionField = null;
     protected $_emarsysVoucherField = null;
     protected $_emarsysDobField = null;
+
+    const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
+    const XML_FEED_INCLUDE_SIMPLE_PARENTS = 'aligent_emarsys/feed/include_simple_parents';
+    const XML_FEED_INCLUDE_DISABLED = 'aligent_emarsys/feed/include_disabled';
 
     const XML_EMARSYS_ENABLED_PATH = 'aligent_emarsys/settings/enabled';
     const XML_EMARSYS_COOKIE_NAME_PATH = 'aligent_emarsys/settings/cookie_key';
@@ -53,6 +61,28 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field_id';
+
+    public function getGetStockFromSimpleProduct(){
+        if($this->_feedStockFromSimple === null ){
+            $this->_feedStockFromSimple = Mage::getStoreConfig(self::XML_FEED_STOCK_FROM_SIMPLE) == 1;
+        }
+        return $this->_feedStockFromSimple;
+    }
+
+    public function getIncludeSimpleParents(){
+        if($this->_includeSimpleParents === null ){
+            $this->_includeSimpleParents = Mage::getStoreConfig(self::XML_FEED_INCLUDE_SIMPLE_PARENTS) == 1;
+        }
+        return $this->_includeSimpleParents;
+
+    }
+
+    public function getIncludeDisabled(){
+        if($this->_includeDisabled === null ){
+            $this->_includeDisabled = Mage::getStoreConfig(self::XML_FEED_INCLUDE_DISABLED) == 1;
+        }
+        return $this->_includeDisabled;
+    }
 
     /**
      * Get the DOB field to use with Emarsys.  Blank if not collecting DOB.
