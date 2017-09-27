@@ -16,6 +16,41 @@
             <show_in_website>1</show_in_website>
             <show_in_store>1</show_in_store>
             <groups>
+                <feed>
+                    <label>Product Feed</label>
+                    <sort_order>0</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <stock_from_simple translate="label">
+                            <label>Use stock from simple products?</label>
+                            <comment>1 for yes, 0 for no</comment>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </stock_from_simple>
+                        <include_simple_parents>
+                            <sort_order>10</sort_order>
+                            <label>Include simple products if they are parents?</label>
+                            <comment>1 for yes, 0 for no</comment>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </include_simple_parents>
+                        <include_disabled>
+                            <sort_order>20</sort_order>
+                            <label>Include disabled products?</label>
+                            <comment>1 for yes, 0 for no</comment>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </include_disabled>
+                    </fields>
+                </feed>
                 <harmony_settings translate="label" module="aligent_emarsys">
                     <label>Harmony Settings</label>
                     <sort_order>5</sort_order>
@@ -217,7 +252,6 @@
                             <label>Emarsys signup URL</label>
                             <sort_order>20</sort_order>
                             <frontend_type>text</frontend_type>
-                            <comment>eg. https://suite17.emarsys.net/u/register.php?CID767569672f587&amp;p2&amp;ar&amp;SID&amp;el&amp;llid&amp;counted&amp;c - The following will be added to the end of the array as requested by emarsys: &amp;optin[Opt-in]&amp;&amp;inp_1[*First Name]&amp;inp_2[*Last Name]&amp;inp_3[*Email]&amp;inp_4[Date of Birth]</comment>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>

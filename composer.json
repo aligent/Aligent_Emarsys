@@ -3,8 +3,9 @@
     "description": "Emarsys API integration for Magento 1",
     "type": "magento-module",
     "require": {
-        "magento-hackathon/magento-composer-installer": "*",
-        "aligent/feeds" : "*"
+        "firegento/psr0autoloader": "*",
+        "aligent/feeds" : "*",
+        "snowcap/emarsys": "*"
     },
     "license": "MIT"
 }
