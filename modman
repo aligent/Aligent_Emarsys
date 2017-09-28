@@ -2,3 +2,4 @@ app/code/community/Aligent/Emarsys app/code/community/Aligent/Emarsys
 app/design/frontend/base/default/layout/aligent/* app/design/frontend/base/default/layout/aligent
 app/design/frontend/base/default/template/aligent/emarsys/* app/design/frontend/base/default/template/aligent/emarsys
 app/etc/modules/Aligent_Emarsys.xml app/etc/modules/Aligent_Emarsys.xml
+js/aligent/emarsys/* js/aligent/emarsys
