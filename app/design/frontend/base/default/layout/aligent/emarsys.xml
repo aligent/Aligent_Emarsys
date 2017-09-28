@@ -2,6 +2,9 @@
 <layout version="0.1.0">
     <default>
         <reference name="head">
+            <action method="addJs">
+                <script>aligent/emarsys/emarsys.js</script>
+            </action>
             <block type="aligent_emarsys/emarsys" name="aligent.emarsys.scarab" template="aligent/emarsys/scarab.phtml" />
         </reference>
         <reference name="before_body_end">
