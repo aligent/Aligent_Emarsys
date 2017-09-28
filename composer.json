@@ -11,7 +11,7 @@
     ],
     "require": {
         "firegento/psr0autoloader": "*",
-        "aligent/feeds" : "*",
+        "aligent/feeds" : "dev-master",
         "snowcap/emarsys": "*"
     },
     "license": "MIT"
