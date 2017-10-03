@@ -33,6 +33,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $firstname = $params['firstname'];
             $lastname = $params['lastname'];
             $dob = $params['dobYY'] . '-' . $params['dobMM'] . '-' . $params['dobDD'];
+            $gender = isset($params['gender']) ? $params['gender'] : null;
             if (Zend_Validate::is($email, 'EmailAddress')) {
                 if($this->isSubscribed($email)){
                     $oResponse->setBody(json_encode(array('failure'=>true, 'message'=>'Email is already registered. Please use a different email.', 'input'=>$params)));
@@ -47,7 +48,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                     if(Mage::helper('aligent_emarsys')->isEnabled()) {
                         /** @var $emHelper Aligent_Emarsys_Helper_Emarsys */
                         $emHelper = Mage::helper('aligent_emarsys/emarsys');
-                        $sub = $emHelper->addSubscriber($newsSub->getId(), $firstname, $lastname, $email, $dob);
+                        $sub = $emHelper->addSubscriber($newsSub->getId(), $firstname, $lastname, $email, $dob, $gender);
                         $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub->getData())));
                     }else{
                         $oResponse->setBody('{"success": true}');
