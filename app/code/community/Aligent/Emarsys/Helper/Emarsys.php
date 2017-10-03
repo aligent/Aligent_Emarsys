@@ -137,8 +137,12 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         );
         $dobField = $this->getDobField();
         if($dobField) $data[$dobField] = $dob;
-        $result = $this->getClient()->updateContactAndCreateIfNotExists($data);
-        return $result;
+        try{
+            $result = $this->getClient()->updateContactAndCreateIfNotExists($data);
+            return $result;
+        }catch(Exception $e){
+            return null;
+        }
     }
 }
 

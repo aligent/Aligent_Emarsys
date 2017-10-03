@@ -21,9 +21,9 @@ class Aligent_Emarsys_Model_Filter {
 
         $vStockStatus = Mage::getModel('core/resource_setup', 'core_setup')->getTable('cataloginventory/stock_status');
 
-        $stockFromSimple = true; //$helper->getGetStockFromSimpleProduct();
-        $includeSimpleParents = true; //$helper->getIncludeSimpleParents();
-        $includeDisabled = true;//$helper->getIncludeDisabled();
+        $stockFromSimple = $helper->getGetStockFromSimpleProduct();
+        $includeSimpleParents = $helper->getIncludeSimpleParents();
+        $includeDisabled = $helper->getIncludeDisabled();
 
         if ($stockFromSimple) {
             // Grab the super link and join on that.
@@ -46,7 +46,7 @@ class Aligent_Emarsys_Model_Filter {
             );
         }
 
-        //if(!isset($aParms['include_all_stores']))
+        if(!isset($aParms['include_all_stores']))
             $oSelect->where('ss.website_id=?', array($oStore->getWebsiteId()));
 
         if ($includeSimpleParents) {
