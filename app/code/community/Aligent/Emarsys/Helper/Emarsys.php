@@ -111,7 +111,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_client;
     }
 
-    public function updateSubscriber($localId, $firstname, $lastname, $email, $dob, $gender=null){
+    public function updateSubscriber($localId, $firstname, $lastname, $email, $dob){
         $data = array(
             $this->getEmailField() => $email,
             $this->getFirstnameField() => $firstname,
@@ -119,7 +119,6 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
             $this->getSubscriptionField() => $this->mapSubscriptionValue(true, $localId),
             $this->getDobField() => $dob
         );
-        if($gender) $data[$this->getGenderField()] = $gender;
         return $this->getClient()->updateContact($data);
     }
 
@@ -139,8 +138,12 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         $dobField = $this->getDobField();
         if($dobField) $data[$dobField] = $dob;
         if($gender) $data[$this->getGenderField()] = $gender;
-        $result = $this->getClient()->updateContactAndCreateIfNotExists($data);
-        return $result;
+        try{
+            $result = $this->getClient()->updateContactAndCreateIfNotExists($data);
+            return $result;
+        }catch(Exception $e){
+            return null;
+        }
     }
 }
 

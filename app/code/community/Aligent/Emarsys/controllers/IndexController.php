@@ -49,7 +49,11 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                         /** @var $emHelper Aligent_Emarsys_Helper_Emarsys */
                         $emHelper = Mage::helper('aligent_emarsys/emarsys');
                         $sub = $emHelper->addSubscriber($newsSub->getId(), $firstname, $lastname, $email, $dob, $gender);
-                        $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub->getData())));
+                        if($sub){
+                            $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub->getData())));
+                        }else{
+                            $oResponse->setBody(json_encode(array('failure'=>true, 'message'=>'Unexpected failure')));
+                        }
                     }else{
                         $oResponse->setBody('{"success": true}');
                     }
