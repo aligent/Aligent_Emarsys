@@ -9,6 +9,7 @@
                 sendEmail: <?php echo($this->getSendEmail()); ?>,
                 testMode: <?php echo($this->isTestMode()); ?>,
                 sendParentSku: <?php echo($this->shouldSendParentSku()); ?>,
+                formKey: "<?php echo Mage::getSingleton('core/session')->getFormKey() ?>"
             };
 
             aligentEmarsys = new Aligent.Emarsys(config);
