@@ -13,11 +13,49 @@ Aligent.Emarsys = Class.create({
         this._setupMainApiHandler();
     },
 
+    doSubscribe : function(firstName, lastName, email, additionalData, callback){
+        var params = additionalData ? additionalData : {};
+        params.firstname = firstName;
+        params.lastname = lastName;
+        params.email = email;
+        if(!params.dob) params.dob = '1970-01-01';
+        if(!params.dobYY) params.dobYY = 1970;
+        if(!params.dobMM) params.dobMM = '01';
+        if(!params.dobDD) params.dobDD = '01';
+        params.form_key = this._config.formKey;
+
+        new Ajax.Request(this._config.subscribeUrl, {
+            method: 'post',
+            parameters: params,
+            onSuccess : function(response){
+                var json = jQuery.parseJSON(response.responseText);
+                if(callback){
+                    try{
+                        callback(json.success, response);
+                    }catch(e){
+
+                    }
+                }
+            },
+            onFailure : function(response){
+                if(callback){
+                    try{
+                        callback(false, response);
+                    }catch(e){
+
+                    }
+                }
+            }
+
+        });
+    },
+
     _handleConfig: function() {
         this._config.cookieName = this._config.cookieName || 'cart_cookie';
         this._config.merchantId = this._config.merchantId || 'MERCHANTID';
         this._config.scarabJsApiId = this._config.scarabJsApiId || 'scarab-js-api';
         this._config.scarabSource = this._config.scarabSource || '//cdn.scarabresearch.com/js/MERCHANTID/scarab-v2.js';
+        this._config.subscribeUrl = this._config.subscribeUrl || '/emarsys/index/newslettersubscribe';
 
         this._configFalseCheck(this._config.sendEmail, 1);
         this._configFalseCheck(this._config.testMode, 1);

@@ -34,23 +34,28 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $lastname = $params['lastname'];
             $dob = $params['dobYY'] . '-' . $params['dobMM'] . '-' . $params['dobDD'];
             if (Zend_Validate::is($email, 'EmailAddress')) {
-                /** @var $newsSub Mage_Newsletter_Model_Subscriber */
-                $newsSub = Mage::getModel('newsletter/subscriber');
-                $oResponse->setBody(json_encode(array('failure'=>true, 'input2'=>$params)));
-
-                Mage::register('emarsys_newsletter_ignore', true);
-                $newsSub->subscribe($email);
-                Mage::unregister('emarsys_newsletter_ignore');
-                if(Mage::helper('aligent_emarsys')->isEnabled()) {
-                    /** @var $emHelper Aligent_Emarsys_Helper_Emarsys */
-                    $emHelper = Mage::helper('aligent_emarsys/emarsys');
-                    $sub = $emHelper->addSubscriber($newsSub->getId(), $firstname, $lastname, $email, $dob);
-                    $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub->getData())));
+                if($this->isSubscribed($email)){
+                    $oResponse->setBody(json_encode(array('failure'=>true, 'message'=>'Email is already registered. Please use a different email.', 'input'=>$params)));
                 }else{
-                    $oResponse->setBody('{"success": true}');
+                    /** @var $newsSub Mage_Newsletter_Model_Subscriber */
+                    $newsSub = Mage::getModel('newsletter/subscriber');
+                    $oResponse->setBody(json_encode(array('failure'=>true, 'input2'=>$params)));
+
+                    Mage::register('emarsys_newsletter_ignore', true);
+                    $newsSub->subscribe($email);
+                    Mage::unregister('emarsys_newsletter_ignore');
+                    if(Mage::helper('aligent_emarsys')->isEnabled()) {
+                        /** @var $emHelper Aligent_Emarsys_Helper_Emarsys */
+                        $emHelper = Mage::helper('aligent_emarsys/emarsys');
+                        $sub = $emHelper->addSubscriber($newsSub->getId(), $firstname, $lastname, $email, $dob);
+                        $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub->getData())));
+                    }else{
+                        $oResponse->setBody('{"success": true}');
+                    }
+
                 }
             }else{
-                $oResponse->setBody(json_encode(array('failure'=>true, 'input'=>$params)));
+                $oResponse->setBody(json_encode(array('failure'=>true, 'message'=>'Invalid email address', 'input'=>$params)));
             }
         }
 
@@ -96,4 +101,12 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             }
         }
     }
+
+    protected function isSubscribed($email){
+        /** @var $newsSub Mage_Newsletter_Model_Subscriber */
+        $newsSub = Mage::getModel('newsletter/subscriber');
+        $newsSub->loadByEmail($email);
+        return ($newsSub->getId() && $newsSub->getStatus() == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED);
+    }
+
 }
