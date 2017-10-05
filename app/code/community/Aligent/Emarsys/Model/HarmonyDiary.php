@@ -36,15 +36,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
     }
 
     protected function ensureSyncData($customer){
-        $localSyncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getId(), 'customer_entity_id');
-        if(!$localSyncData->getId()){
-            $localSyncData->setCustomerEntityId($customer->getId());
-            $localSyncData->setNewsletterSubscriberId($this->getSubscriber($customer)->getId());
-            $localSyncData->setEmarsysSyncDirty(true);
-            $localSyncData->setHarmonySyncDirty(true);
-            $localSyncData->save();
-        }
-        return $localSyncData;
+        return $this->_helper->ensureCustomerSyncRecord($customer->getId());
     }
 
     public function fillMagentoSubscriber($subscriberId){
@@ -57,6 +49,11 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->date_of_birth = $localSyncData->getDob();
         $this->{'classification.1'} = $subscriber->getSubscriberStatus() == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED ? 'EMAIL' : 'NOEML';
         $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncData->getId());
+    }
+
+    public function isCustomerSubscribed($customer){
+        return $this->_helper->isCustomerSubscribed($customer);
+
     }
 
     public function fillMagentoCustomer($customerId)

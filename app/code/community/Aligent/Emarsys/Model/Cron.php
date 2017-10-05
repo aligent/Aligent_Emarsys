@@ -71,6 +71,7 @@ class Aligent_Emarsys_Model_Cron {
         $flags->load();
         foreach ($flags as $flag) {
             $flag->setHarmonySyncDirty(false);
+            $flag->setHarmonyId( Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($flag->getId()) );
             $flag->save();
         }
 
@@ -120,12 +121,13 @@ class Aligent_Emarsys_Model_Cron {
         }
 
         $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
-        $subscribers->joinTable(
-            ['remote_flags'=>'aligent_emarsys/remoteSystemSyncFlags'],
-            'subscriber_id=entity_id',
-            array('sync_id' => 'id'), null, 'left');
+        $subscribers->getSelect()->joinLeft(
+            ['remote_flags' =>'aligent_emarsys_remote_system_sync_flags'],
+            'subscriber_id=newsletter_subscriber_id',
+            array('sync_id' => 'id'), null);
         $subscribers->getSelect()->where('customer_entity_id is null AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
-        foreach($subscribers as $subscriber){
+
+        foreach ($subscribers as $subscriber) {
             $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
             $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
             $harmonyCustomer->fillMagentoSubscriber($subscriber);
