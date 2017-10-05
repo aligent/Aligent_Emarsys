@@ -23,15 +23,18 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
     /**
      * Clear out the cart cookie when the order is made, try add in the user from the order.
      *
-     * @param $observer
+     * @param Varien_Event $observer
      */
-    public function checkoutSuccessClearCookie($observer)
+    public function afterCheckoutSuccess($observer)
     {
         if ($this->getHelper()->isEnabled()) {
             $order = $observer->getOrder();
             $email = $order->getCustomerEmail();
-
             $this->getHelper()->emptyCartCookieAddEmail($email);
+
+            // Also, ensure that the ERP (Harmony) knows about the customer
+            $syncRecord = $this->getHelper()->ensureOrderSyncRecord($order);
+
         }
     }
 
@@ -140,11 +143,13 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
             $firstname = '';
             $lastname = '';
             $dob = '';
+            $gender = '';
 
             if ($customer->getId()) {
                 $firstname = $customer->getFirstname();
                 $lastname = $customer->getLastname();
                 $dob = $customer->getDob();
+                $gender = $customer->getGender();
             } else {
                 // check for subscriber data.
                 if ($subscriber->getSubscriberFirstname() && $subscriber->getSubscriberLastname()) {
@@ -155,33 +160,27 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
 
             /** @var Aligent_Emarsys_Helper_Emarsys $helper */
             $helper = Mage::helper('aligent_emarsys/emarsys');
+            $remoteSync = Mage::helper('aligent_emarsys')->ensureNewsletterSyncRecord(
+                $subscriber->getId(),
+                false,
+                true,
+                $firstname,
+                $lastname,
+                $gender,
+                $dob
+            );
+
             if ($subscriber->isSubscribed()) {
-                $helper->addSubscriber($subscriber->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob);
+                $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender);
             }else{
-                $helper->removeSubscriber($subscriber->getId(), $subscriber->getSubscriberEmail());
+                $result = $helper->removeSubscriber($remoteSync->getId(), $subscriber->getSubscriberEmail());
+            }
+
+            if($result && $result->getData()){
+                $remoteSync->setEmarsysId($result->getData()['id']);
+                $remoteSync->save();
             }
         }
-    }
-
-    // we do not care about the response.
-    protected function makeRequest($url)
-    {
-        return;
-        $curl = new Varien_Http_Adapter_Curl();
-
-        $curl->setConfig(array(
-            'timeout' => $this->getHelper()->getSubscriberCurlTimeout()    //Timeout in no of seconds
-        ));
-
-        $curl->write(Zend_Http_Client::GET, $url, '1.0');
-
-        $data = $curl->read();
-        $curl->close();
-
-        if ($data === false) {
-            return false;
-        }
-        return true;
     }
 
     public function customerModelChanged(Varien_Event_Observer $observer)
@@ -191,16 +190,12 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         if(Mage::registry('emarsys_customer_save_observer_executed')){
             return $this; //this method has already been executed once in this request (see comment below)
         }
+
         $harmonyIgnore = $customer->getHarmonyIgnoreFlag();
         $emarsysIgnore = $customer->getEmarsysIgnoreFlag();
         if($harmonyIgnore && $emarsysIgnore) return $this;
 
-        $localSyncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getId(), 'customer_entity_id');
-        $localSyncData->setCustomerEntityId($customer->getId());
-
-        if(!$harmonyIgnore) $localSyncData->setHarmonySyncDirty(true);
-        if(!$emarsysIgnore) $localSyncData->setEmarsysSyncDirty(true);
-        $localSyncData->save();
+        Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId(), !$emarsysIgnore, !$harmonyIgnore);
 
         Mage::register('emarsys_customer_save_observer_executed', true);
     }

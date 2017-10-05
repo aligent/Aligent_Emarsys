@@ -112,13 +112,24 @@ class Aligent_Emarsys_Model_Cron {
             array('sync_id' => 'id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
         $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
 
-        $customerIds = array();
         foreach ($customers as $customer) {
             $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
             $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
             $harmonyCustomer->fillMagentoCustomer($customer->getId());
             $outputFile->write($harmonyCustomer->getDataArray());
-            $customerIds[] = $customer->getId();
+        }
+
+        $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
+        $subscribers->joinTable(
+            ['remote_flags'=>'aligent_emarsys/remoteSystemSyncFlags'],
+            'subscriber_id=entity_id',
+            array('sync_id' => 'id'), null, 'left');
+        $subscribers->getSelect()->where('customer_entity_id is null AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
+        foreach($subscribers as $subscriber){
+            $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
+            $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
+            $harmonyCustomer->fillMagentoSubscriber($subscriber);
+            $outputFile->write($harmonyCustomer->getDataArray());
         }
         rewind($handle);
         $data = stream_get_contents($handle);

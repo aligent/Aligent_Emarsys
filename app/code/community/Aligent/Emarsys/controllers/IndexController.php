@@ -48,13 +48,26 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                     if(Mage::helper('aligent_emarsys')->isEnabled()) {
                         /** @var $emHelper Aligent_Emarsys_Helper_Emarsys */
                         $emHelper = Mage::helper('aligent_emarsys/emarsys');
-                        $sub = $emHelper->addSubscriber($newsSub->getId(), $firstname, $lastname, $email, $dob, $gender);
-                        if($sub){
-                            $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub->getData())));
+                        $remoteSync = Mage::helper('aligent_emarsys')->ensureNewsletterSyncRecord(
+                            $newsSub->getId(),
+                            false,
+                            true,
+                            $firstname,
+                            $lastname,
+                            $gender,
+                            $dob
+                        );
+
+                        $sub = $emHelper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $email, $dob, $gender);
+                        if($sub && $sub->getData()){
+                            $remoteSync->setEmarsysId($sub->getData()['id']);
+                            $remoteSync->save();
+
+                            $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub)));
                         }else{
                             $oResponse->setBody(json_encode(array('failure'=>true, 'message'=>'Unexpected failure')));
                         }
-                    }else{
+                    } else{
                         $oResponse->setBody('{"success": true}');
                     }
 

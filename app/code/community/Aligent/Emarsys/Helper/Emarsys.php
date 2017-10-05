@@ -38,6 +38,10 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $dob;
     }
 
+    public function getHarmonyIdField(){
+        return $this->getHelper()->getHarmonyIdField();
+    }
+
     public function getSubscriptionField(){
         $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField();
         if(!is_numeric($subscribedField) || $subscribedField == -1) $subscribedField = $this->getClient()->getFieldId('optin');
@@ -75,11 +79,17 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     }
 
     protected function mapGenderValue($customer){
-        $gender = ($customer->getGender() != null) ? $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer) : null;
+        if(is_object($customer)){
+            $gender = ($customer->getGender() != null) ? $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer) : null;
+        }else{
+            $gender = $customer;
+        }
         if($gender){
             $genders = $this->getGenderMap();
             $gender = strtolower($gender);
             return isset($genders[$gender]) ? $genders[$gender] : null;
+        }else{
+            return null;
         }
     }
 
@@ -101,6 +111,12 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
             $this->getGenderField() => $this->mapGenderValue($customer),
             $this->getDobField() => $customer->getDob()
         );
+
+        $harmonyField = $this->getHarmonyIdField();
+        if($harmonyField){
+            $syncId = $this->getHelper()->ensureCustomerSyncRecord($customer->getId())->getId();
+            $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $syncId );
+        }
         return $data;
     }
 
@@ -111,35 +127,42 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_client;
     }
 
-    public function updateSubscriber($localId, $firstname, $lastname, $email, $dob){
+    /**
+     * Convenience method for data updates to Emarsys.
+     *
+     * @param $localSyncId
+     * @param bool $isSubscribed
+     * @param null $firstname
+     * @param null $lastname
+     * @param null $email
+     * @param null $dob
+     * @param null $gender
+     * @return \Snowcap\Emarsys\Response
+     */
+    protected function updateSubscriber($localSyncId, $isSubscribed = true, $email = null, $firstname = null, $lastname = null, $dob = null, $gender = null){
         $data = array(
-            $this->getEmailField() => $email,
-            $this->getFirstnameField() => $firstname,
-            $this->getLastnameField() => $lastname,
-            $this->getSubscriptionField() => $this->mapSubscriptionValue(true, $localId),
-            $this->getDobField() => $dob
+            $this->getSubscriptionField() => $this->mapSubscriptionValue($isSubscribed, $localSyncId)
         );
-        return $this->getClient()->updateContact($data);
+        if($firstname) $data[$this->getFirstnameField()] = $firstname;
+        if($lastname) $data[$this->getLastnameField()] = $lastname;
+        if($email) $data[$this->getEmailField()] = $email;
+        if($dob) $data[$this->getDobField()] = $dob;
+        if($gender) $data[$this->getGenderField()] = $this->mapGenderValue($gender);
+
+        $harmonyField = $this->getHarmonyIdField();
+        if($harmonyField){
+            $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $localSyncId );
+        }
+        return $this->getClient()->updateContactAndCreateIfNotExists($data);
     }
 
     public function removeSubscriber($localId, $email){
-        $data = array($this->getEmailField() => $email, $this->getSubscriptionField()=>$this->mapSubscriptionValue(false, $localId));
-        $result = $this->getClient()->updateContactAndCreateIfNotExists($data);
-        return $result->getData();
+        return $this->updateSubscriber($localId, false, $email);
     }
 
     public function addSubscriber($localId, $firstname, $lastname, $email, $dob, $gender = null){
-        $data = array(
-            $this->getEmailField()=>$email,
-            $this->getFirstnameField()=>$firstname,
-            $this->getLastnameField()=>$lastname,
-            $this->getSubscriptionField()=>$this->mapSubscriptionValue(true, $localId)
-        );
-        $dobField = $this->getDobField();
-        if($dobField) $data[$dobField] = $dob;
-        if($gender) $data[$this->getGenderField()] = $gender;
         try{
-            $result = $this->getClient()->updateContactAndCreateIfNotExists($data);
+            $result = $this->updateSubscriber($localId, true, $email, $firstname, $lastname, $dob, $gender);
             return $result;
         }catch(Exception $e){
             return null;

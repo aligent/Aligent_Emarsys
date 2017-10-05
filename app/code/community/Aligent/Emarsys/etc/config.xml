@@ -326,7 +326,7 @@
                     <aligent_emarsys>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
-                        <method>checkoutSuccessClearCookie</method>
+                        <method>afterCheckoutSuccess</method>
                     </aligent_emarsys>
                 </observers>
             </sales_model_service_quote_submit_success>

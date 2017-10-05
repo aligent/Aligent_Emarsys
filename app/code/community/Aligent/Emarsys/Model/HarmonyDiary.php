@@ -8,12 +8,12 @@
 
 class Aligent_Emarsys_Model_HarmonyDiary
 {
-    const WEB_DEBTOR = 'DEBTOR';
-    const WEB_AGENT = '10';
-    const WEB_TERMINAL = 'ALIGENT';
-    const WEB_USER = 'ALIGENT';
-    const NAMEKEY_PREFIX = 'AL';
+    /** @var  Aligent_Emarsys_Helper_Data  */
+    protected $_helper;
 
+    public function __construct(){
+        $this->_helper = Mage::helper('aligent_emarsys');
+    }
 
     protected function populateAddress($addressId, $fieldMap){
         if (!$addressId) return;
@@ -47,6 +47,17 @@ class Aligent_Emarsys_Model_HarmonyDiary
         return $localSyncData;
     }
 
+    public function fillMagentoSubscriber($subscriberId){
+        $subscriber = Mage::getModel('newsletter/subscriber')->load($subscriberId);
+        $localSyncData = $this->_helper->ensureNewsletterSyncRecord($subscriberId);
+
+        $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
+        $this->name_1 = $localSyncData->getFirstName();
+        $this->name_2 = $localSyncData->getLastName();
+        $this->date_of_birth = $localSyncData->getDob();
+        $this->{'classification.1'} = $subscriber->getSubscriberStatus() == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED ? 'EMAIL' : 'NOEML';
+        $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncData->getId());
+    }
 
     public function fillMagentoCustomer($customerId)
     {
@@ -62,7 +73,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->date_of_birth = date('Y-m-d', strtotime($customer->getDob()));
         $this->{'classification.1'} = $this->isCustomerSubscribed($customer) ? 'EMAIL' : 'NOEML';
 
-        $this->namekey = $this->generateNamekey($localSyncData->getId());
+        $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncData->getId());
     }
 
     public static $fieldProperties = array(
@@ -347,9 +358,9 @@ class Aligent_Emarsys_Model_HarmonyDiary
     {
         $_data = array();
 
-        $this->debtor_namekey = self::WEB_DEBTOR;
-        $this->user_id = self::WEB_USER;
-        $this->terminal_id = self::WEB_TERMINAL;
+        $this->debtor_namekey = $this->_helper->getHarmonyDebtorNamekey();
+        $this->user_id = $this->_helper->getHarmonyUserId();
+        $this->terminal_id = $this->_helper->getHarmonyTerminalId();
 
         foreach (self::$fieldProperties as $field) {
             $fieldName = $field['name'];
@@ -369,8 +380,9 @@ class Aligent_Emarsys_Model_HarmonyDiary
         return (int)$value;
     }
 
-    protected function generateNamekey($id){
-        $namekey = self::NAMEKEY_PREFIX . str_pad($id, 10 - strlen(self::NAMEKEY_PREFIX)-strlen($id),'0',STR_PAD_LEFT);
+    public static function generateNamekey($id){
+        $prefix = Mage::helper('aligent_emarsys')->getHarmonyNamekeyPrefix();
+        $namekey = $prefix . str_pad($id, 10 - strlen($prefix)-strlen($id),'0',STR_PAD_LEFT);
         return $namekey;
     }
 }

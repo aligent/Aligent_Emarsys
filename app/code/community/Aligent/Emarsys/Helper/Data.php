@@ -21,6 +21,11 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_harmonyFTPPass = null;
     protected $_harmonyFTPImport = null;
     protected $_harmonyFTPExport = null;
+    protected $_harmonyDebtor = null;
+    protected $_harmonyTerminalId = null;
+    protected $_harmonyUserId = null;
+    protected $_harmonyNamekeyPrefix = null;
+    protected $_harmonyIdField = null;
 
     protected $_emarsysAPIUser = null;
     protected $_emarsysAPISecret = null;
@@ -55,12 +60,17 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_HARMONY_FTP_PASS = 'aligent_emarsys/harmony_settings/harmony_ftp_password';
     const XML_EMARSYS_HARMONY_FTP_IMPORT = 'aligent_emarsys/harmony_settings/harmony_ftp_import_path';
     const XML_EMARSYS_HARMONY_FTP_EXPORT = 'aligent_emarsys/harmony_settings/harmony_ftp_export_path';
+    const XML_EMARSYS_HARMONY_DEBTOR = 'aligent_emarsys/harmony_settings/web_debtor';
+    const XML_EMARSYS_HARMONY_TERMINAL = 'aligent_emarsys/harmony_settings/web_terminal';
+    const XML_EMARSYS_HARMONY_USER = 'aligent_emarsys/harmony_settings/web_user';
+    const XML_EMARSYS_HARMONY_PREFIX = 'aligent_emarsys/harmony_settings/namekey_prefix';
 
     const XML_EMARSYS_API_USER = 'aligent_emarsys/emarsys_api_settings/emarsys_username';
     const XML_EMARSYS_API_SECRET = 'aligent_emarsys/emarsys_api_settings/emarsys_secret';
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field_id';
+    const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
 
     public function getGetStockFromSimpleProduct(){
         if($this->_feedStockFromSimple === null ){
@@ -82,6 +92,16 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_includeDisabled = Mage::getStoreConfig(self::XML_FEED_INCLUDE_DISABLED) == 1;
         }
         return $this->_includeDisabled;
+    }
+
+    /**
+     * Get the Harmony ID field to populate in Emarsys, if specified.
+     */
+    public function getHarmonyIdField(){
+        if($this->_harmonyIdField === null ){
+            $this->_harmonyIdField = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD);
+        }
+        return $this->_harmonyIdField;
     }
 
     /**
@@ -217,6 +237,58 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
         return $this->_harmonyFTPImport;
     }
+
+    /**
+     * Get the Harmony debtor namekey
+     *
+     * @return string
+     */
+    public function getHarmonyDebtorNamekey(){
+        if($this->_harmonyDebtor === null){
+            $this->_harmonyDebtor = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_DEBTOR);
+        }
+        return $this->_harmonyDebtor;
+    }
+
+    /**
+     * Get the Harmony terminal ID
+     *
+     * @return string
+     */
+    public function getHarmonyTerminalId(){
+        if($this->_harmonyTerminalId === null){
+            $this->_harmonyTerminalId = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_TERMINAL);
+        }
+        return $this->_harmonyTerminalId;
+
+    }
+
+    /**
+     * Get the Harmony user ID
+     *
+     * @return string
+     */
+    public function getHarmonyUserId(){
+        if($this->_harmonyUserId === null){
+            $this->_harmonyUserId = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_USER);
+        }
+        return $this->_harmonyUserId;
+
+    }
+
+    /**
+     * Get the Harmony customer namekey prefix
+     *
+     * @return string
+     */
+    public function getHarmonyNamekeyPrefix(){
+        if($this->_harmonyNamekeyPrefix === null){
+            $this->_harmonyNamekeyPrefix = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_PREFIX);
+        }
+        return $this->_harmonyNamekeyPrefix;
+
+    }
+
 
     /**
      * Get the cookie name.
@@ -567,7 +639,6 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         return Mage::getModel('newsletter/subscriber')->loadByEmail($email);
     }
 
-
     /**
      * @param $customer
      * @return bool
@@ -587,5 +658,81 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         return $core->decrypt( $string );
     }
 
+    /**
+     * Ensure that for a given newsletter subscriber, a remoteSystemSyncFlags record exists
+     * and set the dirty flags as required
+     *
+     * @param int $id The newsletter_subscriber ID
+     * @param bool $emarsysFlag Whether to mark as needing Emarsys sync (true) or not (false)
+     * @param bool $harmonyFlag Whether to mark as needing Harmony sync (true) or not (false)
+     *
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
+     */
+    public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null){
+        $subscriber = Mage::getModel('newsletter/subscriber')->load($id);
+        if(!$subscriber->getId()){
+            return null;// If we weren't passed a valid newsletter subscriber ID, just bail
+        }
 
+        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
+        $remoteSync->setNewsletterSubscriberId($id);
+        $remoteSync->setCustomerEntityId($subscriber->getCustomerId());
+        $remoteSync->setHarmonySyncDirty($harmonyFlag);
+        $remoteSync->setEmarsysSyncDirty($emarsysFlag);
+
+        if($firstName) $remoteSync->setFirstName($firstName);
+        if($lastName) $remoteSync->setLastName($lastName);
+        if($dob) $remoteSync->setDob($dob);
+        if($gender) $remoteSync->setGender($gender);
+        $remoteSync->setEmail($subscriber->getSubscriberEmail());
+        $remoteSync->save();
+
+        return $remoteSync;
+    }
+
+    /**
+     * @param int $id The customer_entity_id
+     * @param bool $emarsysFlag Whether to mark the record dirty for Emarsys
+     * @param bool $harmonyFlag Whether to mark the record dirty for Harmony
+     *
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
+     */
+    public function ensureCustomerSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true){
+        /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $remoteSync */
+        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($id, 'customer_entity_id');
+        // Set this again, just in case we're a new record.
+        $remoteSync->setCustomerEntityId($id);
+        $remoteSync->setHarmonySyncDirty($harmonyFlag);
+        $remoteSync->setEmarsysSyncDirty($emarsysFlag);
+        $remoteSync->save();
+        return $remoteSync;
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     *
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
+     */
+    public function ensureOrderSyncRecord($order){
+        // Is there a customer ID?
+        if($order->getCustomerIsGuest()){
+            // Ok, let's try to find a subscriber
+            /** @var Mage_Newsletter_Model_Subscriber  $subscriber */
+            $subscriber = Mage::getModel('newsletter/subscriber');
+            $subscriber->loadByEmail($order->getCustomerEmail());
+            if(!$subscriber->getId()){
+                // If they're not a subscriber, add a record just so
+                // we have enough data for a namekey
+                Mage::register('emarsys_newsletter_ignore', true);
+                $subscriber->setSubscriberEmail($order->getCustomerEmail());
+                $subscriber->setSubscriberStatus(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED);
+                $subscriber->save();
+            }
+            $remoteSync = $this->ensureNewsletterSyncRecord($subscriber->getId(),true,true, $order->getCustomerFirstname(),
+                $order->getCustomerLastname(), $order->getCustomerGender(), $order->getCustomerDob());
+        }else{
+            $remoteSync = $this->ensureCustomerSyncRecord($order->getCustomerId(), true, true);
+        }
+        return $remoteSync;
+    }
 }

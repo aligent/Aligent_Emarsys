@@ -109,6 +109,38 @@
                             <show_in_store>1</show_in_store>
                             <comment>The remote directory Magento should place CSV files for Harmony to pick up</comment>
                         </harmony_ftp_export_path>
+                        <web_debtor>
+                            <label>Debtor Namekey</label>
+                            <sort_order>60</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </web_debtor>
+                        <web_terminal>
+                            <label>Terminal ID</label>
+                            <sort_order>70</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </web_terminal>
+                        <web_user>
+                            <label>User ID</label>
+                            <sort_order>80</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </web_user>
+                        <namekey_prefix>
+                            <label>Namekey Prefix</label>
+                            <sort_order>90</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </namekey_prefix>
                     </fields>
                 </harmony_settings>
                 <emarsys_api_settings translate="label" module="aligent_emarsys">
@@ -157,6 +189,15 @@
                             <show_in_store>1</show_in_store>
                         </emarsys_voucher_field_id>
 
+                        <harmony_id_field translate="label">
+                            <label>Harmony ID Field</label>
+                            <sort_order>50</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>aligent_emarsys/system_config_source_select_emarsysfields</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_id_field>
                     </fields>
                 </emarsys_api_settings>
                 <settings translate="label" module="aligent_emarsys">
