@@ -30,11 +30,11 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
      */
     private $client;
 
-    public static function create(){
+    public static function create($emarsysUser = null, $emarsysSecret = null){
         /** @var Aligent_Emarsys_Helper_Data $helper */
         $helper = Mage::helper('aligent_emarsys');
-        $emarsysUser = $helper->getEmarsysAPIUser();
-        $emarsysSecret = $helper->getEmarsysAPISecret();
+        if(!$emarsysUser) $emarsysUser = $helper->getEmarsysAPIUser();
+        if(!$emarsysSecret) $emarsysSecret = $helper->getEmarsysAPISecret();
         return new Aligent_Emarsys_Model_EmarsysClient( new Snowcap\Emarsys\CurlClient() , $emarsysUser, $emarsysSecret);
     }
 

@@ -120,9 +120,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * Get the Emarsys API Username
      * @return string
      */
-    public function getEmarsysAPIUser(){
+    public function getEmarsysAPIUser($storeId = null){
         if($this->_emarsysAPIUser === null){
-            $this->_emarsysAPIUser = Mage::getStoreConfig(self::XML_EMARSYS_API_USER);
+            $this->_emarsysAPIUser = Mage::getStoreConfig(self::XML_EMARSYS_API_USER, $storeId);
         }
         return $this->_emarsysAPIUser;
     }
@@ -132,9 +132,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * THIS IS RETURNED AS DECRYPTED PLAIN TEXT.
      * @return string
      */
-    public function getEmarsysAPISecret(){
+    public function getEmarsysAPISecret($storeId = null){
         if($this->_emarsysAPISecret === null){
-            $this->_emarsysAPISecret = $this->decrypt( Mage::getStoreConfig(self::XML_EMARSYS_API_SECRET) );
+            $this->_emarsysAPISecret = $this->decrypt( Mage::getStoreConfig(self::XML_EMARSYS_API_SECRET, $storeId ) );
 
         }
         return $this->_emarsysAPISecret;

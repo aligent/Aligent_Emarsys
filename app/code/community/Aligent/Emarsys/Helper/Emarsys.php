@@ -120,9 +120,9 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $data;
     }
 
-    public function getClient(){
+    public function getClient($emUser = null, $emPass = null){
         if($this->_client === null){
-            $this->_client = Aligent_Emarsys_Model_EmarsysClient::create();
+            $this->_client = Aligent_Emarsys_Model_EmarsysClient::create($emUser, $emPass);
         }
         return $this->_client;
     }
