@@ -257,6 +257,11 @@
             </aligent_emarsys>
         </blocks>
         <models>
+            <newsletter>
+                <rewrite>
+                    <subscriber>Aligent_Emarsys_Model_Subscriber</subscriber>
+                </rewrite>
+            </newsletter>
             <aligent_emarsys>
                 <class>Aligent_Emarsys_Model</class>
                 <resourceModel>aligent_emarsys_resource</resourceModel>

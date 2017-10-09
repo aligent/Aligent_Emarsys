@@ -11,7 +11,6 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_sendEmail = null;
     protected $_isTestMode = null;
     protected $_sendParentSku = null;
-    protected $_subscriptionEnabled = null;
     protected $_subscriptionSignupUrl = null;
     protected $_subscriptionSignupTimeout = null;
 
@@ -379,11 +378,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return bool
      */
-    public function isSubscriptionEnabled() {
-        if ($this->_subscriptionEnabled === null) {
-            $this->_subscriptionEnabled = Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH);
-        }
-        return $this->_subscriptionEnabled;
+    public function isSubscriptionEnabled( $storeId = null ) {
+        return Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH, $storeId);
     }
 
     /**

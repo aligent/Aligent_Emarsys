@@ -16,6 +16,8 @@ class Aligent_Emarsys_Model_Cron {
         /** @var $emarsysHelper Aligent_Emarsys_Helper_Emarsys l*/
         $emarsysHelper = Mage::helper('aligent_emarsys/emarsys');
 
+        $helper = Mage::helper('aligent_emarsys');
+
         /** @var $news Mage_Newsletter_Model_Subscriber */
         $customers = Mage::getModel("customer/customer")->getCollection()
             ->addAttributeToSelect('firstname')
@@ -27,6 +29,9 @@ class Aligent_Emarsys_Model_Cron {
         $customers->getSelect()->where('(emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null)');
         $eClient = $emarsysHelper->getClient();
         foreach($customers as $customer){
+            $storeId = $customer->getStore()->getId();
+            if(!$helper->isSubscriptionEnabled($storeId)) continue;
+
             $data = $emarsysHelper->getCustomerData($customer);
             $result = $eClient->updateContactAndCreateIfNotExists($data);
             if($result->getReplyCode()==0){
@@ -103,6 +108,7 @@ class Aligent_Emarsys_Model_Cron {
 
     protected function getHarmonyExportData(){
         $this->_pendingHarmonyDataItems = array();
+        $helper = Mage::helper('aligent_emarsys');
 
         $handle = fopen('php://temp', 'rw+');
         $outputFile = new Aligent_Emarsys_Model_HarmonyDiaryWriter($handle);
@@ -114,6 +120,8 @@ class Aligent_Emarsys_Model_Cron {
         $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
 
         foreach ($customers as $customer) {
+            if(!$helper->isSubscriptionEnabled($customer->getStore()->getId())) continue;
+
             $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
             $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
             $harmonyCustomer->fillMagentoCustomer($customer->getId());
@@ -128,6 +136,7 @@ class Aligent_Emarsys_Model_Cron {
         $subscribers->getSelect()->where('customer_entity_id is null AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
 
         foreach ($subscribers as $subscriber) {
+            if(!$helper->isSubscriptionEnabled($subscriber->getStoreId())) continue;
             $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
             $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
             $harmonyCustomer->fillMagentoSubscriber($subscriber);
