@@ -379,9 +379,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return bool
      */
-    public function isSubscriptionEnabled() {
+    public function isSubscriptionEnabled( $storeId = null ) {
         if ($this->_subscriptionEnabled === null) {
-            $this->_subscriptionEnabled = Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH);
+            $this->_subscriptionEnabled = Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH, $storeId);
         }
         return $this->_subscriptionEnabled;
     }
