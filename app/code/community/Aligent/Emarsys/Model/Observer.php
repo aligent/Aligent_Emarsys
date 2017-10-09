@@ -170,16 +170,19 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
                 $dob
             );
 
-            if ($subscriber->isSubscribed()) {
-                $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender);
-            }else{
-                $result = $helper->removeSubscriber($remoteSync->getId(), $subscriber->getSubscriberEmail());
+            if($remoteSync) {
+                if ($subscriber->isSubscribed()) {
+                    $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender);
+                } else {
+                    $result = $helper->removeSubscriber($remoteSync->getId(), $subscriber->getSubscriberEmail());
+                }
+
+                if($result && $result->getData()){
+                    $remoteSync->setEmarsysId($result->getData()['id']);
+                    $remoteSync->save();
+                }
             }
 
-            if($result && $result->getData()){
-                $remoteSync->setEmarsysId($result->getData()['id']);
-                $remoteSync->save();
-            }
         }
     }
 
