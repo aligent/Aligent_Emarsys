@@ -283,65 +283,65 @@
         <events>
             <customer_save_after>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_customer_save_after>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>customerModelChanged</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_customer_save_after>
                 </observers>
             </customer_save_after>
             <sales_quote_merge_after>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_sales_quote_merge_after>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>checkoutCartMergeUpdateCookie</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_sales_quote_merge_after>
                 </observers>
             </sales_quote_merge_after>
             <customer_logout>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_customer_logout>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>removeUserFromCookie</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_customer_logout>
                 </observers>
             </customer_logout>
             <customer_login>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_customer_login>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>addUserToCookie</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_customer_login>
                 </observers>
             </customer_login>
             <checkout_cart_save_after>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_checkout_cart_save_after>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>checkoutCartSaveUpdateCookie</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_checkout_cart_save_after>
                 </observers>
             </checkout_cart_save_after>
             <sales_model_service_quote_submit_success>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_sales_model_service_quote_submit_success>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>afterCheckoutSuccess</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_sales_model_service_quote_submit_success>
                 </observers>
             </sales_model_service_quote_submit_success>
 
             <newsletter_subscriber_save_before>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_newsletter_subscriber_save_before>
                         <class>aligent_emarsys/observer</class>
                         <method>handleSubscriber</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_newsletter_subscriber_save_before>
                 </observers>
             </newsletter_subscriber_save_before>
         </events>
