@@ -42,6 +42,28 @@ class Aligent_Emarsys_Model_Cron {
                 $syncData->save();
             }
         }
+
+        $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
+        $subscribers->getSelect()->joinLeft(
+            ['remote_flags' =>'aligent_emarsys_remote_system_sync_flags'],
+            'subscriber_id=newsletter_subscriber_id',
+            array('sync_id' => 'id'), null);
+        $subscribers->getSelect()->where('customer_entity_id is null AND (emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null)');
+        foreach($subscribers as $subscriber){
+            $storeId = $subscriber->getStoreId();
+            if(!$helper->isSubscriptionEnabled($storeId)) continue;
+
+            $data = $emarsysHelper->getSubscriberData($subscriber);
+            $result = $eClient->updateContactAndCreateIfNotExists($data);
+            if($result->getReplyCode()==0){
+                $this->_pendingEmarsysDataItems[] = $subscriber->getSyncId();
+                $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getSyncId());
+                $syncData->setEmarsysSyncDirty(false);
+                $syncData->setEmarsysId($result->getData()['id']);
+                $syncData->save();
+            }
+        }
+
     }
 
     public function importEmarsysData(){

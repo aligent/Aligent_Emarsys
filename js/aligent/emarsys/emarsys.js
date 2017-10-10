@@ -18,10 +18,10 @@ Aligent.Emarsys = Class.create({
         params.firstname = firstName;
         params.lastname = lastName;
         params.email = email;
-        if(!params.dob) params.dob = '1970-01-01';
-        if(!params.dobYY) params.dobYY = 1970;
-        if(!params.dobMM) params.dobMM = '01';
-        if(!params.dobDD) params.dobDD = '01';
+        if(!params.dob) params.dob = null;
+        if(!params.dobYY) params.dobYY = null;
+        if(!params.dobMM) params.dobMM = null;
+        if(!params.dobDD) params.dobDD = null;
         params.form_key = this._config.formKey;
 
         new Ajax.Request(this._config.subscribeUrl, {
@@ -289,4 +289,3 @@ Aligent.Emarsys = Class.create({
         return JSON.parse(Mage.Cookies.get(this._config.cookieName)) || [];
     }
 });
-
