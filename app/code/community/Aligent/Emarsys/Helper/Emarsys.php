@@ -78,9 +78,13 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_genders;
     }
 
+    protected function getCustomerGender($customer){
+        return $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer);
+    }
+
     protected function mapGenderValue($customer){
         if(is_object($customer)){
-            $gender = ($customer->getGender() != null) ? $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer) : null;
+            $gender = ($customer->getGender() != null) ? $this->getCustomerGender($customer) : null;
         }else{
             $gender = $customer;
         }
@@ -102,21 +106,18 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_helper;
     }
 
-    public function getSubscriberData($subscriber){
-        $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
-        if(!$syncData || !$syncData->getId()) return null;
-
+    protected function abstractDataFill($customerData, $syncData, $isSubscribed, $gender){
         $subField = $this->getSubscriptionField();
         $data = array(
-            $this->getEmailField() => $syncData->getEmail(),
-            $this->getFirstnameField() => $syncData->getFirstName(),
-            $this->getLastnameField() => $syncData->getLastName(),
-            $this->getGenderField() => $this->mapGenderValue($syncData->getGender()),
-            $this->getDobField() => $syncData->getDob()
+            $this->getEmailField() => $customerData->getEmail(),
+            $this->getFirstnameField() => $customerData->getFirstName(),
+            $this->getLastnameField() => $customerData->getLastName(),
+            $this->getGenderField() => $gender,
+            $this->getDobField() => $customerData->getDob()
         );
 
         if($subField) {
-            $data[$subField] = $this->mapSubscriptionValue($subscriber->isSubscribed(), $syncData->getId());
+            $data[$subField] = $this->mapSubscriptionValue($isSubscribed, $syncData->getId());
         }
 
         $defaultOptIn = $this->getClient()->getFieldId('optin');
@@ -129,28 +130,23 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $data;
     }
 
+    public function getSubscriberData($subscriber){
+        $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
+        if(!$syncData || !$syncData->getId()) return null;
+
+        $data = $this->abstractDataFill($syncData, $syncData, $subscriber->isSubscribed(), $syncData->getGender());
+
+        return $data;
+    }
+
     public function getCustomerData($customer){
         $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getId(), 'customer_entity_id');
-        $subField = $this->getSubscriptionField();
-        $data = array(
-            $this->getEmailField() => $customer->getEmail(),
-            $this->getFirstnameField() => $customer->getFirstname(),
-            $this->getLastnameField() => $customer->getLastname(),
-            $this->getGenderField() => $this->mapGenderValue($customer),
-            $this->getDobField() => $customer->getDob()
-        );
 
-        if($subField) {
-            $data[$subField] = $this->mapSubscriptionValue($this->getHelper()->isCustomerSubscribed($customer), $syncData->getId());
-        }
+        $isSubscribed = $this->getHelper()->isCustomerSubscribed($customer);
+        $genderValue = $this->getCustomerGender($customer);
 
-        $defaultOptIn = $this->getClient()->getFieldId('optin');
-        if(!isset($data[$defaultOptIn])) $data[$defaultOptIn] = true;
+        $data = $this->abstractDataFill($customer, $syncData, $isSubscribed, $genderValue);
 
-        $harmonyField = $this->getHarmonyIdField();
-        if($harmonyField && $syncData->getId() ){
-            $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $syncData->getId() );
-        }
         return $data;
     }
 
