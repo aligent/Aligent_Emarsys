@@ -23,7 +23,6 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
      * AJAX request to add an email to the cookie.
      */
     public function newslettersubscribeAction() {
-        ini_set('display_errors','on');
         $oResponse = $this->getResponse();
         $oResponse->setBody('{"failure": true}');
 
