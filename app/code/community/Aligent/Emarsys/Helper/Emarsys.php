@@ -102,7 +102,35 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_helper;
     }
 
+    public function getSubscriberData($subscriber){
+        $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
+        if(!$syncData || !$syncData->getId()) return null;
+
+        $subField = $this->getSubscriptionField();
+        $data = array(
+            $this->getEmailField() => $syncData->getEmail(),
+            $this->getFirstnameField() => $syncData->getFirstName(),
+            $this->getLastnameField() => $syncData->getLastName(),
+            $this->getGenderField() => $this->mapGenderValue($syncData->getGender()),
+            $this->getDobField() => $syncData->getDob()
+        );
+
+        if($subField) {
+            $data[$subField] = $this->mapSubscriptionValue($subscriber->isSubscribed(), $syncData->getId());
+        }
+
+        $defaultOptIn = $this->getClient()->getFieldId('optin');
+        if(!isset($data[$defaultOptIn])) $data[$defaultOptIn] = true;
+
+        $harmonyField = $this->getHarmonyIdField();
+        if($harmonyField && $syncData->getId() ){
+            $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $syncData->getId() );
+        }
+        return $data;
+    }
+
     public function getCustomerData($customer){
+        $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getId(), 'customer_entity_id');
         $subField = $this->getSubscriptionField();
         $data = array(
             $this->getEmailField() => $customer->getEmail(),
@@ -113,16 +141,15 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         );
 
         if($subField) {
-            $data[$subField] = $this->mapSubscriptionValue($this->getHelper()->isCustomerSubscribed($customer), $customer);
+            $data[$subField] = $this->mapSubscriptionValue($this->getHelper()->isCustomerSubscribed($customer), $syncData->getId());
         }
 
         $defaultOptIn = $this->getClient()->getFieldId('optin');
         if(!isset($data[$defaultOptIn])) $data[$defaultOptIn] = true;
 
         $harmonyField = $this->getHarmonyIdField();
-        if($harmonyField){
-            $syncId = $this->getHelper()->ensureCustomerSyncRecord($customer->getId())->getId();
-            $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $syncId );
+        if($harmonyField && $syncData->getId() ){
+            $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $syncData->getId() );
         }
         return $data;
     }
