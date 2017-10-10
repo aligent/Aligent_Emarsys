@@ -32,7 +32,15 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $email = $params['email'];
             $firstname = $params['firstname'];
             $lastname = $params['lastname'];
-            $dob = $params['dobYY'] . '-' . $params['dobMM'] . '-' . $params['dobDD'];
+
+            $yy = isset($params['dobYY']) ? $params['dobYY'] : null;
+            $mm = isset($params['dobMM']) ? $params['dobMM'] : null;
+            $dd = isset($params['dobDD']) ? $params['dobDD'] : null;
+            if ($yy && $mm && $dd) {
+                $dob = $yy . '-' . $mm . '-' . $dd;
+            }else{
+                $dob = null;
+            }
             $gender = isset($params['gender']) ? $params['gender'] : null;
             if (Zend_Validate::is($email, 'EmailAddress')) {
                 if($this->isSubscribed($email)){
@@ -92,6 +100,9 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
         if($result){
             $emailField = $emarsysHelper->getEmailField();
             $subscribeField = $emarsysHelper->getSubscriptionField();
+            // If we don't have a field to map to, then ignore this.
+            if(!$subscribeField) return;
+
             $emClient = $emarsysHelper->getClient();
             $results = $emClient->getExportFile($result->id);
 
