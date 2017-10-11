@@ -133,10 +133,9 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
             return $this;
         }
 
-        if ($this->getHelper()->isSubscriptionEnabled()) {
-            /** @var $subscriber Mage_Newsletter_Model_Subscriber */
-            $subscriber = $observer->getEvent()->getSubscriber();
-
+        /** @var $subscriber Mage_Newsletter_Model_Subscriber */
+        $subscriber = $observer->getEvent()->getSubscriber();
+        if ($this->getHelper()->isSubscriptionEnabled($subscriber->getStoreId())) {
             // get customer for name details.
             $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
 
