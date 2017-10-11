@@ -16,10 +16,10 @@
                 <id>
                     <header>item</header>
                     <xml_tag>g:id</xml_tag>
-                    <attribute>sku</attribute>
                     <singleton>
                         <class>aligent_emarsys/translator_item</class>
                         <method>translate</method>
+                        <field>sku</field>
                     </singleton>
                     <!-- if we don't override the value and special tags with blank, it will grab them from the Aligent Feeds config.xml -->
                     <value></value>
@@ -365,26 +365,26 @@
         </layout>
     </frontend>
     <adminhtml>
-    <acl>
-        <resources>
-            <admin>
-                <children>
-                    <system>
-                        <children>
-                            <config>
-                                <children>
-                                    <aligent_emarsys>
-                                        <title>Aligent Emarsys</title>
-                                    </aligent_emarsys>
-                                </children>
-                            </config>
-                        </children>
-                    </system>
-                </children>
-            </admin>
-        </resources>
-    </acl>
-</adminhtml>
+        <acl>
+            <resources>
+                <admin>
+                    <children>
+                        <system>
+                            <children>
+                                <config>
+                                    <children>
+                                        <aligent_emarsys>
+                                            <title>Aligent Emarsys</title>
+                                        </aligent_emarsys>
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+                    </children>
+                </admin>
+            </resources>
+        </acl>
+    </adminhtml>
     <default>
         <aligent_emarsys>
             <settings>
