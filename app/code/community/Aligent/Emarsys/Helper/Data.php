@@ -74,7 +74,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
 
     public function getHarmonyFileDump(){
-        if($this->_harmonyDumpFile == null) {
+        if($this->_harmonyDumpFile === null) {
             $this->_harmonyDumpFile = Mage::getStoreConfig(self::XML_HARMONY_DUMP_FILE);
         }
         return $this->_harmonyDumpFile;
