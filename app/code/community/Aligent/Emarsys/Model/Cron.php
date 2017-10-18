@@ -87,9 +87,17 @@ class Aligent_Emarsys_Model_Cron {
 
     public function exportHarmonyData()
     {
-        $fixedWidthData = $this->getHarmonyExportData();
-        if (strlen($fixedWidthData) > 0 && $this->pushHarmonyExportData($fixedWidthData)) {
-            $this->markHarmonyInSync();
+        try {
+            $helper = Mage::helper('aligent_emarsys');
+            $fixedWidthData = $this->getHarmonyExportData();
+            if($helper->getHarmonyFileDump()){
+                $fileName = Mage::getBaseDir() . '/media/harmony_dump.tab';
+                file_put_contents($fileName, $fixedWidthData);
+            }elseif (strlen($fixedWidthData) > 0 && $this->pushHarmonyExportData($fixedWidthData)) {
+                $this->markHarmonyInSync();
+            }
+        }catch(Exception $e){
+            Mage::logException($e);
         }
     }
 
@@ -154,7 +162,7 @@ class Aligent_Emarsys_Model_Cron {
         $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
         $subscribers->getSelect()->joinLeft(
             ['remote_flags' =>'aligent_emarsys_remote_system_sync_flags'],
-            'remote_flags.newsletter_subscriber_id=newsletter_subscriber_id',
+            'remote_flags.newsletter_subscriber_id=main_table.subscriber_id',
             array('sync_id' => 'id'), null);
         $subscribers->getSelect()->where('( (customer_entity_id is null OR customer_entity_id=0) AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null) )');
 

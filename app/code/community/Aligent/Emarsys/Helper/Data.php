@@ -3,6 +3,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_feedStockFromSimple = null;
     protected $_includeSimpleParents = null;
     protected $_includeDisabled = null;
+    protected $_harmonyDumpFile = null;
 
     protected $_cookieName = null;
     protected $_enabled = null;
@@ -63,6 +64,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_HARMONY_TERMINAL = 'aligent_emarsys/harmony_settings/web_terminal';
     const XML_EMARSYS_HARMONY_USER = 'aligent_emarsys/harmony_settings/web_user';
     const XML_EMARSYS_HARMONY_PREFIX = 'aligent_emarsys/harmony_settings/namekey_prefix';
+    const XML_HARMONY_DUMP_FILE = 'aligent_emarsys/harmony_settings/harmony_dump_file';
 
     const XML_EMARSYS_API_USER = 'aligent_emarsys/emarsys_api_settings/emarsys_username';
     const XML_EMARSYS_API_SECRET = 'aligent_emarsys/emarsys_api_settings/emarsys_secret';
@@ -70,6 +72,13 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field_id';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
+
+    public function getHarmonyFileDump(){
+        if($this->_harmonyDumpFile === null) {
+            $this->_harmonyDumpFile = Mage::getStoreConfigFlag(self::XML_HARMONY_DUMP_FILE);
+        }
+        return $this->_harmonyDumpFile;
+    }
 
     public function getGetStockFromSimpleProduct(){
         if($this->_feedStockFromSimple === null ){
@@ -691,6 +700,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         if($lastName) $remoteSync->setLastName($lastName);
         if($dob) $remoteSync->setDob($dob);
         if($gender) $remoteSync->setGender($gender);
+
         $remoteSync->setEmail($subscriber->getSubscriberEmail());
         $remoteSync->save();
 
