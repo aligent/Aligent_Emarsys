@@ -75,7 +75,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
     public function getHarmonyFileDump(){
         if($this->_harmonyDumpFile === null) {
-            $this->_harmonyDumpFile = Mage::getStoreConfig(self::XML_HARMONY_DUMP_FILE);
+            $this->_harmonyDumpFile = Mage::getStoreConfigFlag(self::XML_HARMONY_DUMP_FILE);
         }
         return $this->_harmonyDumpFile;
     }
