@@ -671,6 +671,17 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
 
         $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
+        if(!$remoteSync->getId()){
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
+            $remoteSync = $remoteSync->addFieldToFilter('email', $subscriber->getSubscriberEmail())->getFirstItem();
+            if($remoteSync->getId() ){
+                if($remoteSync->getNewsletterSubscriberId()){
+                    $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
+                }else{
+                    if(!$subscriber->getCustomerId()) $subscriber->setCustomerId($remoteSync->getCustomerEntityId());
+                }
+            }
+        }
         $remoteSync->setNewsletterSubscriberId($id);
         $remoteSync->setCustomerEntityId($subscriber->getCustomerId());
         $remoteSync->setHarmonySyncDirty($harmonyFlag);
@@ -696,6 +707,16 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     public function ensureCustomerSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true){
         /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $remoteSync */
         $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($id, 'customer_entity_id');
+
+        // Is it a valid customer?
+        $customer = Mage::getModel('customer/customer')->load($id);
+
+        // Is there a record for this email address already but with no customer ID?
+        if(!$remoteSync->getId()) {
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
+            $remoteSync = $remoteSync->addFieldToFilter('email', $customer->getEmail())->getFirstItem();
+            if($remoteSync->getId() && $remoteSync->getCustomerEntityId()) $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
+        }
         // Set this again, just in case we're a new record.
         $remoteSync->setCustomerEntityId($id);
         $remoteSync->setHarmonySyncDirty($harmonyFlag);

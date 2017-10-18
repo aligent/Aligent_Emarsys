@@ -15,16 +15,23 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->_helper = Mage::helper('aligent_emarsys');
     }
 
+    protected function limitString($string, $length){
+        if(strlen($string) > $length){
+            $string = substr($string, 0, $length);
+        }
+        return $string;
+    }
+
     protected function populateAddress($addressId, $fieldMap){
         if (!$addressId) return;
         $address = Mage::getModel('customer/address')->load($addressId);
         $address->getData();
 
-        $this->{$fieldMap[0]} = $address->getStreet(1);
-        $this->{$fieldMap[1]} = $address->getStreet(2);
-        $this->{$fieldMap[2]} = $address->getCity() . ' ' . $address->getRegionCode();
-        $this->{$fieldMap[3]} = $address->getCountryModel()->getName();
-        $this->{$fieldMap[4]} = $address->getPostcode();
+        $this->{$fieldMap[0]} = $this->limitString( $address->getStreet(1), 30);
+        $this->{$fieldMap[1]} = $this->limitString( $address->getStreet(2), 25 );
+        $this->{$fieldMap[2]} = $this->limitString( $address->getCity() . ' ' . $address->getRegionCode(), 25);
+        $this->{$fieldMap[3]} = $this->limitString( $address->getCountryModel()->getName(), 20);
+        $this->{$fieldMap[4]} = $this->limitString( $address->getPostcode(), 10);
     }
 
     public function fillMagentoBillingAddress($addressId){
@@ -44,9 +51,9 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $localSyncData = $this->_helper->ensureNewsletterSyncRecord($subscriberId);
 
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
-        $this->name_1 = $localSyncData->getFirstName();
-        $this->name_2 = $localSyncData->getLastName();
-        $this->date_of_birth = $localSyncData->getDob();
+        $this->name_1 = $this->limitString( $localSyncData->getFirstName(), 30) ;
+        $this->name_2 = $this->limitString( $localSyncData->getLastName(), 30);
+        $this->date_of_birth = date('Y-m-d', strtotime($localSyncData->getDob()));
         $this->{'classification.1'} = $subscriber->getSubscriberStatus() == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED ? 'EMAIL' : 'NOEML';
         $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncData->getId());
     }
@@ -62,8 +69,8 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $localSyncData = $this->ensureSyncData($customer);
 
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
-        $this->name_1 = $customer->getLastname();
-        $this->name_2 = $customer->getFirstname();
+        $this->name_1 = $this->limitString( $customer->getLastname(), 30 );
+        $this->name_2 = $this->limitString( $customer->getFirstname(), 30);
         $this->fillMagentoBillingAddress($customer->getDefaultBilling());
         $this->fillMagentoShippingAddress($customer->getDefaultShipping());
 
@@ -355,9 +362,9 @@ class Aligent_Emarsys_Model_HarmonyDiary
     {
         $_data = array();
 
-        $this->debtor_namekey = $this->_helper->getHarmonyDebtorNamekey();
-        $this->user_id = $this->_helper->getHarmonyUserId();
-        $this->terminal_id = $this->_helper->getHarmonyTerminalId();
+        $this->debtor_namekey = $this->limitString( $this->_helper->getHarmonyDebtorNamekey(), 10);
+        $this->user_id = $this->limitString( $this->_helper->getHarmonyUserId(), 10);
+        $this->terminal_id = $this->limitString( $this->_helper->getHarmonyTerminalId(), 10);
 
         foreach (self::$fieldProperties as $field) {
             $fieldName = $field['name'];
