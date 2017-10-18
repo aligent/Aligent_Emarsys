@@ -46,9 +46,10 @@ class Aligent_Emarsys_Model_Cron {
         $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
         $subscribers->getSelect()->joinLeft(
             ['remote_flags' =>'aligent_emarsys_remote_system_sync_flags'],
-            'subscriber_id=newsletter_subscriber_id',
+            'subscriber_id=remote_flags.newsletter_subscriber_id',
             array('sync_id' => 'id'), null);
-        $subscribers->getSelect()->where('customer_entity_id is null AND (emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null)');
+        $subscribers->getSelect()->where('( (customer_entity_id is null OR customer_entity_id=0) AND (emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null) )');
+
         foreach($subscribers as $subscriber){
             $storeId = $subscriber->getStoreId();
             if(!$helper->isSubscriptionEnabled($storeId)) continue;
@@ -155,13 +156,13 @@ class Aligent_Emarsys_Model_Cron {
             ['remote_flags' =>'aligent_emarsys_remote_system_sync_flags'],
             'remote_flags.newsletter_subscriber_id=newsletter_subscriber_id',
             array('sync_id' => 'id'), null);
-        $subscribers->getSelect()->where('( customer_entity_id is null AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null) )');
+        $subscribers->getSelect()->where('( (customer_entity_id is null OR customer_entity_id=0) AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null) )');
 
         foreach ($subscribers as $subscriber) {
             if(!$helper->isSubscriptionEnabled($subscriber->getStoreId())) continue;
             $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
             $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
-            $harmonyCustomer->fillMagentoSubscriber($subscriber);
+            $harmonyCustomer->fillMagentoSubscriber($subscriber->getId());
             $outputFile->write($harmonyCustomer->getDataArray());
         }
         rewind($handle);
