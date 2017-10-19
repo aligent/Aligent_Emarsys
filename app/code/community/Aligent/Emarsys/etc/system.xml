@@ -119,6 +119,15 @@
                             <show_in_store>1</show_in_store>
                             <comment>The remote directory Magento should place CSV files for Harmony to pick up</comment>
                         </harmony_ftp_export_path>
+                        <web_agent>
+                            <label>Agent</label>
+                            <sort_order>55</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-5</validate>
+                        </web_agent>
                         <web_debtor>
                             <label>Debtor Namekey</label>
                             <sort_order>60</sort_order>
@@ -126,6 +135,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-10</validate>
                         </web_debtor>
                         <web_terminal>
                             <label>Terminal ID</label>
@@ -134,6 +144,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-10</validate>
                         </web_terminal>
                         <web_user>
                             <label>User ID</label>
@@ -142,6 +153,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-10</validate>
                         </web_user>
                         <namekey_prefix>
                             <label>Namekey Prefix</label>
