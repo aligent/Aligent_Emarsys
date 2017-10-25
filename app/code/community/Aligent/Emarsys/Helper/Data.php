@@ -785,4 +785,16 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
         return $remoteSync;
     }
+
+    /**
+     * Logs a message to the Emarsys log file.  Log level 1 will always be logged,
+     * log level 2 is only logged if getEmarsysDebug is true.
+     * @param $message
+     * @param int $logLevel
+     */
+    public function log($message, $logLevel = 1){
+        if($logLevel == 1 || self::getHelper()->getEmarsysDebug() ){
+            Mage::log($message, null, 'aligent_emarsys',true);
+        }
+    }
 }

@@ -15,8 +15,8 @@ class Aligent_Emarsys_Model_Cron {
     public function exportEmarsysData(){
         /** @var $emarsysHelper Aligent_Emarsys_Helper_Emarsys l*/
         $emarsysHelper = Mage::helper('aligent_emarsys/emarsys');
-
         $helper = Mage::helper('aligent_emarsys');
+        $helper->log("Emarsys export started", 1);
 
         /** @var $news Mage_Newsletter_Model_Subscriber */
         $customers = Mage::getModel("customer/customer")->getCollection()
@@ -30,13 +30,19 @@ class Aligent_Emarsys_Model_Cron {
         $eClient = $emarsysHelper->getClient();
         foreach($customers as $customer){
             $storeId = $customer->getStore()->getId();
-            if(!$helper->isSubscriptionEnabled($storeId)) continue;
+            if(!$helper->isSubscriptionEnabled($storeId)){
+                $helper->log("Skip customer" . $customer->getId() , 2);
+                continue;
+            }
+            $helper->log("Export customer " . $customer->getId(), 2);
 
             $data = $emarsysHelper->getCustomerData($customer);
+            $helper->log("With data: " . print_r($data, true), 2);
             $result = $eClient->updateContactAndCreateIfNotExists($data);
             if($result->getReplyCode()==0){
                 $this->_pendingEmarsysDataItems[] = $customer->getSyncId();
                 $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getSyncId());
+                $helper->log("Mark record " . $syncData->getId() . " as in sync with Emarsys", 2);
                 $syncData->setEmarsysSyncDirty(false);
                 $syncData->setEmarsysId($result->getData()['id']);
                 $syncData->save();
@@ -52,7 +58,11 @@ class Aligent_Emarsys_Model_Cron {
 
         foreach($subscribers as $subscriber){
             $storeId = $subscriber->getStoreId();
-            if(!$helper->isSubscriptionEnabled($storeId)) continue;
+            if(!$helper->isSubscriptionEnabled($storeId)) {
+                $helper->log("Skip subscriber " . $subscriber->getId());
+                continue;
+            }
+            $helper->log("Update subscriber " . $subscriber->getId());
 
             $data = $emarsysHelper->getSubscriberData($subscriber);
             $result = $eClient->updateContactAndCreateIfNotExists($data);
@@ -134,7 +144,6 @@ class Aligent_Emarsys_Model_Cron {
         }catch(\Exception $e){
             return false;
         }
-
     }
 
     protected function getHarmonyExportData(){

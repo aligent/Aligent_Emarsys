@@ -154,8 +154,8 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
         $this->log("Send to $uri with $method");
         $this->log($body, 2);
         $result = parent::send($method, $uri, $body);
-        $this->log("Result");
-        $this->log($result);
+        $this->log("Method returned", 1);
+        $this->log($result,2);
         return $result;
     }
 
@@ -166,9 +166,7 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
      * @param int $logLevel
      */
     protected function log($message, $logLevel = 1){
-        if($logLevel == 1 || self::getHelper()->getEmarsysDebug() ){
-            Mage::log($message, null, 'aligent_emarsys',true);
-        }
+        self::getHelper()->log($message, $logLevel);
     }
 
     /**
