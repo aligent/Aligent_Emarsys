@@ -22,7 +22,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
      * @return string
      */
     protected function harmonyDate($dateValue){
-        if($dateValue===null || $dateValue === '') return '';
+        if($dateValue === null || $dateValue === '') return '';
 
         if(is_string($dateValue) ){
             $dateValue = DateTime::createFromFormat('Y-m-d', $dateValue);

@@ -5,7 +5,7 @@ use Snowcap\Emarsys\HttpClient;
 class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
     private $_labelMap = null;
     /** @var Aligent_Emarsys_Helper_Data */
-    private static $_helper = null;
+    protected static $_helper = null;
     /** @var Snowcap\Emarsys\Response */
     private $_remoteFields = null;
     /** @var string */
@@ -21,7 +21,7 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
      * @return Aligent_Emarsys_Helper_Data|Mage_Core_Helper_Abstract
      */
     protected static function getHelper(){
-        if(self::$_helper===null){
+        if(self::$_helper === null){
             self::$_helper = Mage::helper('aligent_emarsys');
         }
         return self::$_helper;
@@ -155,7 +155,7 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
         $this->log($body, 2);
         $result = parent::send($method, $uri, $body);
         $this->log("Method returned", 1);
-        $this->log($result,2);
+        $this->log($result, 2);
         return $result;
     }
 

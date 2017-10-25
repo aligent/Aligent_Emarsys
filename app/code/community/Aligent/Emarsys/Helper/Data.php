@@ -140,7 +140,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return string
      */
     public function getEmarsysDobField(){
-        if($this->_emarsysDobField===null){
+        if($this->_emarsysDobField === null){
             $this->_emarsysDobField = Mage::getStoreConfig(self::XML_EMARSYS_API_DOB_FIELD);
             if($this->_emarsysDobField == '-1') $this->_emarsysDobField='';
         }
