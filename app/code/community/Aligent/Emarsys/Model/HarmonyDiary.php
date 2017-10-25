@@ -15,6 +15,22 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->_helper = Mage::helper('aligent_emarsys');
     }
 
+    /**
+     * Formats the given value in the appropriate format
+     * for the Harmony export.  Currently that's DD-MM-YYYY
+     * @param $dateValue string|DateTime
+     * @return string
+     */
+    protected function harmonyDate($dateValue){
+        if($dateValue === null || $dateValue === '') return '';
+
+        if(is_string($dateValue) ){
+            $dateValue = DateTime::createFromFormat('Y-m-d', $dateValue);
+        }
+        return $dateValue->format('d-m-Y');
+
+    }
+
     protected function limitString($string, $length){
         if(strlen($string) > $length){
             $string = substr($string, 0, $length);
@@ -53,7 +69,9 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
         $this->name_1 = $this->limitString( $localSyncData->getFirstName(), 30) ;
         $this->name_2 = $this->limitString( $localSyncData->getLastName(), 30);
-        $this->date_of_birth = date('Y-m-d', strtotime($localSyncData->getDob()));
+        $this->email = $this->limitString($localSyncData->getEmail(), 60);
+
+        $this->date_of_birth = $this->harmonyDate( $localSyncData->getDob());
         $this->{'classification.1'} = $subscriber->getSubscriberStatus() == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED ? 'EMAIL' : 'NOEML';
         $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncData->getId());
     }
@@ -71,10 +89,13 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
         $this->name_1 = $this->limitString( $customer->getLastname(), 30 );
         $this->name_2 = $this->limitString( $customer->getFirstname(), 30);
+        $this->email = $this->limitString($customer->getEmail(), 60);
+        $this->{'telephone.0'} = $this->limitString( $customer->getTelephone(), 20);
+
         $this->fillMagentoBillingAddress($customer->getDefaultBilling());
         $this->fillMagentoShippingAddress($customer->getDefaultShipping());
 
-        $this->date_of_birth = date('Y-m-d', strtotime($customer->getDob()));
+        $this->date_of_birth = $this->harmonyDate( $customer->getDob() );
         $this->{'classification.1'} = $this->isCustomerSubscribed($customer) ? 'EMAIL' : 'NOEML';
 
         $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncData->getId());
@@ -303,7 +324,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
             'fieldWidth' => 20
         ),
         array(
-            'default' => '~',
+            'default' => '',
             'name' => 'password',
             'label' => 'Password',
             'fieldWidth' => 25
@@ -315,37 +336,37 @@ class Aligent_Emarsys_Model_HarmonyDiary
             'fieldWidth' => 10
         ),
         array(
-            'default' => '~',
+            'default' => '',
             'name' => 'default_discount_reason',
             'label' => 'Default discount reason',
             'fieldWidth' => 5
         ),
         array(
-            'default' => '~',
+            'default' => '',
             'name' => 'DPID',
             'label' => 'DPID',
             'fieldWidth' => 8
         ),
         array(
-            'default' => '~',
+            'default' => '',
             'name' => 'DPID_barcode',
             'label' => 'DPID Barcode',
             'fieldWidth' => 37
         ),
         array(
-            'default' => '~',
+            'default' => '',
             'name' => 'diary_active_flag',
             'label' => 'Diary Active Flag',
             'fieldWidth' => 1
         ),
         array(
-            'default' => '~',
+            'default' => '',
             'name' => 'external_id',
             'label' => 'External ID',
             'fieldWidth' => 20
         ),
         array(
-            'default' => '~',
+            'default' => '',
             'name' => 'customised_info',
             'label' => 'Customised Info',
             'fieldWidth' => 50
@@ -362,6 +383,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
     {
         $_data = array();
 
+        $this->agent = $this->limitString( $this->_helper->getHarmonyWebAgent(), 5 );
         $this->debtor_namekey = $this->limitString( $this->_helper->getHarmonyDebtorNamekey(), 10);
         $this->user_id = $this->limitString( $this->_helper->getHarmonyUserId(), 10);
         $this->terminal_id = $this->limitString( $this->_helper->getHarmonyTerminalId(), 10);
@@ -386,7 +408,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
 
     public static function generateNamekey($id){
         $prefix = Mage::helper('aligent_emarsys')->getHarmonyNamekeyPrefix();
-        $namekey = $prefix . str_pad($id, 10 - strlen($prefix)-strlen($id),'0',STR_PAD_LEFT);
+        $namekey = $prefix . str_pad($id, 10 - strlen($prefix),'0',STR_PAD_LEFT);
         return $namekey;
     }
 }

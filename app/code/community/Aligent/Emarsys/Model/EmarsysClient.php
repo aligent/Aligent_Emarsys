@@ -4,35 +4,31 @@ use Snowcap\Emarsys\HttpClient;
 
 class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
     private $_labelMap = null;
-
-    /**
-     * @var Snowcap\Emarsys\Response
-     */
+    /** @var Aligent_Emarsys_Helper_Data */
+    protected static $_helper = null;
+    /** @var Snowcap\Emarsys\Response */
     private $_remoteFields = null;
-
-    /**
-     * @var string
-     */
+    /** @var string */
     private $baseUrl = 'https://api.emarsys.net/api/v2/';
-
-    /**
-     * @var string
-     */
+    /** @var string */
     private $username;
-
-    /**
-     * @var string
-     */
+    /** @var string */
     private $secret;
-
-    /**
-     * @var HttpClient
-     */
+    /** @var HttpClient */
     private $client;
 
+    /**
+     * @return Aligent_Emarsys_Helper_Data|Mage_Core_Helper_Abstract
+     */
+    protected static function getHelper(){
+        if(self::$_helper === null){
+            self::$_helper = Mage::helper('aligent_emarsys');
+        }
+        return self::$_helper;
+    }
+
     public static function create($emarsysUser = null, $emarsysSecret = null){
-        /** @var Aligent_Emarsys_Helper_Data $helper */
-        $helper = Mage::helper('aligent_emarsys');
+        $helper = self::getHelper();
         if(!$emarsysUser) $emarsysUser = $helper->getEmarsysAPIUser();
         if(!$emarsysSecret) $emarsysSecret = $helper->getEmarsysAPISecret();
         return new Aligent_Emarsys_Model_EmarsysClient( new Snowcap\Emarsys\CurlClient() , $emarsysUser, $emarsysSecret);
@@ -52,7 +48,7 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
 
     public function exportChangesSince($dateString, $callback = null){
         /** @var Aligent_Emarsys_Helper_Emarsys $emarsysHelper */
-        $emarsysHelper = Mage::helper('aligent_emarsys/emarsys');
+        $emarsysHelper = self::getHelper();
         $fields = [ $emarsysHelper->getEmailField(),
                 $emarsysHelper->getSubscriptionField(),
                 $emarsysHelper->getFirstnameField(),
@@ -101,7 +97,10 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
         $headers = array('Content-Type: application/json', 'X-WSSE: ' . $this->getAuthenticationSignature());
         $uri = $this->baseUrl . "export/$id/data/?offset=0&limit=1000000";
         try {
+            $this->log("Send to $uri");
             $responseJson = $this->client->send(HttpClient::GET, $uri, $headers, array());
+            $this->log("Response:");
+            $this->log($responseJson);
             $responseJson = $this->parseResponseCSV($responseJson);
             return new Snowcap\Emarsys\Response(array('replyCode'=>0,'replyText'=>'OK','data'=> $responseJson));
         } catch (\Exception $e) {
@@ -142,6 +141,32 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
             $DataRows[] = $actualRow;
         }
         return $DataRows;
+    }
+
+    /**
+     * Overridden to provide the opportunity to capture extra logging when debug is on.
+     * @param string $method
+     * @param string $uri
+     * @param array $body
+     * @return \Snowcap\Emarsys\Response
+     */
+    protected function send($method = 'GET', $uri, array $body = array()){
+        $this->log("Send to $uri with $method");
+        $this->log($body, 2);
+        $result = parent::send($method, $uri, $body);
+        $this->log("Method returned", 1);
+        $this->log($result, 2);
+        return $result;
+    }
+
+    /**
+     * Logs a message to the Emarsys log file.  Log level 1 will always be logged,
+     * log level 2 is only logged if getEmarsysDebug is true.
+     * @param $message
+     * @param int $logLevel
+     */
+    protected function log($message, $logLevel = 1){
+        self::getHelper()->log($message, $logLevel);
     }
 
     /**

@@ -26,7 +26,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_harmonyUserId = null;
     protected $_harmonyNamekeyPrefix = null;
     protected $_harmonyIdField = null;
+    protected $_harmonyWebAgent = null;
 
+    protected $_emarsysDebug = null;
     protected $_emarsysAPIUser = null;
     protected $_emarsysAPISecret = null;
     protected $_emarsysSubscriptionField = null;
@@ -60,18 +62,39 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_HARMONY_FTP_PASS = 'aligent_emarsys/harmony_settings/harmony_ftp_password';
     const XML_EMARSYS_HARMONY_FTP_IMPORT = 'aligent_emarsys/harmony_settings/harmony_ftp_import_path';
     const XML_EMARSYS_HARMONY_FTP_EXPORT = 'aligent_emarsys/harmony_settings/harmony_ftp_export_path';
+    const XML_EMARSYS_HARMONY_WEB_AGENT = 'aligent_emarsys/harmony_settings/web_agent';
     const XML_EMARSYS_HARMONY_DEBTOR = 'aligent_emarsys/harmony_settings/web_debtor';
     const XML_EMARSYS_HARMONY_TERMINAL = 'aligent_emarsys/harmony_settings/web_terminal';
     const XML_EMARSYS_HARMONY_USER = 'aligent_emarsys/harmony_settings/web_user';
     const XML_EMARSYS_HARMONY_PREFIX = 'aligent_emarsys/harmony_settings/namekey_prefix';
     const XML_HARMONY_DUMP_FILE = 'aligent_emarsys/harmony_settings/harmony_dump_file';
 
+    const XML_EMARSYS_API_DEBUG_MODE = 'aligent_emarsys/emarsys_api_settings/emarsys_debug';
     const XML_EMARSYS_API_USER = 'aligent_emarsys/emarsys_api_settings/emarsys_username';
     const XML_EMARSYS_API_SECRET = 'aligent_emarsys/emarsys_api_settings/emarsys_secret';
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field_id';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
+
+    public function getHarmonyWebAgent(){
+        if($this->_harmonyWebAgent === null){
+            $this->_harmonyWebAgent = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_WEB_AGENT);
+        }
+        return $this->_harmonyWebAgent;
+    }
+
+    /**
+     * Retrieve the debug mode flag for the Emarsys API.
+     *
+     * @return bool|null
+     */
+    public function getEmarsysDebug(){
+        if($this->_emarsysDebug === null){
+            $this->_emarsysDebug = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_DEBUG_MODE);
+        }
+        return $this->_emarsysDebug;
+    }
 
     public function getHarmonyFileDump(){
         if($this->_harmonyDumpFile === null) {
@@ -117,7 +140,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return string
      */
     public function getEmarsysDobField(){
-        if($this->_emarsysDobField===null){
+        if($this->_emarsysDobField === null){
             $this->_emarsysDobField = Mage::getStoreConfig(self::XML_EMARSYS_API_DOB_FIELD);
             if($this->_emarsysDobField == '-1') $this->_emarsysDobField='';
         }
@@ -761,5 +784,17 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $remoteSync = $this->ensureCustomerSyncRecord($order->getCustomerId(), true, true);
         }
         return $remoteSync;
+    }
+
+    /**
+     * Logs a message to the Emarsys log file.  Log level 1 will always be logged,
+     * log level 2 is only logged if getEmarsysDebug is true.
+     * @param $message
+     * @param int $logLevel
+     */
+    public function log($message, $logLevel = 1){
+        if($logLevel == 1 || self::getHelper()->getEmarsysDebug() ){
+            Mage::log($message, null, 'aligent_emarsys',true);
+        }
     }
 }
