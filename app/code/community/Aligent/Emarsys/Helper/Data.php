@@ -28,6 +28,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_harmonyIdField = null;
     protected $_harmonyWebAgent = null;
 
+    protected $_emarsysDebug = null;
     protected $_emarsysAPIUser = null;
     protected $_emarsysAPISecret = null;
     protected $_emarsysSubscriptionField = null;
@@ -68,6 +69,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_HARMONY_PREFIX = 'aligent_emarsys/harmony_settings/namekey_prefix';
     const XML_HARMONY_DUMP_FILE = 'aligent_emarsys/harmony_settings/harmony_dump_file';
 
+    const XML_EMARSYS_API_DEBUG_MODE = 'aligent_emarsys/emarsys_api_settings/emarsys_debug';
     const XML_EMARSYS_API_USER = 'aligent_emarsys/emarsys_api_settings/emarsys_username';
     const XML_EMARSYS_API_SECRET = 'aligent_emarsys/emarsys_api_settings/emarsys_secret';
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
@@ -80,6 +82,18 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_harmonyWebAgent = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_WEB_AGENT);
         }
         return $this->_harmonyWebAgent;
+    }
+
+    /**
+     * Retrieve the debug mode flag for the Emarsys API.
+     *
+     * @return bool|null
+     */
+    public function getEmarsysDebug(){
+        if($this->_emarsysDebug === null){
+            $this->_emarsysDebug = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_DEBUG_MODE);
+        }
+        return $this->_emarsysDebug;
     }
 
     public function getHarmonyFileDump(){
