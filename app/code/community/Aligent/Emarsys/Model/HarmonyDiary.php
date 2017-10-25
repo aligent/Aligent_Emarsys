@@ -43,11 +43,11 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $address = Mage::getModel('customer/address')->load($addressId);
         $address->getData();
 
-        $this->{$fieldMap[0]} = $this->limitString( $address->getStreet(1), 30);
+        $this->{$fieldMap[0]} = $this->limitString( $address->getStreet(1), 30 );
         $this->{$fieldMap[1]} = $this->limitString( $address->getStreet(2), 25 );
-        $this->{$fieldMap[2]} = $this->limitString( $address->getCity() . ' ' . $address->getRegionCode(), 25);
-        $this->{$fieldMap[3]} = $this->limitString( $address->getCountryModel()->getName(), 20);
-        $this->{$fieldMap[4]} = $this->limitString( $address->getPostcode(), 10);
+        $this->{$fieldMap[2]} = $this->limitString( $address->getCity() . ' ' . $address->getRegionCode(), 25 );
+        $this->{$fieldMap[3]} = $this->limitString( $address->getCountryModel()->getName(), 20 );
+        $this->{$fieldMap[4]} = $this->limitString( $address->getPostcode(), 10 );
     }
 
     public function fillMagentoBillingAddress($addressId){
