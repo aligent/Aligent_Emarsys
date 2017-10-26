@@ -79,7 +79,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     }
 
     protected function getCustomerGender($customer){
-        return (!$customer->getGender()) ? '' : $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer);
+        return ( !$customer->getGender() ) ? '' : $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer);
     }
 
     protected function mapGenderValue($customer){
