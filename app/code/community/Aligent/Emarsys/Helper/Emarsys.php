@@ -79,7 +79,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     }
 
     protected function getCustomerGender($customer){
-        return $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer);
+        return ( !$customer->getGender() ) ? '' : $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer);
     }
 
     protected function mapGenderValue($customer){
@@ -112,7 +112,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
             $this->getEmailField() => $customerData->getEmail(),
             $this->getFirstnameField() => $customerData->getFirstName(),
             $this->getLastnameField() => $customerData->getLastName(),
-            $this->getGenderField() => $gender,
+            $this->getGenderField() => $this->mapGenderValue($gender),
             $this->getDobField() => $customerData->getDob()
         );
 
