@@ -7,18 +7,18 @@ $tableName = $installer->getTable('aligent_emarsys/remoteSystemSyncFlags');
 // Check if the table already exists
 if ($installer->getConnection()->isTableExists($tableName)) {
     // Remove any of the duplicate records that are going to break the scripts
-    $Items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
-    $Items->removeAllFieldsFromSelect();
-    $Items->getSelect()->columns('max(id) as mId')->group('customer_entity_id')->having('count(id) > 1')->where('customer_entity_id > 0');
+    $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
+    $items->removeAllFieldsFromSelect();
+    $items->getSelect()->columns('max(id) as mId')->group('customer_entity_id')->having('count(id) > 1')->where('customer_entity_id > 0');
 
-    $Ids = [];
-    foreach($Items as $Item){
-        $Ids[] = $Item->getData('mId');
+    $arrIds = [];
+    foreach($items as $item){
+        $arrIds[] = $item->getData('mId');
     }
 
-    $Items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection()->addFieldToFilter('id', ['in'=>$Ids]);
-    foreach($Items as $Item){
-        $Item->delete();
+    $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection()->addFieldToFilter('id', ['in'=>$Ids]);
+    foreach($items as $item){
+        $item->delete();
     }
     $table = $installer->getConnection();
 
@@ -52,6 +52,5 @@ if ($installer->getConnection()->isTableExists($tableName)) {
         array( 'email' ),
         array('type' => Varien_Db_Adapter_Interface::INDEX_TYPE_INDEX)
     );
-
-    $installer->endSetup();
 }
+$installer->endSetup();
