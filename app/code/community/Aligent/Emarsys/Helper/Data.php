@@ -703,6 +703,13 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
 
         $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
+        // If we don't have a sync for this subscriber and the subscriber is a customer,
+        // do we have a sync for that customer?
+        if(!$remoteSync->getId() && $subscriber->getCustomerId()){
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getCustomerId(), 'customer_entity_id');
+        }
+
+        // We still don't have a sync, so let's see if we can match on email.
         if(!$remoteSync->getId()){
             $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
             $remoteSync = $remoteSync->addFieldToFilter('email', $subscriber->getSubscriberEmail())->getFirstItem();

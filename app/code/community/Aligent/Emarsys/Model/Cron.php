@@ -40,12 +40,21 @@ class Aligent_Emarsys_Model_Cron {
             $helper->log("With data: " . print_r($data, true), 2);
             $result = $eClient->updateContactAndCreateIfNotExists($data);
             if($result->getReplyCode()==0){
-                $this->_pendingEmarsysDataItems[] = $customer->getSyncId();
-                $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getSyncId());
-                $helper->log("Mark record " . $syncData->getId() . " as in sync with Emarsys", 2);
-                $syncData->setEmarsysSyncDirty(false);
-                $syncData->setEmarsysId($result->getData()['id']);
-                $syncData->save();
+                if($customer->getSyncId()) {
+                    $this->_pendingEmarsysDataItems[] = $customer->getSyncId();
+                    $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getSyncId());
+                    $helper->log("Mark record " . $syncData->getId() . " as in sync with Emarsys", 2);
+                    $syncData->setEmarsysSyncDirty(false);
+                    $syncData->setEmarsysId($result->getData()['id']);
+                    $syncData->save();
+                }else{
+                    $helper->log("Create new sync record for customer " . $customer->getId(), 2);
+                    $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
+                    $syncData->setCustomerEntityId($customer->getId());
+                    $syncData->setFirstName($customer->getFirstname());
+                    $syncData->setLastName($customer->getLastname());
+                    $syncData->save();
+                }
             }
         }
 
