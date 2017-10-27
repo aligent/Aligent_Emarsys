@@ -16,7 +16,7 @@ if ($installer->getConnection()->isTableExists($tableName)) {
         $arrIds[] = $item->getData('mId');
     }
 
-    $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection()->addFieldToFilter('id', ['in'=>$Ids]);
+    $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection()->addFieldToFilter('id', ['in'=>$arrIds]);
     foreach($items as $item){
         $item->delete();
     }
