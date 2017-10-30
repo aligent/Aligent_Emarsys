@@ -687,21 +687,35 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     }
 
     /**
-     * Ensure that for a given newsletter subscriber, a remoteSystemSyncFlags record exists
-     * and set the dirty flags as required
+     * Locate an Aligent_Emarsys_Remote_System_Sync_flags record
+     * with the given customer_entity_id, or return a new model
+     * with the ID set if not found.
      *
-     * @param int $id The newsletter_subscriber ID
-     * @param bool $emarsysFlag Whether to mark as needing Emarsys sync (true) or not (false)
-     * @param bool $harmonyFlag Whether to mark as needing Harmony sync (true) or not (false)
-     *
+     * @param $id The customer entity id to find
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
-    public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null){
-        $subscriber = Mage::getModel('newsletter/subscriber')->load($id);
-        if(!$subscriber->getId()){
-            return null;// If we weren't passed a valid newsletter subscriber ID, just bail
-        }
+    public function findCustomerSyncRecord($id){
+        /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $remoteSync */
+        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($id, 'customer_entity_id');
 
+        // Is it a valid customer?
+        $customer = Mage::getModel('customer/customer')->load($id);
+
+        // Is there a record for this email address already but with no customer ID?
+        if(!$remoteSync->getId()) {
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getEmail(), 'email');
+            if($remoteSync->getId() && $remoteSync->getCustomerEntityId()) $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
+        }
+        // Set this again, just in case we're a new record.
+        $remoteSync->setCustomerEntityId($id);
+        return $remoteSync;
+    }
+
+    /**
+     * @param $subscriber
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
+     */
+    public function findNewsletterSyncRecord($subscriber){
         $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
         // If we don't have a sync for this subscriber and the subscriber is a customer,
         // do we have a sync for that customer?
@@ -711,8 +725,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
         // We still don't have a sync, so let's see if we can match on email.
         if(!$remoteSync->getId()){
-            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
-            $remoteSync = $remoteSync->addFieldToFilter('email', $subscriber->getSubscriberEmail())->getFirstItem();
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getSubscriberEmail(), 'email');
             if($remoteSync->getId() ){
                 if($remoteSync->getNewsletterSubscriberId()){
                     $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
@@ -721,7 +734,31 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
                 }
             }
         }
-        $remoteSync->setNewsletterSubscriberId($id);
+        $remoteSync->setNewsletterSubscriberId($subscriber->getId());
+        return $remoteSync;
+    }
+
+    /**
+     * Ensure that for a given newsletter subscriber, a remoteSystemSyncFlags record exists
+     * and set the dirty flags as required
+     *
+     * @param int $id The newsletter_subscriber ID
+     * @param bool $emarsysFlag Whether to mark as needing Emarsys sync (true) or not (false)
+     * @param bool $harmonyFlag Whether to mark as needing Harmony sync (true) or not (false)
+     * @param string $firstName First name to populate the record with
+     * @param string $lastName Last name to populate the record with
+     * @param string $gender Gender to populate the record with
+     * @param string $dob Date of birth to populate the record with
+     *
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
+     */
+    public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null){
+        $subscriber = Mage::getModel('newsletter/subscriber')->load($id);
+        if(!$subscriber->getId()){
+            return null;// If we weren't passed a valid newsletter subscriber ID, just bail
+        }
+
+        $remoteSync = $this->findNewsletterSyncRecord($subscriber);
         $remoteSync->setCustomerEntityId($subscriber->getCustomerId());
         $remoteSync->setHarmonySyncDirty($harmonyFlag);
         $remoteSync->setEmarsysSyncDirty($emarsysFlag);
@@ -745,20 +782,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function ensureCustomerSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true){
-        /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $remoteSync */
-        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($id, 'customer_entity_id');
-
-        // Is it a valid customer?
-        $customer = Mage::getModel('customer/customer')->load($id);
-
-        // Is there a record for this email address already but with no customer ID?
-        if(!$remoteSync->getId()) {
-            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
-            $remoteSync = $remoteSync->addFieldToFilter('email', $customer->getEmail())->getFirstItem();
-            if($remoteSync->getId() && $remoteSync->getCustomerEntityId()) $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
-        }
-        // Set this again, just in case we're a new record.
-        $remoteSync->setCustomerEntityId($id);
+        $remoteSync = $this->ensureCustomerSyncRecord($id);
         $remoteSync->setHarmonySyncDirty($harmonyFlag);
         $remoteSync->setEmarsysSyncDirty($emarsysFlag);
         $remoteSync->save();

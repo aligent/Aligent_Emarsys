@@ -11,12 +11,12 @@ if ($installer->getConnection()->isTableExists($tableName)) {
     $items->removeAllFieldsFromSelect();
     $items->getSelect()->columns('max(id) as mId')->group('customer_entity_id')->having('count(id) > 1')->where('customer_entity_id > 0');
 
-    $arrIds = [];
+    $ids = [];
     foreach($items as $item){
-        $arrIds[] = $item->getData('mId');
+        $ids[] = $item->getData('mId');
     }
 
-    $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection()->addFieldToFilter('id', ['in'=>$arrIds]);
+    $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection()->addFieldToFilter('id', ['in'=>$ids]);
     foreach($items as $item){
         $item->delete();
     }
