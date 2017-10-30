@@ -699,8 +699,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
         // Is there a record for this email address already but with no customer ID?
         if(!$remoteSync->getId()) {
-            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
-            $remoteSync = $remoteSync->addFieldToFilter('email', $customer->getEmail())->getFirstItem();
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getEmail(), 'email');
             if($remoteSync->getId() && $remoteSync->getCustomerEntityId()) $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
         }
         // Set this again, just in case we're a new record.
@@ -722,8 +721,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
         // We still don't have a sync, so let's see if we can match on email.
         if(!$remoteSync->getId()){
-            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
-            $remoteSync = $remoteSync->addFieldToFilter('email', $subscriber->getSubscriberEmail())->getFirstItem();
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getSubscriberEmail(), 'email');
             if($remoteSync->getId() ){
                 if($remoteSync->getNewsletterSubscriberId()){
                     $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
