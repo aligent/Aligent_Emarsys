@@ -35,7 +35,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
             $Newsletter = Mage::getModel('newsletter/subscriber')->setStoreId($this->_store)->loadByEmail($row['Email']);
             if(!$Newsletter->getId()){
                 $Newsletter->setSubscriberStatus(Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE);
-                //$Newsletter->save();
+                $Newsletter->save();
             }
             $SyncUp = $this->getHelper()->findNewsletterSyncRecord($Newsletter);
             $SyncUp->setFirstName($row['First Name']);
