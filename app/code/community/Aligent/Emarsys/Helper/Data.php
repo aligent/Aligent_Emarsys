@@ -687,7 +687,11 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     }
 
     /**
-     * @param $customer
+     * Locate an Aligent_Emarsys_Remote_System_Sync_flags record
+     * with the given customer_entity_id, or return a new model
+     * with the ID set if not found.
+     *
+     * @param $id The customer entity id to find
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function findCustomerSyncRecord($id){
@@ -741,6 +745,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param int $id The newsletter_subscriber ID
      * @param bool $emarsysFlag Whether to mark as needing Emarsys sync (true) or not (false)
      * @param bool $harmonyFlag Whether to mark as needing Harmony sync (true) or not (false)
+     * @param string $firstName First name to populate the record with
+     * @param string $lastName Last name to populate the record with
+     * @param string $gender Gender to populate the record with
+     * @param string $dob Date of birth to populate the record with
      *
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
