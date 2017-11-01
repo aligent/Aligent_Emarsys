@@ -260,6 +260,11 @@ Aligent.Emarsys = Class.create({
                     ScarabQueue.push(['searchTerm', this._value.searchTerm]);
                 }
 
+                // Tag this event with the current website code for future lookup and segmentation
+                if (this._config.sendWebsiteCode) {
+                    ScarabQueue.push(['tag', this._config.websiteCode]);
+                }
+
                 // Send - only ever called once.
                 ScarabQueue.push(['go']);
             } else {

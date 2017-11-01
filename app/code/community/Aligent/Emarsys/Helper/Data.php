@@ -12,6 +12,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_sendEmail = null;
     protected $_isTestMode = null;
     protected $_sendParentSku = null;
+    protected $_sendWebsiteCode = null;
     protected $_subscriptionSignupUrl = null;
     protected $_subscriptionSignupTimeout = null;
 
@@ -44,6 +45,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_SEND_EMAIL_PATH = 'aligent_emarsys/settings/send_email';
     const XML_EMARSYS_TEST_MODE_PATH = 'aligent_emarsys/settings/test_mode';
     const XML_EMARSYS_SEND_PARENT_SKU_PATH = 'aligent_emarsys/settings/send_parent_sku';
+    const XML_EMARSYS_SEND_WEBSITE_CODE_PATH = 'aligent_emarsys/settings/send_website_code';
 
     const XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH = 'aligent_emarsys/subscription/enabled';
     const XML_EMARSYS_SUBSCRIPTION_BASE_URL_PATH = 'aligent_emarsys/subscription/base_url';
@@ -380,6 +382,18 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_sendParentSku = Mage::getStoreConfigFlag(self::XML_EMARSYS_SEND_PARENT_SKU_PATH);
         }
         return $this->_sendParentSku;
+    }
+
+    /**
+     * Should the website code be tagged and sent for each event.
+     *
+     * @return bool
+     */
+    public function getSendWebsiteCode() {
+        if ($this->_sendWebsiteCode === null) {
+            $this->_sendWebsiteCode = Mage::getStoreConfigFlag(self::XML_EMARSYS_SEND_WEBSITE_CODE_PATH);
+        }
+        return $this->_sendWebsiteCode;
     }
 
     /**

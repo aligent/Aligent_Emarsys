@@ -10,7 +10,9 @@
                 testMode: <?php echo($this->isTestMode()); ?>,
                 sendParentSku: <?php echo($this->shouldSendParentSku()); ?>,
                 subscribeUrl: "<?php echo $this->getSubscriptionUrl();?>",
-                formKey: "<?php echo Mage::getSingleton('core/session')->getFormKey() ?>"
+                formKey: "<?php echo Mage::getSingleton('core/session')->getFormKey() ?>",
+                sendWebsiteCode: <?php echo $this->getSendWebsiteCode() ?>,
+                websiteCode: "<?php echo Mage::app()->getWebsite()->getCode() ?>"
             };
 
             aligentEmarsys = new Aligent.Emarsys(config);
