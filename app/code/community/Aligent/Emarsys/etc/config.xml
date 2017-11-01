@@ -393,6 +393,7 @@
                 <send_email>1</send_email>
                 <test_mode>1</test_mode>
                 <send_parent_sku>1</send_parent_sku>
+                <send_website_code>1</send_website_code>
             </settings>
             <subscription>
                 <enabled>1</enabled>

@@ -39,6 +39,9 @@ class Aligent_Emarsys_Block_Emarsys extends Mage_Core_Block_Template {
     public function shouldSendParentSku() {
         return ($this->getEmarsysHelper()->shouldSendParentSku()) ? 1 : 0;
     }
+    public function getSendWebsiteCode() {
+        return ($this->getEmarsysHelper()->getSendWebsiteCode()) ? 1 : 0;
+    }
 
     public function getCategoryId() {
         return Mage::registry('current_category')->getId();
