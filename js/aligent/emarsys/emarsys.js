@@ -36,6 +36,19 @@ Aligent.Emarsys = Class.create({
 
                     }
                 }
+                // Emarsys expects the "setEmail" command to be sent after a successful subscription. We'll set it here
+                // because if a customer does not have an account with the store then we won't have one available in
+                // the cookie. If, however, there is a customer in the cookie (because they're signed in) it'll be
+                // included after this call and be used instead
+                //
+                // ie. [
+                //   ['setEmail', 'foo@bar.com'],
+                //   ...
+                //   ['setEmail', 'john@example.org']
+                // ]
+                // Will end up with John's email used
+                ScarabQueue.push(['setEmail', email]);
+                Event.fire(document, 'emarsys:send');
             },
             onFailure : function(response){
                 if(callback){
