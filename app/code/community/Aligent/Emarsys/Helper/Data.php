@@ -796,7 +796,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function ensureCustomerSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true){
-        $remoteSync = $this->ensureCustomerSyncRecord($id);
+        $remoteSync = $this->findCustomerSyncRecord($id);
         $remoteSync->setHarmonySyncDirty($harmonyFlag);
         $remoteSync->setEmarsysSyncDirty($emarsysFlag);
         $remoteSync->save();
