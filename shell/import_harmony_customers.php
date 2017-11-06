@@ -28,6 +28,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
             if($Customer->getId()){
                 $SyncUp = $this->getHelper()->findCustomerSyncRecord($Customer->getId());
                 $SyncUp->setHarmonyId($row['Namekey']);
+                $SyncUp->setHarmonySyncDirty(false);
                 $SyncUp->save();
                 return true;
             }
@@ -42,8 +43,10 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
             $SyncUp = $this->getHelper()->findNewsletterSyncRecord($Newsletter);
             $SyncUp->setFirstName($row['First Name']);
             $SyncUp->setLastName($row['Surname']);
-            $SyncUp->setDob($row['Date of Birth']);
+            $SyncUp->setEmail($row['Email']);
+            $SyncUp->setDob(strtotime($row['Date of Birth']));
             $SyncUp->setHarmonyId($row['Namekey']);
+            $SyncUp->setHarmonySyncDirty(false);
             $SyncUp->save();
             return true;
         }else{
@@ -74,14 +77,14 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
 
         while(!feof($stream)){
             $row = $reader->readLine();
-            if($row['Email']!=='') {
-                if ($this->importCSVRow($row)) {
-                    $imported++;
-                } else {
-                    $errors++;
-                    Mage::log("Unable to import: ", null, 'aligent_emarsys');
-                    Mage::log(print_r($row, true), null, "aligent_emarsys");
-                }
+            if($row['Email']=='') continue;
+
+            if ($this->importCSVRow($row)) {
+                $imported++;
+            } else {
+                $errors++;
+                Mage::log("Unable to import: ", null, 'aligent_emarsys');
+                Mage::log(print_r($row, true), null, "aligent_emarsys");
             }
         }
         fclose($stream);
