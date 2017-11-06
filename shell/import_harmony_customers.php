@@ -34,6 +34,8 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
 
             $Newsletter = Mage::getModel('newsletter/subscriber')->setStoreId($this->_store)->loadByEmail($row['Email']);
             if(!$Newsletter->getId()){
+                $Newsletter->setEmail($row['Email']);
+                $Newsletter->setStoreId($this->_store);
                 $Newsletter->setSubscriberStatus(Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE);
                 $Newsletter->save();
             }
@@ -72,12 +74,14 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
 
         while(!feof($stream)){
             $row = $reader->readLine();
-            if( $this->importCSVRow($row) ){
-                $imported++;
-            }else{
-                $errors++;
-                Mage::log("Unable to import: ",null, 'aligent_emarsys');
-                Mage::log(print_r($row, true), null, "aligent_emarsys");
+            if($row['Email']!=='') {
+                if ($this->importCSVRow($row)) {
+                    $imported++;
+                } else {
+                    $errors++;
+                    Mage::log("Unable to import: ", null, 'aligent_emarsys');
+                    Mage::log(print_r($row, true), null, "aligent_emarsys");
+                }
             }
         }
         fclose($stream);
