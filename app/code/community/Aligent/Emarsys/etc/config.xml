@@ -194,7 +194,7 @@
     </feeds>
     <modules>
         <Aligent_Emarsys>
-            <version>0.0.2</version>
+            <version>0.0.3</version>
         </Aligent_Emarsys>
     </modules>
     <crontab>
