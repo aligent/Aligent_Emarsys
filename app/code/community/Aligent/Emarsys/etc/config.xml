@@ -200,7 +200,7 @@
     <crontab>
         <jobs>
             <import_emarsys_data>
-                <schedule><cron_expr>0 */15 * ? * *</cron_expr></schedule>
+                <schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
                 <name>Import Emarsys Data</name>
                 <run>
                     <model>aligent_emarsys/cron::importEmarsysData</model>
@@ -208,7 +208,7 @@
             </import_emarsys_data>
 
             <export_emarsys_data>
-                <schedule><cron_expr>0 */15 * ? * *</cron_expr></schedule>
+                <schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
                 <name>Export Emarsys Data</name>
                 <run>
                     <model>aligent_emarsys/cron::exportEmarsysData</model>
@@ -216,7 +216,7 @@
             </export_emarsys_data>
 
             <import_harmony_data>
-                <schedule><cron_expr>0 */15 * ? * *</cron_expr></schedule>
+                <schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
                 <name>Import Harmony Data</name>
                 <run>
                     <model>aligent_emarsys/cron::importHarmonyData</model>
@@ -224,7 +224,7 @@
             </import_harmony_data>
 
             <export_harmony_data>
-                <schedule><cron_expr>0 */15 * ? * *</cron_expr></schedule>
+                <schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
                 <name>Export Harmony Data</name>
                 <run>
                     <model>aligent_emarsys/cron::exportHarmonyData</model>
