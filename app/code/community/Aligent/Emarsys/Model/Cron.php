@@ -110,7 +110,7 @@ class Aligent_Emarsys_Model_Cron {
             $helper = Mage::helper('aligent_emarsys');
             $fixedWidthData = $this->getHarmonyExportData();
             if($helper->getHarmonyFileDump()){
-                $fileName = Mage::getBaseDir() . '/media/harmony_dump.tab';
+                $fileName = Mage::getBaseDir('var') . '/harmony_dump.tab';
                 file_put_contents($fileName, $fixedWidthData);
             }elseif (strlen($fixedWidthData) > 0 && $this->pushHarmonyExportData($fixedWidthData)) {
                 $this->markHarmonyInSync();
