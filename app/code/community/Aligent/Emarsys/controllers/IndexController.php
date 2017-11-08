@@ -43,7 +43,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $gender = isset($params['gender']) ? $params['gender'] : null;
             if (Zend_Validate::is($email, 'EmailAddress')) {
                 if($this->isSubscribed($email)){
-                    $oResponse->setBody(json_encode(array('failure'=>true, 'message'=>'Email is already registered. Please use a different email.', 'input'=>$params)));
+                    $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Email is already registered. Please use a different email.'), 'input'=>$params)));
                 }else{
                     /** @var $newsSub Mage_Newsletter_Model_Subscriber */
                     $newsSub = Mage::getModel('newsletter/subscriber');
@@ -72,7 +72,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
 
                             $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub)));
                         }else{
-                            $oResponse->setBody(json_encode(array('failure'=>true, 'message'=>'Unexpected failure')));
+                            $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Unexpected failure'))));
                         }
                     } else{
                         $oResponse->setBody('{"success": true}');
@@ -80,7 +80,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
 
                 }
             }else{
-                $oResponse->setBody(json_encode(array('failure'=>true, 'message'=>'Invalid email address', 'input'=>$params)));
+                $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Invalid email address'), 'input'=>$params)));
             }
         }
 
