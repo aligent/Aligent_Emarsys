@@ -108,12 +108,17 @@ class Aligent_Emarsys_Model_Cron {
     {
         try {
             $helper = Mage::helper('aligent_emarsys');
-            $fixedWidthData = $this->getHarmonyExportData();
+            $helper->log("Harmony export starting");
             if($helper->getHarmonyFileDump()){
                 $fileName = Mage::getBaseDir('var') . '/harmony_dump.tab';
-                file_put_contents($fileName, $fixedWidthData);
-            }elseif (strlen($fixedWidthData) > 0 && $this->pushHarmonyExportData($fixedWidthData)) {
-                $this->markHarmonyInSync();
+                $helper->log("Harmony debugging mode to file $fileName", 2);
+                $this->getHarmonyExportData( $fileName );
+            }else{
+                $helper->log("Harmony LIVE mode", 2);
+                $fixedWidthData = $this->getHarmonyExportData();
+                if (strlen($fixedWidthData) > 0 && $this->pushHarmonyExportData($fixedWidthData)) {
+                    $this->markHarmonyInSync();
+                }
             }
         }catch(Exception $e){
             Mage::logException($e);
@@ -155,11 +160,18 @@ class Aligent_Emarsys_Model_Cron {
         }
     }
 
-    protected function getHarmonyExportData(){
+    protected function getHarmonyExportData( $fileName = 'php://temp'){
         $this->_pendingHarmonyDataItems = array();
         $helper = Mage::helper('aligent_emarsys');
 
-        $handle = fopen('php://temp', 'rw+');
+        if($fileName != 'php://temp'){
+            $helper->log("Creating $fileName");
+            $handle = fopen($fileName, 'w');
+            if(!$handle) throw new Exception("Unable to write to $fileName");
+            fclose($handle);
+        }
+        $helper->log("Opening handle to $fileName");
+        $handle = fopen($fileName, 'rw+');
         $outputFile = new Aligent_Emarsys_Model_HarmonyDiaryWriter($handle);
 
         $customers = Mage::getModel("customer/customer")->getCollection();
@@ -167,7 +179,7 @@ class Aligent_Emarsys_Model_Cron {
             'customer_entity_id=entity_id',
             array('sync_id' => 'id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
         $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
-
+        $helper->log("Get customers with: " . $customers->getSelectSql(), 2);
         foreach ($customers as $customer) {
             if(!$helper->isSubscriptionEnabled($customer->getStore()->getId())) continue;
 
@@ -183,17 +195,25 @@ class Aligent_Emarsys_Model_Cron {
             'remote_flags.newsletter_subscriber_id=main_table.subscriber_id',
             array('sync_id' => 'id'), null);
         $subscribers->getSelect()->where('( (customer_entity_id is null OR customer_entity_id=0) AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null) )');
+        $helper->log("Get subscribers with: " . $subscribers->getSelectSql(), 2);
 
-        foreach ($subscribers as $subscriber) {
-            if(!$helper->isSubscriptionEnabled($subscriber->getStoreId())) continue;
-            $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
-            $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
-            $harmonyCustomer->fillMagentoSubscriber($subscriber->getId());
-            $outputFile->write($harmonyCustomer->getDataArray());
+        try {
+            foreach ($subscribers as $subscriber) {
+                if (!$helper->isSubscriptionEnabled($subscriber->getStoreId())) continue;
+                $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
+                $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
+                $harmonyCustomer->fillMagentoSubscriber($subscriber->getId());
+                $outputFile->write($harmonyCustomer->getDataArray());
+            }
+            rewind($handle);
+            $data = stream_get_contents($handle);
+            fclose($handle);
+            $helper->log("Finished");
+            $helper->log("Size of data: " . sizeof($data));
+            return $data;
+        }catch(Exception $e){
+            $helper->log("Error: " . $e->getMessage());
+            return '';
         }
-        rewind($handle);
-        $data = stream_get_contents($handle);
-        fclose($handle);
-        return $data;
     }
 }
