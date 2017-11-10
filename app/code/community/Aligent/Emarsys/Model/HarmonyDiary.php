@@ -8,6 +8,8 @@
 
 class Aligent_Emarsys_Model_HarmonyDiary
 {
+    const HARMONY_DEFAULT_EXISTING = self::HARMONY_DEFAULT_EXISTING;
+
     /** @var  Aligent_Emarsys_Helper_Data  */
     protected $_helper;
 
@@ -69,7 +71,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
         $this->name_1 = $this->limitString( $localSyncData->getFirstName(), 30) ;
         $this->name_2 = $this->limitString( $localSyncData->getLastName(), 30);
-        $this->email = $this->limitString($localSyncData->getEmail(), 60);
+        $this->email = $this->limitString($subscriber->getEmail(), 60);
 
         $this->date_of_birth = $this->harmonyDate( $localSyncData->getDob());
         $this->{'classification.1'} = $subscriber->getSubscriberStatus() == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED ? 'EMAIL' : 'NOEML';
@@ -112,7 +114,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
             'name' => 'export_number',
             'label' => 'export_number',
             'fieldWidth' => 10,
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
         ),
         array(
             'name' => 'action',
@@ -128,145 +130,145 @@ class Aligent_Emarsys_Model_HarmonyDiary
             'name' => 'name_1',
             'label' => 'Surname',
             'fieldWidth' => 30,
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
         ),
         array(
             'name' => 'name_2',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'First Name',
             'fieldWidth' => 30
         ),
         /* Billing Address */
         array(
             'name' => 'address_1',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Billing Address',
             'fieldWidth' => 30
         ),
         array(
             'name' => 'address_2',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Billing Address 2 ',
             'fieldWidth' => 25
         ),
         array(
             'name' => 'address_3',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Billing Address 3',
             'fieldWidth' => 25
         ),
         array(
             'name' => 'address_4',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Billing Address 4',
             'fieldWidth' => 20
         ),
         array(
             'name' => 'postcode',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Billing Postcode',
             'fieldWidth' => 10
         ),
         /* Shipping Address */
         array(
             'name' => 'delivery_address_1',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Shipping Address',
             'fieldWidth' => 30
         ),
         array(
             'name' => 'delivery_address_2',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Shipping Address 2 ',
             'fieldWidth' => 25
         ),
         array(
             'name' => 'delivery_address_3',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Shipping Address 3',
             'fieldWidth' => 25
         ),
         array(
             'name' => 'delivery_address_4',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Shipping Address 4',
             'fieldWidth' => 20
         ),
         array(
             'name' => 'delivery_postcode',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Shipping Postcode',
             'fieldWidth' => 10
         ),
         array(
             'name' => 'agent',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Agent',
             'fieldWidth' => 5,
             'writeProcessor' => array('Aligent_Emarsys_Model_HarmonyDiary', 'castInt')
         ),
         array(
             'name' => 'telephone.0',
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'label' => 'Telephone (home)',
             'fieldWidth' => 20
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'telephone.1',
             'label' => 'Mobile',
             'fieldWidth' => 20
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'telephone.3',
             'label' => 'Telephone (work)',
             'fieldWidth' => 20
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'prospect',
             'label' => 'Prospect',
             'fieldWidth' => 1
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'fax',
             'label' => 'Fax Number',
             'fieldWidth' => 20
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'text_1',
             'label' => 'Text 1',
             'fieldWidth' => 30
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'text_2',
             'label' => 'Text 2',
             'fieldWidth' => 30
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'email',
             'label' => 'E-mail',
             'fieldWidth' => 60
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'title',
             'label' => 'Title',
             'fieldWidth' => 7
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'date_of_birth',
             'label' => 'Date of birth',
             'fieldWidth' => 10
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'first_contact',
             'label' => 'First Contact Date',
             'fieldWidth' => 10
@@ -287,43 +289,43 @@ class Aligent_Emarsys_Model_HarmonyDiary
             'fieldWidth' => 11
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'category',
             'label' => 'Category',
             'fieldWidth' => 5
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'classification.0',
             'label' => 'Classification 1',
             'fieldWidth' => 5
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'classification.1',
             'label' => 'Classification 2',
             'fieldWidth' => 5
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'classification.2',
             'label' => 'Classification 3',
             'fieldWidth' => 5
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'next_contact',
             'label' => 'Next contact date',
             'fieldWidth' => 10
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'membership_number',
             'label' => 'Membership Number',
             'fieldWidth' => 20
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'password',
             'label' => 'Password',
             'fieldWidth' => 25
@@ -335,37 +337,37 @@ class Aligent_Emarsys_Model_HarmonyDiary
             'fieldWidth' => 10
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'default_discount_reason',
             'label' => 'Default discount reason',
             'fieldWidth' => 5
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'DPID',
             'label' => 'DPID',
             'fieldWidth' => 8
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'DPID_barcode',
             'label' => 'DPID Barcode',
             'fieldWidth' => 37
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'diary_active_flag',
             'label' => 'Diary Active Flag',
             'fieldWidth' => 1
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'external_id',
             'label' => 'External ID',
             'fieldWidth' => 20
         ),
         array(
-            'default' => '~',
+            'default' => self::HARMONY_DEFAULT_EXISTING,
             'name' => 'customised_info',
             'label' => 'Customised Info',
             'fieldWidth' => 50
