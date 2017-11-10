@@ -64,9 +64,8 @@ class Aligent_Emarsys_Model_HarmonyDiary
         return $this->_helper->ensureCustomerSyncRecord($customer->getId());
     }
 
-    public function fillMagentoSubscriber($subscriberId){
-        $subscriber = Mage::getModel('newsletter/subscriber')->load($subscriberId);
-        $localSyncData = $this->_helper->ensureNewsletterSyncRecord($subscriberId);
+    public function fillMagentoSubscriber($subscriber){
+        $localSyncData = $this->_helper->ensureNewsletterSyncRecord($subscriber->getId());
 
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
         $this->name_1 = $this->limitString( $localSyncData->getFirstName(), 30) ;
