@@ -202,7 +202,7 @@ class Aligent_Emarsys_Model_Cron {
                 if (!$helper->isSubscriptionEnabled($subscriber->getStoreId())) continue;
                 $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
                 $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
-                $harmonyCustomer->fillMagentoSubscriber($subscriber->getId());
+                $harmonyCustomer->fillMagentoSubscriber($subscriber);
                 $outputFile->write($harmonyCustomer->getDataArray());
             }
             rewind($handle);
