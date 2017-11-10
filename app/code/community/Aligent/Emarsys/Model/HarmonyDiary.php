@@ -8,7 +8,7 @@
 
 class Aligent_Emarsys_Model_HarmonyDiary
 {
-    const HARMONY_DEFAULT_EXISTING = self::HARMONY_DEFAULT_EXISTING;
+    const HARMONY_DEFAULT_EXISTING = '~';
 
     /** @var  Aligent_Emarsys_Helper_Data  */
     protected $_helper;
