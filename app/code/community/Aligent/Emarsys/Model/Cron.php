@@ -131,7 +131,9 @@ class Aligent_Emarsys_Model_Cron {
         $flags->load();
         foreach ($flags as $flag) {
             $flag->setHarmonySyncDirty(false);
-            $flag->setHarmonyId( Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($flag->getId()) );
+            if( !$flag->getHarmonyId() ) {
+                $flag->setHarmonyId(Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($flag->getId()));
+            }
             $flag->save();
         }
 
