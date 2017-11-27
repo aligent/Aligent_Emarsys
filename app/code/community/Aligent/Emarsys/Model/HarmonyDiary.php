@@ -407,8 +407,14 @@ class Aligent_Emarsys_Model_HarmonyDiary
     }
 
     public static function generateNamekey($id){
-        $prefix = Mage::helper('aligent_emarsys')->getHarmonyNamekeyPrefix();
-        $namekey = $prefix . str_pad($id, 10 - strlen($prefix),'0',STR_PAD_LEFT);
+        $syncRecord = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($id);
+        if(!$syncRecord->getId()) throw new Exception("Invalid sync record ID");
+        if( $syncRecord->getHarmonyId() !== null && $syncRecord->getHarmonyId() !== 0 ){
+            $namekey = $syncRecord->getHarmonyId();
+        }else {
+            $prefix = Mage::helper('aligent_emarsys')->getHarmonyNamekeyPrefix();
+            $namekey = $prefix . str_pad($id, 10 - strlen($prefix), '0', STR_PAD_LEFT);
+        }
         return $namekey;
     }
 }
