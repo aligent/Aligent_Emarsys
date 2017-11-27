@@ -100,6 +100,7 @@
                     <stockStatusFromSimple>1</stockStatusFromSimple>
                     <includeDisabled>1</includeDisabled>
                     <includeSimpleParents>1</includeSimpleParents>
+                    <include_all_stores>1</include_all_stores>
                 </params>
             </before_query_filter>
         </emarsys_consolidated>
@@ -194,7 +195,7 @@
     </feeds>
     <modules>
         <Aligent_Emarsys>
-            <version>0.0.3</version>
+            <version>0.0.4</version>
         </Aligent_Emarsys>
     </modules>
     <crontab>
@@ -224,7 +225,7 @@
             </import_harmony_data>
 
             <export_harmony_data>
-                <schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+                <schedule><cron_expr>*/5 * * * *</cron_expr></schedule>
                 <name>Export Harmony Data</name>
                 <run>
                     <model>aligent_emarsys/cron::exportHarmonyData</model>
