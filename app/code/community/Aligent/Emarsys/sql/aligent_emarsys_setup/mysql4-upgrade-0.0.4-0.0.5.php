@@ -35,6 +35,8 @@ if ($installer->getConnection()->isTableExists($tableName)) {
             $item->setFirstName($customer->getFirstName());
             $item->setLastName($customer->getLastName());
             $item->setEmail($customer->getEmail());
+            $item->setHarmonySyncDirty(1);
+            $item->setEmarsysSyncDirty(1);
             $item->save();
             $helper->log("Updated sync record " . $item->getid());
         }
