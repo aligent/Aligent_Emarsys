@@ -724,10 +724,12 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
 
         // We still don't have a sync, so let's see if we can match on email.
+        $this->log("Trying to find a match for subscriber " . $subscriber->getId());
         if(!$remoteSync->getId()){
             $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getSubscriberEmail(), 'email');
+            $this->log("Found id " . $remoteSync->getId() . " for email " . $subscriber->getSubscriberEmail());
             if($remoteSync->getId() ){
-                if($remoteSync->getNewsletterSubscriberId()){
+                if($remoteSync->getNewsletterSubscriberId() > 0){
                     $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
                 }else{
                     if(!$subscriber->getCustomerId()) $subscriber->setCustomerId($remoteSync->getCustomerEntityId());

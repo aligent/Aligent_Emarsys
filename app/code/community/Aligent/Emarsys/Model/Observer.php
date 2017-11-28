@@ -197,8 +197,11 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         $emarsysIgnore = $customer->getEmarsysIgnoreFlag();
         if($harmonyIgnore && $emarsysIgnore) return $this;
 
-        Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId(), !$emarsysIgnore, !$harmonyIgnore);
-
+        $record = Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId(), !$emarsysIgnore, !$harmonyIgnore);
+        $record->setFirstName($customer->getFirstName());
+        $record->setLastName($customer->getLastName());
+        $record->setEmail($customer->getEmail());
+        $record->save();
         Mage::register('emarsys_customer_save_observer_executed', true);
     }
 }
