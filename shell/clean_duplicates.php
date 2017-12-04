@@ -23,7 +23,12 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
         // Remove any of the duplicate records that are going to break the scripts
         $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
         $items->removeAllFieldsFromSelect();
-        $items->getSelect()->columns('max(id) as mId, min(id) as minId')->group('customer_entity_id')->having('count(id) > 1')->where('customer_entity_id > 0');
+        $items->getSelect()
+            ->columns('max(id) as mId, min(id) as minId')
+            ->group('customer_entity_id')
+            ->having('count(id) > 1')
+            ->where('customer_entity_id > 0');
+
         $this->getHelper()->log('Remove customers with SQL: ' . $items->getSelectSql());
 
         foreach($items as $item){
@@ -40,7 +45,7 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
 
         try {
             $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
-            $items->getSelect()->where('customer_entity_id > 0');
+            $items->getSelect()->where('customer_entity_id > 0 and email is null');
             foreach($items as $item){
                 $customer = Mage::getModel('customer/customer')->load($item->getCustomerEntityId());
                 $item->setFirstName($customer->getFirstName());
@@ -73,12 +78,12 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
         $minRec = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($minRecordId);
 
         // If both records have a harmony id or both have an emarsys id, we can't merge them.
-        if($maxRec->getHarmonyId() && $minRec->getHarmonyId()){
+        if(($maxRec->getHarmonyId() && $minRec->getHarmonyId()) && (strtolower($maxRec->getHarmonyId()) != strtolower($minRec->getHarmonyId()))){
             $helper->log("Unable to merge " . $maxRec->getId() . " and " . $minRec->getId());
             return;
         }
 
-        if($maxRec->getEmarsysId() && $minRec->getEmarsysId()){
+        if(($maxRec->getEmarsysId() && $minRec->getEmarsysId()) && (strtolower($maxRec->getEmarsysId()) != strtolower($minRec->getEmarsysId()))){
             $helper->log("Unable to merge " . $maxRec->getId() . " and " . $minRec->getId());
             return;
         }
