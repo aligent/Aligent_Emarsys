@@ -4,6 +4,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_includeSimpleParents = null;
     protected $_includeDisabled = null;
     protected $_harmonyDumpFile = null;
+    protected $_harmonyExportLive = null;
 
     protected $_cookieName = null;
     protected $_enabled = null;
@@ -70,6 +71,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_HARMONY_USER = 'aligent_emarsys/harmony_settings/web_user';
     const XML_EMARSYS_HARMONY_PREFIX = 'aligent_emarsys/harmony_settings/namekey_prefix';
     const XML_HARMONY_DUMP_FILE = 'aligent_emarsys/harmony_settings/harmony_dump_file';
+    const XML_HARMONY_CUSTOMER_MODE = 'aligent_emarsys/harmony_settings/harmony_customer_export_mode';
 
     const XML_EMARSYS_API_DEBUG_MODE = 'aligent_emarsys/emarsys_api_settings/emarsys_debug';
     const XML_EMARSYS_API_USER = 'aligent_emarsys/emarsys_api_settings/emarsys_username';
@@ -103,6 +105,13 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_harmonyDumpFile = Mage::getStoreConfigFlag(self::XML_HARMONY_DUMP_FILE);
         }
         return $this->_harmonyDumpFile;
+    }
+
+    public function getHarmonyCustomerExportLive(){
+        if($this->_harmonyExportLive === null){
+            $this->_harmonyExportLive = Mage::getStoreConfigFlag(self::XML_HARMONY_CUSTOMER_MODE);
+        }
+        return $this->_harmonyExportLive;
     }
 
     public function getGetStockFromSimpleProduct(){
