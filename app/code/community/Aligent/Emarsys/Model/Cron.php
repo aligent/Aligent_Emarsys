@@ -109,7 +109,7 @@ class Aligent_Emarsys_Model_Cron {
         try {
             $helper = Mage::helper('aligent_emarsys');
             $helper->log("Harmony export starting");
-            if($helper->getHarmonyFileDump()){
+            if(!$helper->getHarmonyCustomerExportLive()){
                 $fileName = Mage::getBaseDir('var') . '/harmony_dump.tab';
                 $helper->log("Harmony debugging mode to file $fileName", 2);
                 $this->getHarmonyExportData( $fileName );
@@ -183,7 +183,10 @@ class Aligent_Emarsys_Model_Cron {
         $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
         $helper->log("Get customers with: " . $customers->getSelectSql(), 2);
         foreach ($customers as $customer) {
-            if(!$helper->isSubscriptionEnabled($customer->getStore()->getId())) continue;
+            $helper->log("Processing customer " . $customer->getId());
+            if(!$helper->isSubscriptionEnabled($customer->getStore()->getId())) {
+                continue;
+            }
 
             $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
             $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
@@ -201,6 +204,7 @@ class Aligent_Emarsys_Model_Cron {
 
         try {
             foreach ($subscribers as $subscriber) {
+                $helper->log("Processing subscriber " . $subscriber->getId());
                 if (!$helper->isSubscriptionEnabled($subscriber->getStoreId())) continue;
                 $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
                 $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();

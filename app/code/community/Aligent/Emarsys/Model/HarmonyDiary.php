@@ -27,6 +27,10 @@ class Aligent_Emarsys_Model_HarmonyDiary
         if($dateValue === null || $dateValue === '') return '';
 
         if(is_string($dateValue) ){
+            $dateValue = trim($dateValue);
+            if(strpos($dateValue, ' ') > 0){
+                $dateValue = substr($dateValue, 0, strpos($dateValue, ' '));
+            }
             $dateValue = DateTime::createFromFormat('Y-m-d', $dateValue);
         }
         return $dateValue->format('d-m-Y');
