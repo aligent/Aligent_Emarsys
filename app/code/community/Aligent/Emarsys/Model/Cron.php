@@ -199,7 +199,7 @@ class Aligent_Emarsys_Model_Cron {
             ['remote_flags' =>'aligent_emarsys_remote_system_sync_flags'],
             'remote_flags.newsletter_subscriber_id=main_table.subscriber_id',
             array('sync_id' => 'id'), null);
-        $subscribers->getSelect()->where('( (customer_entity_id is null OR customer_entity_id=0) AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null) )');
+        $subscribers->getSelect()->where('( (customer_id is null OR customer_id=0) AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null) )');
         $helper->log("Get subscribers with: " . $subscribers->getSelectSql(), 2);
 
         try {
