@@ -63,6 +63,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
 
     // Shell script point of entry
     public function run() {
+        die("DO NOT RUN THIS SCRIPT WITHOUT FIXING THE DUPLICATES ISSUE");
         Mage::register('emarsys_newsletter_ignore', true);
         echo "Import customers into: " . $this->_storeObject->getName() . "\n";
 
