@@ -26,10 +26,8 @@ class Aligent_Emarsys_Shell_Sync_Newsletter_To_Customer_Email extends Mage_Shell
 
         /**
          * Fetch all newsletter subscriptions where there are multiple subscriptions for the same customer ID
-         * AND there is a mismatch between customer email and subscriber email AND a different customer entity
-         * exists with the newsletter subscription email address.
          *
-         * Then re-hook those subscribers to their customers.
+         * Then remove all but the latest subscription record.
          */
         $customertable = Mage::getModel('customer/customer')->getResource()->getEntityTable();
         $newsletterTable = Mage::getModel('newsletter/subscriber')->getResource()->getMainTable();
