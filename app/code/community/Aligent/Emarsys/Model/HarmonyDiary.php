@@ -44,24 +44,57 @@ class Aligent_Emarsys_Model_HarmonyDiary
         return $string;
     }
 
-    protected function populateAddress($addressId, $fieldMap){
-        if (!$addressId) return;
+    protected function mapAddressModel($addressId){
         $address = Mage::getModel('customer/address')->load($addressId);
         $address->getData();
+        $data = array();
+        $data['address_1'] = $this->limitString( $address->getStreet(1), 30 );
+        $data['address_2'] = $this->limitString( $address->getStreet(2), 25 );
+        $data['address_city'] = $address->getCity();
+        $data['address_region']=$address->getRegionCode();
+        $data['address_country'] = $this->limitString( $address->getCountryModel()->getName(), 20 );
+        $data['address_postcode'] =$this->limitString( $address->getPostcode(), 10 );
 
-        $this->{$fieldMap[0]} = $this->limitString( $address->getStreet(1), 30 );
-        $this->{$fieldMap[1]} = $this->limitString( $address->getStreet(2), 25 );
-        $this->{$fieldMap[2]} = $this->limitString( $address->getCity() . ' ' . $address->getRegionCode(), 25 );
-        $this->{$fieldMap[3]} = $this->limitString( $address->getCountryModel()->getName(), 20 );
-        $this->{$fieldMap[4]} = $this->limitString( $address->getPostcode(), 10 );
     }
 
-    public function fillMagentoBillingAddress($addressId){
-        $this->populateAddress($addressId, array('address_1','address_2','address_3','address_4','postcode'));
+    protected function populateAddress($address, $fieldMap){
+        if (!$address) return;
+        if(!is_array($address)) $address = $this->mapAddressModel($address);
+
+        $this->{$fieldMap[0]} = $this->limitString( $address['address_1'], 30 );
+        $this->{$fieldMap[1]} = $this->limitString( $address['address_2'], 25 );
+        $this->{$fieldMap[2]} = $this->limitString( $address['address_city'] . ' ' . $address['address_region'], 25 );
+        $this->{$fieldMap[3]} = $this->limitString( $address['address_country'], 20 );
+        $this->{$fieldMap[4]} = $this->limitString( $address['address_postcode'], 10 );
     }
 
-    public function fillMagentoShippingAddress($addressId){
-        $this->populateAddress($addressId, array('deilvery_address_1','deilvery_address_2','deilvery_address_3','deilvery_address_4','deilvery_postcode'));
+    public function fillMagentoAddress($addressData, $type){
+        $streetMethod = "get{$type}Street";
+        $streets = preg_split("/\n/", $addressData->$streetMethod());
+        if(sizeof($streets) < 2) $streets[] = ''; // ensure there will always be a line two, even if its blank.
+
+        $cityMethod = "get{$type}City";
+        $regionMethod = "get{$type}Region";
+        $countryMethod = "get{$type}Country";
+        $postcodeMethod= "get{$type}Postcode";
+
+        $data = array(
+            'address_1' => $streets[0],
+            'address_2'=> $streets[1],
+            'address_city' => $addressData->$cityMethod(),
+            'address_region' => $addressData->$regionMethod(),
+            'address_country' => $addressData->$countryMethod(),
+            'address_postcode' => $addressData->$postcodeMethod()
+        );
+        return $data;
+    }
+
+    public function fillMagentoBillingAddress($addressData){
+        $this->populateAddress( $this->fillMagentoAddress($addressData, 'Billing'), array('address_1','address_2','address_3','address_4','postcode'));
+    }
+
+    public function fillMagentoShippingAddress($addressData){
+        $this->populateAddress( $this->fillMagentoAddress($addressData, 'Shipping'), array('deilvery_address_1','deilvery_address_2','deilvery_address_3','deilvery_address_4','deilvery_postcode'));
     }
 
     protected function ensureSyncData($customer){
@@ -86,9 +119,26 @@ class Aligent_Emarsys_Model_HarmonyDiary
 
     }
 
-    public function fillMagentoCustomer($customerId)
+    public function fillMagentoCustomerFromData($customer, $localSyncId, $localSyncHarmonyId){
+        //$localSyncData = $this->ensureSyncData($customer);
+
+        $this->action = ($localSyncHarmonyId) ? 'M' : 'A';
+        $this->name_1 = $this->limitString( $customer->getLastname(), 30 );
+        $this->name_2 = $this->limitString( $customer->getFirstname(), 30);
+        $this->email = $this->limitString($customer->getEmail(), 60);
+        $this->{'telephone.0'} = $this->limitString( $customer->getTelephone(), 20);
+
+        $this->fillMagentoBillingAddress($customer);
+        $this->fillMagentoShippingAddress($customer);
+
+        $this->date_of_birth = $this->harmonyDate( $customer->getDob() );
+        $this->{'classification.1'} = $this->isCustomerSubscribed($customer) ? 'EMAIL' : 'NOEML';
+
+        $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncId);
+    }
+
+    public function fillMagentoCustomer($customer)
     {
-        $customer = Mage::getModel('customer/customer')->load($customerId);
         $localSyncData = $this->ensureSyncData($customer);
 
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
@@ -97,8 +147,8 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->email = $this->limitString($customer->getEmail(), 60);
         $this->{'telephone.0'} = $this->limitString( $customer->getTelephone(), 20);
 
-        $this->fillMagentoBillingAddress($customer->getDefaultBilling());
-        $this->fillMagentoShippingAddress($customer->getDefaultShipping());
+        $this->fillMagentoBillingAddress($customer);
+        $this->fillMagentoShippingAddress($customer);
 
         $this->date_of_birth = $this->harmonyDate( $customer->getDob() );
         $this->{'classification.1'} = $this->isCustomerSubscribed($customer) ? 'EMAIL' : 'NOEML';

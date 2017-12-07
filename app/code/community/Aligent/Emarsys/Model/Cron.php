@@ -162,6 +162,44 @@ class Aligent_Emarsys_Model_Cron {
         }
     }
 
+    protected function getHarmonyExportCustomersQuery(){
+        $remoteSystemTable = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getResource()->getMainTable();
+        $customerTable = Mage::getModel('customer/customer')->getResource()->getEntityTable();
+
+        $helper = Mage::helper('aligent_emarsys/lightweightDataHelper');
+        $query = $helper->getReader()->select()->from($customerTable)->joinLeft($remoteSystemTable, 'customer_entity_id=entity_id')
+            ->where('harmony_sync_dirty=1 OR harmony_sync_dirty is null');
+
+        $customers = Mage::getModel("customer/customer")->getCollection()
+            ->addNameToSelect()
+            ->addAttributeToSelect('email')
+            ->addAttributeToSelect('created_at')
+            ->addAttributeToSelect('group_id')
+            ->joinAttribute('billing_street', 'customer_address/street', 'default_billing', null, 'left')
+            ->joinAttribute('billing_postcode', 'customer_address/postcode', 'default_billing', null, 'left')
+            ->joinAttribute('billing_city', 'customer_address/city', 'default_billing', null, 'left')
+            ->joinAttribute('billing_telephone', 'customer_address/telephone', 'default_billing', null, 'left')
+            ->joinAttribute('billing_fax', 'customer_address/fax', 'default_billing', null, 'left')
+            ->joinAttribute('billing_region', 'customer_address/region', 'default_billing', null, 'left')
+            ->joinAttribute('billing_country_code', 'customer_address/country_id', 'default_billing', null, 'left')
+
+            ->joinAttribute('shipping_street', 'customer_address/street', 'default_shipping', null, 'left')
+            ->joinAttribute('shipping_postcode', 'customer_address/postcode', 'default_shipping', null, 'left')
+            ->joinAttribute('shipping_city', 'customer_address/city', 'default_shipping', null, 'left')
+            ->joinAttribute('shipping_telephone', 'customer_address/telephone', 'default_shipping', null, 'left')
+            ->joinAttribute('shipping_fax', 'customer_address/fax', 'default_shipping', null, 'left')
+            ->joinAttribute('shipping_region', 'customer_address/region', 'default_shipping', null, 'left')
+            ->joinAttribute('shipping_country_code', 'customer_address/country_id', 'default_shipping', null, 'left')
+            ->joinAttribute('taxvat', 'customer/taxvat', 'entity_id', null, 'left');
+
+        $customers->joinTable( [ 'remote_flags'=>'aligent_emarsys/remoteSystemSyncFlags'],
+            'customer_entity_id=entity_id',
+            array('sync_id' => 'id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
+        $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
+
+        return $customers;
+    }
+
     protected function getHarmonyExportData( $fileName = 'php://temp'){
         $this->_pendingHarmonyDataItems = array();
         $helper = Mage::helper('aligent_emarsys');
@@ -176,12 +214,10 @@ class Aligent_Emarsys_Model_Cron {
         $handle = fopen($fileName, 'rw+');
         $outputFile = new Aligent_Emarsys_Model_HarmonyDiaryWriter($handle);
 
-        $customers = Mage::getModel("customer/customer")->getCollection();
-        $customers->joinTable( [ 'remote_flags'=>'aligent_emarsys/remoteSystemSyncFlags'],
-            'customer_entity_id=entity_id',
-            array('sync_id' => 'id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
-        $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
-        $helper->log("Get customers with: " . $customers->getSelectSql(), 2);
+        $customers = $this->getHarmonyExportCustomersQuery();
+        $helper->log("Customers with SQL " . $customers->getSelect());
+
+        $count = 0;
         foreach ($customers as $customer) {
             $helper->log("Processing customer " . $customer->getId());
             if(!$helper->isSubscriptionEnabled($customer->getStore()->getId())) {
@@ -190,9 +226,21 @@ class Aligent_Emarsys_Model_Cron {
 
             $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
             $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
-            $harmonyCustomer->fillMagentoCustomer($customer->getId());
+
+            $count++;
+            $helper->log( round(($count / sizeof($customers)) * 100,2) . "% $count of " . sizeof($customers));
+
+            if($customer->getSyncId()){
+                $harmonyCustomer->fillMagentoCustomerFromData($customer, $customer->getSyncId(), $customer->getHarmonyId());
+            }else {
+                $harmonyCustomer->fillMagentoCustomer($customer);
+            }
             $outputFile->write($harmonyCustomer->getDataArray());
         }
+        // Free up the memory that was used with this array.
+        unset($customers);
+        $customers = null;
+        gc_collect_cycles();
 
         $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
         $subscribers->getSelect()->joinLeft(

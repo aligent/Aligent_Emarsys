@@ -26,14 +26,17 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
     public function run(){
         try {
             if($this->_store !== null){
+                $this->getHelper()->log("Move customers to store");
                 $this->moveCustomersToStore();
+                $this->getHelper()->log("Move newsletters to store");
                 $this->moveNewslettersToStore();
             }
+            $this->getHelper()->log("De dupe newsletter subscribers");
+            $this->dedupeNewsletterSubscriberTable();
             $this->dedupeFromCustomerId();
             $this->dedupeFromNewsletterId();
             $this->updateSyncFromCustomer();
             $this->dedupeFromEmailAddress();
-            $this->dedupeNewsletterSubscriberTable();
 
             $this->getHelper()->log("Merge complete");
         }catch(\Exception $e){
@@ -183,12 +186,7 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
 
         $this->getWriter()->update($this->_newsletterTable, $minRec, 'subscriber_id='.$minRecordId);
 
-        $syncRecord = $this->loadAligentDataFromNewsletter($maxRecordId);
-        if(is_array($syncRecord) && isset($syncRecord['id'])){
-            $syncRecord['newsletter_subscriber_id'] = $minRecordId;
-            $this->getWriter()->update($this->_aligentTable, $syncRecord, 'id=' . $syncRecord['id']);
-        }
-
+        $this->getWriter()->delete($this->_aligentTable, 'newsletter_subscriber_id='. $maxRecordId);
         $this->getWriter()->delete($this->_newsletterTable, 'subscriber_id='.$maxRecordId);
     }
 

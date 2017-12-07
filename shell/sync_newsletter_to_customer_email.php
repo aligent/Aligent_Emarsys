@@ -16,8 +16,28 @@ require_once 'abstract.php';
 class Aligent_Emarsys_Shell_Sync_Newsletter_To_Customer_Email extends Mage_Shell_Abstract {
 
     public function run(){
+        $this->linkNewslettersToCustomers();
         $this->rehookDuplicateCustomerIds();
         $this->removeSubscriberDuplicates();
+    }
+
+    protected function linkNewslettersToCustomers(){
+        /** @var Aligent_Emarsys_Helper_LightweightDataHelper $helper */
+        $helper = Mage::helper('aligent_emarsys/lightweightDataHelper');
+
+        /**
+         * Fetch all newsletter subscriptions where there is no customer id, but there is a matching
+         * customer entity record with the same email address, and hook them up.
+         */
+        $customertable = Mage::getModel('customer/customer')->getResource()->getEntityTable();
+        $newsletterTable = Mage::getModel('newsletter/subscriber')->getResource()->getMainTable();
+
+        $sql = $helper->getReader()->select()->from($newsletterTable)->join($customertable,'subscriber_email=email')->where('customer_id=0');
+
+        $rows = $sql->query()->fetchAll();
+        foreach($rows as $row){
+            $helper->save($newsletterTable,['customer_id'=>$row['entity_id']], 'subscriber_id',$row['subscriber_id']);
+        }
     }
 
     protected function removeSubscriberDuplicates(){
@@ -31,6 +51,8 @@ class Aligent_Emarsys_Shell_Sync_Newsletter_To_Customer_Email extends Mage_Shell
          */
         $customertable = Mage::getModel('customer/customer')->getResource()->getEntityTable();
         $newsletterTable = Mage::getModel('newsletter/subscriber')->getResource()->getMainTable();
+        $aligentTable = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getResource()->getMainTable();
+
 
         $subQuery = $helper->getReader()->select()->from($newsletterTable)
             ->reset(Varien_Db_Select::COLUMNS)
@@ -55,6 +77,7 @@ class Aligent_Emarsys_Shell_Sync_Newsletter_To_Customer_Email extends Mage_Shell
             // Only go up to the second to last item, because we want to keep the most recent one
             for($i=0; $i < sizeof($item) - 1; $i++){
                 $helper->getWriter()->delete($newsletterTable, 'subscriber_id='.$item[$i]);
+                $helper->getWriter()->delete($aligentTable, 'newsletter_subscriber_id='. $item[$i]);
             }
         }
     }
