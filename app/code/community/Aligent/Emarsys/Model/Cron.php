@@ -224,22 +224,19 @@ class Aligent_Emarsys_Model_Cron {
                 continue;
             }
 
-            if(!($customer->getFirstname()=='' && $customer->getLastName()=='')){
+            if( $customer->getLastName() !=='') {
                 $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
                 $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
                 $count++;
-                $helper->log( round(($count / sizeof($customers)) * 100,2) . "% $count of " . sizeof($customers));
+                $helper->log(round(($count / sizeof($customers)) * 100, 2) . "% $count of " . sizeof($customers));
 
-                if($customer->getSyncId()){
+                if ($customer->getSyncId()) {
                     $harmonyCustomer->fillMagentoCustomerFromData($customer, $customer->getSyncId(), $customer->getHarmonyId());
-                }else {
+                } else {
                     $harmonyCustomer->fillMagentoCustomer($customer);
                 }
 
-                // Harmony isn't OK with blank names
-                if(!($harmonyCustomer->name_1=='' | $harmonyCustomer->name_2=='')){
-                    $outputFile->write($harmonyCustomer->getDataArray());
-                }
+                $outputFile->write($harmonyCustomer->getDataArray());
             }
         }
         // Free up the memory that was used with this array.
@@ -262,8 +259,8 @@ class Aligent_Emarsys_Model_Cron {
                 $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
                 $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
                 $harmonyCustomer->fillMagentoSubscriber($subscriber);
-                // Harmony isn't OK with blank names
-                if(!($harmonyCustomer->name_1=='' || $harmonyCustomer->name_2=='')){
+                // Harmony isn't OK with blank last names
+                if($harmonyCustomer->name_2!==''){
                     $outputFile->write($harmonyCustomer->getDataArray());
                 }
             }
