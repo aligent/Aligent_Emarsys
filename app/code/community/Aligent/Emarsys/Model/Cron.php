@@ -194,7 +194,7 @@ class Aligent_Emarsys_Model_Cron {
 
         $customers->joinTable( [ 'remote_flags'=>'aligent_emarsys/remoteSystemSyncFlags'],
             'customer_entity_id=entity_id',
-            array('sync_id' => 'id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
+            array('sync_id' => 'id', 'harmony_id'=>'harmony_id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
         $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
 
         return $customers;
@@ -224,18 +224,23 @@ class Aligent_Emarsys_Model_Cron {
                 continue;
             }
 
-            $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
-            $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
+            if(!($customer->getFirstname()=='' && $customer->getLastName()=='')){
+                $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
+                $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
+                $count++;
+                $helper->log( round(($count / sizeof($customers)) * 100,2) . "% $count of " . sizeof($customers));
 
-            $count++;
-            $helper->log( round(($count / sizeof($customers)) * 100,2) . "% $count of " . sizeof($customers));
+                if($customer->getSyncId()){
+                    $harmonyCustomer->fillMagentoCustomerFromData($customer, $customer->getSyncId(), $customer->getHarmonyId());
+                }else {
+                    $harmonyCustomer->fillMagentoCustomer($customer);
+                }
 
-            if($customer->getSyncId()){
-                $harmonyCustomer->fillMagentoCustomerFromData($customer, $customer->getSyncId(), $customer->getHarmonyId());
-            }else {
-                $harmonyCustomer->fillMagentoCustomer($customer);
+                // Harmony isn't OK with blank names
+                if(!($harmonyCustomer->name_1=='' | $harmonyCustomer->name_2=='')){
+                    $outputFile->write($harmonyCustomer->getDataArray());
+                }
             }
-            $outputFile->write($harmonyCustomer->getDataArray());
         }
         // Free up the memory that was used with this array.
         unset($customers);
@@ -257,7 +262,10 @@ class Aligent_Emarsys_Model_Cron {
                 $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
                 $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
                 $harmonyCustomer->fillMagentoSubscriber($subscriber);
-                $outputFile->write($harmonyCustomer->getDataArray());
+                // Harmony isn't OK with blank names
+                if(!($harmonyCustomer->name_1=='' || $harmonyCustomer->name_2=='')){
+                    $outputFile->write($harmonyCustomer->getDataArray());
+                }
             }
             rewind($handle);
             $data = stream_get_contents($handle);

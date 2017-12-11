@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 <config>
+    <modules>
+        <Aligent_Emarsys>
+            <version>0.0.6</version>
+        </Aligent_Emarsys>
+    </modules>
     <default>
         <feeds>
             <enable>
                 <emarsys>0</emarsys>
                 <emarsys_consolidated>1</emarsys_consolidated>
-                <ebayfeed>0</ebayfeed>
-                <googleshopping>0</googleshopping>
             </enable>
         </feeds>
     </default>
@@ -193,11 +196,6 @@
             </before_query_filter>
         </emarsys>
     </feeds>
-    <modules>
-        <Aligent_Emarsys>
-            <version>0.0.5</version>
-        </Aligent_Emarsys>
-    </modules>
     <crontab>
         <jobs>
             <import_emarsys_data>

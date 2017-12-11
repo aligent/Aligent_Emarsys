@@ -716,7 +716,12 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             if($remoteSync->getId() && $remoteSync->getCustomerEntityId()) $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
         }
         // Set this again, just in case we're a new record.
-        $remoteSync->setCustomerEntityId($id);
+        if($remoteSync->isObjectNew()){
+            $remoteSync->setCustomerEntityId($id);
+            $remoteSync->setFirstName($customer->getFirstname());
+            $remoteSync->setLastName($customer->getLastname());
+            $remoteSync->setEmail($customer->getEmail());
+        }
         return $remoteSync;
     }
 
