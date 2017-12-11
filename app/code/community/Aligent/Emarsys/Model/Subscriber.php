@@ -22,11 +22,12 @@ class Aligent_Emarsys_Model_Subscriber extends Mage_Newsletter_Model_Subscriber 
      * Overridden because core doesn't pay attention to store scoping.
      *
      * @param string $subscriberEmail
+     * @param int $storeId
      * @return Aligent_Emarsys_Model_Subscriber
      */
-    public function loadByEmail($subscriberEmail)
+    public function loadByEmail($subscriberEmail, $storeId = null)
     {
-        $storeId = Mage::app()->getStore()->getId();
+        if($storeId === null) $storeId = Mage::app()->getStore()->getId();
         $item = $this->getCollection()->addFieldToFilter('store_id', $storeId)->addFieldToFilter('subscriber_email', $subscriberEmail)->getFirstItem();
 
         $this->addData($item->getData());
