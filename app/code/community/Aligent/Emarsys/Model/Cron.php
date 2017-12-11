@@ -224,7 +224,7 @@ class Aligent_Emarsys_Model_Cron {
                 continue;
             }
 
-            if( $customer->getLastName() !=='') {
+            if( $customer->getLastName() !=='' && $customer->getLastName() !== null) {
                 $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
                 $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
                 $count++;
@@ -260,7 +260,7 @@ class Aligent_Emarsys_Model_Cron {
                 $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
                 $harmonyCustomer->fillMagentoSubscriber($subscriber);
                 // Harmony isn't OK with blank last names
-                if($harmonyCustomer->name_2!==''){
+                if( trim( $harmonyCustomer->name_2) !=='' && $harmonyCustomer->name_2 !== null ){
                     $outputFile->write($harmonyCustomer->getDataArray());
                 }
             }
