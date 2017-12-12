@@ -220,22 +220,22 @@ class Aligent_Emarsys_Model_Cron {
         $count = 0;
         foreach ($customers as $customer) {
             $helper->log("Processing customer " . $customer->getId());
-            if(!$helper->isSubscriptionEnabled($customer->getStore()->getId())) {
+            if (!$helper->isSubscriptionEnabled($customer->getStore()->getId())) {
                 continue;
             }
 
-            if( $customer->getLastName() !=='' && $customer->getLastName() !== null) {
-                $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
-                $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
-                $count++;
-                $helper->log(round(($count / sizeof($customers)) * 100, 2) . "% $count of " . sizeof($customers));
+            $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
+            $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
+            $count++;
+            $helper->log(round(($count / sizeof($customers)) * 100, 2) . "% $count of " . sizeof($customers));
 
-                if ($customer->getSyncId()) {
-                    $harmonyCustomer->fillMagentoCustomerFromData($customer, $customer->getSyncId(), $customer->getHarmonyId());
-                } else {
-                    $harmonyCustomer->fillMagentoCustomer($customer);
-                }
+            if ($customer->getSyncId()) {
+                $harmonyCustomer->fillMagentoCustomerFromData($customer, $customer->getSyncId(), $customer->getHarmonyId());
+            } else {
+                $harmonyCustomer->fillMagentoCustomer($customer);
+            }
 
+            if( trim( $harmonyCustomer->name_2) !=='' && $harmonyCustomer->name_2 !== null ) {
                 $outputFile->write($harmonyCustomer->getDataArray());
             }
         }
