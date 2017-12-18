@@ -841,7 +841,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      */
     public function log($message, $logLevel = 1){
         if($logLevel == 1 || $this->getEmarsysDebug() ){
-            Mage::log($message, null, 'aligent_emarsys',true);
+            Mage::log($message, null, 'aligent_emarsys.log',true);
         }
     }
 }
