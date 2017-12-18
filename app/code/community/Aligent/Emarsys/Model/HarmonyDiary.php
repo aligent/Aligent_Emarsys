@@ -24,7 +24,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
      * @return string
      */
     protected function harmonyDate($dateValue){
-        if($dateValue === null || $dateValue === '') return '';
+        if($dateValue === null || $dateValue === '' || $dateValue === '0000-00-00') return '';
 
         if(is_string($dateValue) ){
             $dateValue = trim($dateValue);
