@@ -80,7 +80,7 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
 
     protected function updateSyncFromCustomer(){
         $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
-        $items->getSelect()->where('customer_entity_id > 0 and email is null');
+        $items->getSelect()->where('customer_entity_id > 0');
         foreach($items as $item){
             $customer = Mage::getModel('customer/customer')->load($item->getCustomerEntityId());
             $item->setFirstName($customer->getFirstName());
