@@ -121,6 +121,34 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         }
     }
 
+
+    /**
+     * Check if the subscription record being saved is new.  If it is, ensure that there isn't an existing
+     * subscription record for this email address and store id.  If there is, prevent the insertion of a
+     * new one and update the existing one instead.
+     * @param Varien_Event_Observer $observer
+     * @return bool
+     */
+    public function preventSubscriberInserts(Varien_Event_Observer $observer){
+        /** @var $subscriber Mage_Newsletter_Model_Subscriber */
+        $subscriber = $observer->getEvent()->getSubscriber();
+        if($subscriber->isObjectNew()){
+            // Can we find an existing subscription record?  If so, update that record, not this one.
+            $oldSubscriber = Mage::getModel('newsletter/subscriber')->loadByEmail($subscriber->getEmail(), $subscriber->getStoreId());
+            if($oldSubscriber->isObjectNew()) return false;
+
+            if(!$oldSubscriber->getCustomerId()) $oldSubscriber->setCustomerId($subscriber->getCustomerId());
+            $oldSubscriber->setStatus($subscriber->getStatus());
+            $oldSubscriber->setCode($subscriber->getCode());
+            $oldSubscriber->save();
+
+            $observer->getControllerAction()->setFlag('',Mage_Core_Controller_Varien_Action::FLAG_NO_DISPATCH,true);
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     /**
      * Handle Subscriber object saving process
      *
@@ -129,6 +157,8 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
      */
     public function handleSubscriber(Varien_Event_Observer $observer)
     {
+        if($this->preventSubscriberInserts($observer)) return;
+
         if(Mage::registry('emarsys_newsletter_ignore')){
             return $this;
         }
