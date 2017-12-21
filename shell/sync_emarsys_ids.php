@@ -10,6 +10,7 @@ require_once 'abstract_shell.php';
 
 class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Shell {
     protected $_aligentTable;
+    protected $_harmonyField = null;
 
     public function __construct(){
         parent::__construct();
@@ -35,6 +36,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
         $emPass = $this->getHelper()->getEmarsysAPISecret($storeId);
 
         $client = Mage::helper('aligent_emarsys/emarsys')->getClient($emUser, $emPass);
+        $this->_harmonyField = Mage::helper('aligent_emarsys')->getHarmonyIdField();
 
         $query = $this->getReader()->select()->from($this->_aligentTable)
             ->reset((Varien_Db_Select::COLUMNS))
@@ -55,7 +57,8 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
     protected function processEmails($client, $emails){
         $result = $client->getContactData(array("keyId"=>3,"keyValues"=>$emails));
         foreach($result->getData()['result'] as $item){
-            print_r($item);
+            $email = $this->getWriter()->quote($item[3]);
+            $this->getWriter()->update($this->_aligentTable, ['harmony_id'=>$item[$this->_harmonyField]], "email=$email");
         }
     }
 
