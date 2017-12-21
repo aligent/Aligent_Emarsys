@@ -9,6 +9,7 @@ require_once 'abstract.php';
 require_once 'abstract_shell.php';
 
 class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Shell {
+    const EMARSYS_EMAIL_CHUNK_SIZE = 50;
     protected $_aligentTable;
     protected $_harmonyField = null;
     protected $_emailField = null;
@@ -39,7 +40,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
 
         $client = Mage::helper('aligent_emarsys/emarsys')->getClient($emUser, $emPass);
         $this->_emailField = $client->getFieldId('email');
-        $this->_harmonyField = Mage::helper('aligent_emarsys')->getHarmonyIdField();
+        $this->_harmonyField = $this->getHelper()->getHarmonyIdField();
 
         $query = $this->getReader()->select()->from($this->_aligentTable)
             ->reset((Varien_Db_Select::COLUMNS))
@@ -49,7 +50,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
         $emails = array();
         while($row = $query->fetchObject()){
             $emails[] = $row->email;
-            if(sizeof($emails >= 50)){
+            if(sizeof($emails >= self::EMARSYS_EMAIL_CHUNK_SIZE)){
                 $this->processEmails($client, $emails);
                 $emails = array();
             }
@@ -58,10 +59,10 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
     }
 
     protected function processEmails($client, $emails){
-        $result = $client->getContactData(array("keyId"=>$this->_emailField,"keyValues"=>$emails));
+        $result = $client->getContactData(array("keyId" => $this->_emailField,"keyValues" => $emails));
         foreach($result->getData()['result'] as $item){
             $email = $this->getWriter()->quote($item[$this->_emailField]);
-            $this->getWriter()->update($this->_aligentTable, ['harmony_id'=>$item[$this->_harmonyField]], "email=$email");
+            $this->getWriter()->update($this->_aligentTable, ['harmony_id' => $item[$this->_harmonyField]], "email=$email");
         }
     }
 
