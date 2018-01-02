@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Aligent_Emarsys>
-            <version>0.0.6</version>
+            <version>0.0.7</version>
         </Aligent_Emarsys>
     </modules>
     <default>
