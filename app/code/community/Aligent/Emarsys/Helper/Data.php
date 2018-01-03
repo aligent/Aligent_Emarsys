@@ -136,11 +136,11 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
     /**
      * Get the Harmony ID field to populate in Emarsys, if specified.
+     * @param null $store
+     * @return mixed|null
      */
-    public function getHarmonyIdField(){
-        if($this->_harmonyIdField === null ){
-            $this->_harmonyIdField = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD);
-        }
+    public function getHarmonyIdField($store = null){
+        $this->_harmonyIdField = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD, $store);
         return $this->_harmonyIdField;
     }
 
@@ -182,13 +182,14 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
     /**
      * Get the Emarsys API Subscription field
+     * @param mixed $store Optional store ID to retrieve config for
+     *
      * @return string
      */
-    public function getEmarsysAPISubscriptionField(){
-        if($this->_emarsysSubscriptionField === null){
-            $this->_emarsysSubscriptionField = Mage::getStoreConfig(self::XML_EMARSYS_API_SUBSCRIPTION_FIELD);
-            if($this->_emarsysSubscriptionField=='-1') $this->_emarsysSubscriptionField = '';
-        }
+    public function getEmarsysAPISubscriptionField($store = null){
+        $this->log("Get emarsys field for store $store\n");
+        $this->_emarsysSubscriptionField = Mage::getStoreConfig(self::XML_EMARSYS_API_SUBSCRIPTION_FIELD, $store);
+        if($this->_emarsysSubscriptionField=='-1') $this->_emarsysSubscriptionField = '';
         return $this->_emarsysSubscriptionField;
     }
 

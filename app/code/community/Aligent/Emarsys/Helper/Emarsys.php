@@ -38,18 +38,18 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $dob;
     }
 
-    public function getHarmonyIdField(){
-        return $this->getHelper()->getHarmonyIdField();
+    public function getHarmonyIdField($store = null){
+        return $this->getHelper()->getHarmonyIdField($store);
     }
 
-    public function getSubscriptionField(){
-        $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField();
+    public function getSubscriptionField($store = null){
+        $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField($store);
         if(!is_numeric($subscribedField) || $subscribedField == -1) $subscribedField = null;
         return $subscribedField;
     }
 
-    public function unampSubscriptionValue($subscribed){
-        $isDefault = ($this->getSubscriptionField() == null);
+    public function unampSubscriptionValue($subscribed, $store = null){
+        $isDefault = ($this->getSubscriptionField($store) == null);
         if($isDefault){
             return (strtolower($subscribed)=='true');
         }else {
