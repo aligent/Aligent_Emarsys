@@ -38,18 +38,18 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $dob;
     }
 
-    public function getHarmonyIdField(){
-        return $this->getHelper()->getHarmonyIdField();
+    public function getHarmonyIdField($store = null){
+        return $this->getHelper()->getHarmonyIdField($store);
     }
 
-    public function getSubscriptionField(){
-        $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField();
-        if(!is_numeric($subscribedField) || $subscribedField == -1) $subscribedField = $this->getClient()->getFieldId('optin');
+    public function getSubscriptionField($store = null){
+        $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField($store);
+        if(!is_numeric($subscribedField) || $subscribedField == -1) $subscribedField = null;
         return $subscribedField;
     }
 
-    public function unampSubscriptionValue($subscribed){
-        $isDefault = ($this->getSubscriptionField() == $this->getClient()->getFieldId('optin') );
+    public function unampSubscriptionValue($subscribed, $store = null){
+        $isDefault = ($this->getSubscriptionField($store) == null);
         if($isDefault){
             return (strtolower($subscribed)=='true');
         }else {
@@ -59,7 +59,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
 
     public function mapSubscriptionValue($subscribed, $customer){
         if(is_object($customer)) $customer = $customer->getId();
-        $isDefault = ($this->getSubscriptionField() == $this->getClient()->getFieldId('optin') );
+        $isDefault = ($this->getSubscriptionField() == null || $this->getSubscriptionField() == $this->getClient()->getFieldId('optin'));
         if($isDefault){
             return ($subscribed) ? 1 : 2;
         }else {
@@ -68,7 +68,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     }
 
     protected function getGenderMap(){
-        if($this->_genders===null){
+        if($this->_genders === null){
             $result = $this->getClient()->getFieldChoices('gender');
             $this->_genders = array();
             foreach($result->getData() as $item){
@@ -78,9 +78,13 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_genders;
     }
 
+    protected function getCustomerGender($customer){
+        return ( !$customer->getGender() ) ? '' : $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer);
+    }
+
     protected function mapGenderValue($customer){
         if(is_object($customer)){
-            $gender = ($customer->getGender() != null) ? $customer->getResource()->getAttribute('gender')->getFrontend()->getValue($customer) : null;
+            $gender = ($customer->getGender() != null) ? $this->getCustomerGender($customer) : null;
         }else{
             $gender = $customer;
         }
@@ -102,21 +106,47 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_helper;
     }
 
-    public function getCustomerData($customer){
+    protected function abstractDataFill($customerData, $syncData, $isSubscribed, $gender){
+        $subField = $this->getSubscriptionField();
         $data = array(
-            $this->getEmailField() => $customer->getEmail(),
-            $this->getSubscriptionField() => $this->mapSubscriptionValue($this->getHelper()->isCustomerSubscribed($customer), $customer),
-            $this->getFirstnameField() => $customer->getFirstname(),
-            $this->getLastnameField() => $customer->getLastname(),
-            $this->getGenderField() => $this->mapGenderValue($customer),
-            $this->getDobField() => $customer->getDob()
+            $this->getEmailField() => $customerData->getEmail(),
+            $this->getFirstnameField() => $customerData->getFirstName(),
+            $this->getLastnameField() => $customerData->getLastName(),
+            $this->getGenderField() => $this->mapGenderValue($gender),
+            $this->getDobField() => $customerData->getDob()
         );
 
-        $harmonyField = $this->getHarmonyIdField();
-        if($harmonyField){
-            $syncId = $this->getHelper()->ensureCustomerSyncRecord($customer->getId())->getId();
-            $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $syncId );
+        if($subField) {
+            $data[$subField] = $this->mapSubscriptionValue($isSubscribed, $syncData->getId());
         }
+
+        $defaultOptIn = $this->getClient()->getFieldId('optin');
+        if(!isset($data[$defaultOptIn])) $data[$defaultOptIn] = true;
+
+        $harmonyField = $this->getHarmonyIdField();
+        if($harmonyField && $syncData->getId() ){
+            $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $syncData->getId() );
+        }
+        return $data;
+    }
+
+    public function getSubscriberData($subscriber){
+        $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
+        if(!$syncData || !$syncData->getId()) return null;
+
+        $data = $this->abstractDataFill($syncData, $syncData, $subscriber->isSubscribed(), $syncData->getGender());
+
+        return $data;
+    }
+
+    public function getCustomerData($customer){
+        $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getId(), 'customer_entity_id');
+
+        $isSubscribed = $this->getHelper()->isCustomerSubscribed($customer);
+        $genderValue = $this->getCustomerGender($customer);
+
+        $data = $this->abstractDataFill($customer, $syncData, $isSubscribed, $genderValue);
+
         return $data;
     }
 
@@ -141,8 +171,11 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
      */
     protected function updateSubscriber($localSyncId, $isSubscribed = true, $email = null, $firstname = null, $lastname = null, $dob = null, $gender = null){
         $data = array(
-            $this->getSubscriptionField() => $this->mapSubscriptionValue($isSubscribed, $localSyncId)
+
         );
+
+        $subField = $this->getSubscriptionField();
+        if($subField) $data[$subField] = $this->mapSubscriptionValue($isSubscribed, $localSyncId);
         if($firstname) $data[$this->getFirstnameField()] = $firstname;
         if($lastname) $data[$this->getLastnameField()] = $lastname;
         if($email) $data[$this->getEmailField()] = $email;
@@ -153,6 +186,10 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         if($harmonyField){
             $data[$harmonyField] = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey( $localSyncId );
         }
+
+        $defaultOptIn = $this->getClient()->getFieldId('optin');
+        if(!isset($data[$defaultOptIn])) $data[$defaultOptIn] = true;
+
         return $this->getClient()->updateContactAndCreateIfNotExists($data);
     }
 

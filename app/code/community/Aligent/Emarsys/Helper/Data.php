@@ -3,6 +3,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_feedStockFromSimple = null;
     protected $_includeSimpleParents = null;
     protected $_includeDisabled = null;
+    protected $_harmonyDumpFile = null;
+    protected $_harmonyExportLive = null;
 
     protected $_cookieName = null;
     protected $_enabled = null;
@@ -11,7 +13,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_sendEmail = null;
     protected $_isTestMode = null;
     protected $_sendParentSku = null;
-    protected $_subscriptionEnabled = null;
+    protected $_sendWebsiteCode = null;
     protected $_subscriptionSignupUrl = null;
     protected $_subscriptionSignupTimeout = null;
 
@@ -26,7 +28,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_harmonyUserId = null;
     protected $_harmonyNamekeyPrefix = null;
     protected $_harmonyIdField = null;
+    protected $_harmonyWebAgent = null;
 
+    protected $_emarsysDebug = null;
     protected $_emarsysAPIUser = null;
     protected $_emarsysAPISecret = null;
     protected $_emarsysSubscriptionField = null;
@@ -44,6 +48,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_SEND_EMAIL_PATH = 'aligent_emarsys/settings/send_email';
     const XML_EMARSYS_TEST_MODE_PATH = 'aligent_emarsys/settings/test_mode';
     const XML_EMARSYS_SEND_PARENT_SKU_PATH = 'aligent_emarsys/settings/send_parent_sku';
+    const XML_EMARSYS_SEND_WEBSITE_CODE_PATH = 'aligent_emarsys/settings/send_website_code';
 
     const XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH = 'aligent_emarsys/subscription/enabled';
     const XML_EMARSYS_SUBSCRIPTION_BASE_URL_PATH = 'aligent_emarsys/subscription/base_url';
@@ -60,17 +65,54 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_HARMONY_FTP_PASS = 'aligent_emarsys/harmony_settings/harmony_ftp_password';
     const XML_EMARSYS_HARMONY_FTP_IMPORT = 'aligent_emarsys/harmony_settings/harmony_ftp_import_path';
     const XML_EMARSYS_HARMONY_FTP_EXPORT = 'aligent_emarsys/harmony_settings/harmony_ftp_export_path';
+    const XML_EMARSYS_HARMONY_WEB_AGENT = 'aligent_emarsys/harmony_settings/web_agent';
     const XML_EMARSYS_HARMONY_DEBTOR = 'aligent_emarsys/harmony_settings/web_debtor';
     const XML_EMARSYS_HARMONY_TERMINAL = 'aligent_emarsys/harmony_settings/web_terminal';
     const XML_EMARSYS_HARMONY_USER = 'aligent_emarsys/harmony_settings/web_user';
     const XML_EMARSYS_HARMONY_PREFIX = 'aligent_emarsys/harmony_settings/namekey_prefix';
+    const XML_HARMONY_DUMP_FILE = 'aligent_emarsys/harmony_settings/harmony_dump_file';
+    const XML_HARMONY_CUSTOMER_MODE = 'aligent_emarsys/harmony_settings/harmony_customer_export_mode';
 
+    const XML_EMARSYS_API_DEBUG_MODE = 'aligent_emarsys/emarsys_api_settings/emarsys_debug';
     const XML_EMARSYS_API_USER = 'aligent_emarsys/emarsys_api_settings/emarsys_username';
     const XML_EMARSYS_API_SECRET = 'aligent_emarsys/emarsys_api_settings/emarsys_secret';
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field_id';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
+
+    public function getHarmonyWebAgent(){
+        if($this->_harmonyWebAgent === null){
+            $this->_harmonyWebAgent = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_WEB_AGENT);
+        }
+        return $this->_harmonyWebAgent;
+    }
+
+    /**
+     * Retrieve the debug mode flag for the Emarsys API.
+     *
+     * @return bool|null
+     */
+    public function getEmarsysDebug(){
+        if($this->_emarsysDebug === null){
+            $this->_emarsysDebug = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_DEBUG_MODE);
+        }
+        return $this->_emarsysDebug;
+    }
+
+    public function getHarmonyFileDump(){
+        if($this->_harmonyDumpFile === null) {
+            $this->_harmonyDumpFile = Mage::getStoreConfigFlag(self::XML_HARMONY_DUMP_FILE);
+        }
+        return $this->_harmonyDumpFile;
+    }
+
+    public function getHarmonyCustomerExportLive(){
+        if($this->_harmonyExportLive === null){
+            $this->_harmonyExportLive = Mage::getStoreConfigFlag(self::XML_HARMONY_CUSTOMER_MODE);
+        }
+        return $this->_harmonyExportLive;
+    }
 
     public function getGetStockFromSimpleProduct(){
         if($this->_feedStockFromSimple === null ){
@@ -96,11 +138,11 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
     /**
      * Get the Harmony ID field to populate in Emarsys, if specified.
+     * @param null $store
+     * @return mixed|null
      */
-    public function getHarmonyIdField(){
-        if($this->_harmonyIdField === null ){
-            $this->_harmonyIdField = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD);
-        }
+    public function getHarmonyIdField($store = null){
+        $this->_harmonyIdField = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD, $store);
         return $this->_harmonyIdField;
     }
 
@@ -109,7 +151,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return string
      */
     public function getEmarsysDobField(){
-        if($this->_emarsysDobField===null){
+        if($this->_emarsysDobField === null){
             $this->_emarsysDobField = Mage::getStoreConfig(self::XML_EMARSYS_API_DOB_FIELD);
             if($this->_emarsysDobField == '-1') $this->_emarsysDobField='';
         }
@@ -142,13 +184,14 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
     /**
      * Get the Emarsys API Subscription field
+     * @param mixed $store Optional store ID to retrieve config for
+     *
      * @return string
      */
-    public function getEmarsysAPISubscriptionField(){
-        if($this->_emarsysSubscriptionField === null){
-            $this->_emarsysSubscriptionField = Mage::getStoreConfig(self::XML_EMARSYS_API_SUBSCRIPTION_FIELD);
-            if($this->_emarsysSubscriptionField=='-1') $this->_emarsysSubscriptionField = '';
-        }
+    public function getEmarsysAPISubscriptionField($store = null){
+        $this->log("Get emarsys field for store $store\n");
+        $this->_emarsysSubscriptionField = Mage::getStoreConfig(self::XML_EMARSYS_API_SUBSCRIPTION_FIELD, $store);
+        if($this->_emarsysSubscriptionField=='-1') $this->_emarsysSubscriptionField = '';
         return $this->_emarsysSubscriptionField;
     }
 
@@ -375,15 +418,24 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     }
 
     /**
+     * Should the website code be tagged and sent for each event.
+     *
+     * @return bool
+     */
+    public function getSendWebsiteCode() {
+        if ($this->_sendWebsiteCode === null) {
+            $this->_sendWebsiteCode = Mage::getStoreConfigFlag(self::XML_EMARSYS_SEND_WEBSITE_CODE_PATH);
+        }
+        return $this->_sendWebsiteCode;
+    }
+
+    /**
      * Should the parent sku be returned instead of the child
      *
      * @return bool
      */
-    public function isSubscriptionEnabled() {
-        if ($this->_subscriptionEnabled === null) {
-            $this->_subscriptionEnabled = Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH);
-        }
-        return $this->_subscriptionEnabled;
+    public function isSubscriptionEnabled( $storeId = null ) {
+        return Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH, $storeId);
     }
 
     /**
@@ -659,12 +711,75 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     }
 
     /**
+     * Locate an Aligent_Emarsys_Remote_System_Sync_flags record
+     * with the given customer_entity_id, or return a new model
+     * with the ID set if not found.
+     *
+     * @param $id The customer entity id to find
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
+     */
+    public function findCustomerSyncRecord($id){
+        /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $remoteSync */
+        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($id, 'customer_entity_id');
+
+        // Is it a valid customer?
+        $customer = Mage::getModel('customer/customer')->load($id);
+
+        // Is there a record for this email address already but with no customer ID?
+        if(!$remoteSync->getId()) {
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getEmail(), 'email');
+            if($remoteSync->getId() && $remoteSync->getCustomerEntityId()) $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
+        }
+        // Set this again, just in case we're a new record.
+        if($remoteSync->isObjectNew()){
+            $remoteSync->setCustomerEntityId($id);
+            $remoteSync->setFirstName($customer->getFirstname());
+            $remoteSync->setLastName($customer->getLastname());
+            $remoteSync->setEmail($customer->getEmail());
+        }
+        return $remoteSync;
+    }
+
+    /**
+     * @param $subscriber
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
+     */
+    public function findNewsletterSyncRecord($subscriber){
+        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
+        // If we don't have a sync for this subscriber and the subscriber is a customer,
+        // do we have a sync for that customer?
+        if(!$remoteSync->getId() && $subscriber->getCustomerId()){
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getCustomerId(), 'customer_entity_id');
+        }
+
+        // We still don't have a sync, so let's see if we can match on email.
+        $this->log("Trying to find a match for subscriber " . $subscriber->getId());
+        if(!$remoteSync->getId()){
+            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getSubscriberEmail(), 'email');
+            $this->log("Found id " . $remoteSync->getId() . " for email " . $subscriber->getSubscriberEmail());
+            if($remoteSync->getId() ){
+                if($remoteSync->getNewsletterSubscriberId() > 0){
+                    $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
+                }else{
+                    if(!$subscriber->getCustomerId()) $subscriber->setCustomerId($remoteSync->getCustomerEntityId());
+                }
+            }
+        }
+        $remoteSync->setNewsletterSubscriberId($subscriber->getId());
+        return $remoteSync;
+    }
+
+    /**
      * Ensure that for a given newsletter subscriber, a remoteSystemSyncFlags record exists
      * and set the dirty flags as required
      *
      * @param int $id The newsletter_subscriber ID
      * @param bool $emarsysFlag Whether to mark as needing Emarsys sync (true) or not (false)
      * @param bool $harmonyFlag Whether to mark as needing Harmony sync (true) or not (false)
+     * @param string $firstName First name to populate the record with
+     * @param string $lastName Last name to populate the record with
+     * @param string $gender Gender to populate the record with
+     * @param string $dob Date of birth to populate the record with
      *
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
@@ -674,8 +789,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             return null;// If we weren't passed a valid newsletter subscriber ID, just bail
         }
 
-        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
-        $remoteSync->setNewsletterSubscriberId($id);
+        $remoteSync = $this->findNewsletterSyncRecord($subscriber);
         $remoteSync->setCustomerEntityId($subscriber->getCustomerId());
         $remoteSync->setHarmonySyncDirty($harmonyFlag);
         $remoteSync->setEmarsysSyncDirty($emarsysFlag);
@@ -684,6 +798,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         if($lastName) $remoteSync->setLastName($lastName);
         if($dob) $remoteSync->setDob($dob);
         if($gender) $remoteSync->setGender($gender);
+
         $remoteSync->setEmail($subscriber->getSubscriberEmail());
         $remoteSync->save();
 
@@ -698,10 +813,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function ensureCustomerSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true){
-        /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $remoteSync */
-        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($id, 'customer_entity_id');
-        // Set this again, just in case we're a new record.
-        $remoteSync->setCustomerEntityId($id);
+        $remoteSync = $this->findCustomerSyncRecord($id);
         $remoteSync->setHarmonySyncDirty($harmonyFlag);
         $remoteSync->setEmarsysSyncDirty($emarsysFlag);
         $remoteSync->save();
@@ -734,5 +846,17 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $remoteSync = $this->ensureCustomerSyncRecord($order->getCustomerId(), true, true);
         }
         return $remoteSync;
+    }
+
+    /**
+     * Logs a message to the Emarsys log file.  Log level 1 will always be logged,
+     * log level 2 is only logged if getEmarsysDebug is true.
+     * @param $message
+     * @param int $logLevel
+     */
+    public function log($message, $logLevel = 1){
+        if($logLevel == 1 || $this->getEmarsysDebug() ){
+            Mage::log($message, null, 'aligent_emarsys.log',true);
+        }
     }
 }

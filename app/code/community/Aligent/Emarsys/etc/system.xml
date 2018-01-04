@@ -58,6 +58,25 @@
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
                     <fields>
+                        <harmony_dump_file translate="label">
+                            <label>Save file to local (debug purposes)</label>
+                            <sort_order>0</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_dump_file>
+                        <harmony_customer_export_mode translate="label">
+                            <label>Send customer export directly to FTP</label>
+                            <sort_order>5</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_customer_export_mode>
+
                         <harmony_ftp_server translate="label">
                             <label>FTP Server</label>
                             <sort_order>10</sort_order>
@@ -109,6 +128,15 @@
                             <show_in_store>1</show_in_store>
                             <comment>The remote directory Magento should place CSV files for Harmony to pick up</comment>
                         </harmony_ftp_export_path>
+                        <web_agent>
+                            <label>Agent</label>
+                            <sort_order>55</sort_order>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-5</validate>
+                        </web_agent>
                         <web_debtor>
                             <label>Debtor Namekey</label>
                             <sort_order>60</sort_order>
@@ -116,6 +144,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-10</validate>
                         </web_debtor>
                         <web_terminal>
                             <label>Terminal ID</label>
@@ -124,6 +153,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-10</validate>
                         </web_terminal>
                         <web_user>
                             <label>User ID</label>
@@ -132,6 +162,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-10</validate>
                         </web_user>
                         <namekey_prefix>
                             <label>Namekey Prefix</label>
@@ -140,6 +171,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <validate>validate-length maximum-length-4</validate>
                         </namekey_prefix>
                     </fields>
                 </harmony_settings>
@@ -150,6 +182,16 @@
                     <show_in_store>1</show_in_store>
                     <show_in_default>1</show_in_default>
                     <fields>
+                        <emarsys_debug translate="label">
+                            <label>Debug Mode (verbose logging)</label>
+                            <sort_order>0</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </emarsys_debug>
+
                         <emarsys_username translate="label">
                             <label>API Username</label>
                             <sort_order>10</sort_order>
@@ -261,9 +303,19 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </send_parent_sku>
+                        <send_website_code translate="label">
+                            <label>Send Website Code</label>
+                            <sort_order>70</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>Should the website code be tagged and sent for each event.</comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </send_website_code>
                         <test_mode translate="label">
                             <label>Test Mode</label>
-                            <sort_order>70</sort_order>
+                            <sort_order>80</sort_order>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <comment>Disables logging for all commands contained in the current ScarabQueue JavaScript object. In effect, this will prevent data-collection events from being recorded.</comment>

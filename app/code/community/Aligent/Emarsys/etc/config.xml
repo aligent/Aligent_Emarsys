@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 <config>
+    <modules>
+        <Aligent_Emarsys>
+            <version>0.0.7</version>
+        </Aligent_Emarsys>
+    </modules>
     <default>
         <feeds>
             <enable>
                 <emarsys>0</emarsys>
                 <emarsys_consolidated>1</emarsys_consolidated>
-                <ebayfeed>0</ebayfeed>
-                <googleshopping>0</googleshopping>
             </enable>
         </feeds>
     </default>
@@ -16,10 +19,10 @@
                 <id>
                     <header>item</header>
                     <xml_tag>g:id</xml_tag>
-                    <attribute>sku</attribute>
                     <singleton>
                         <class>aligent_emarsys/translator_item</class>
                         <method>translate</method>
+                        <field>sku</field>
                     </singleton>
                     <!-- if we don't override the value and special tags with blank, it will grab them from the Aligent Feeds config.xml -->
                     <value></value>
@@ -100,6 +103,7 @@
                     <stockStatusFromSimple>1</stockStatusFromSimple>
                     <includeDisabled>1</includeDisabled>
                     <includeSimpleParents>1</includeSimpleParents>
+                    <include_all_stores>1</include_all_stores>
                 </params>
             </before_query_filter>
         </emarsys_consolidated>
@@ -192,15 +196,10 @@
             </before_query_filter>
         </emarsys>
     </feeds>
-    <modules>
-        <Aligent_Emarsys>
-            <version>0.0.1</version>
-        </Aligent_Emarsys>
-    </modules>
     <crontab>
         <jobs>
             <import_emarsys_data>
-                <schedule><cron_expr>0 */15 * ? * *</cron_expr></schedule>
+                <schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
                 <name>Import Emarsys Data</name>
                 <run>
                     <model>aligent_emarsys/cron::importEmarsysData</model>
@@ -208,7 +207,7 @@
             </import_emarsys_data>
 
             <export_emarsys_data>
-                <schedule><cron_expr>0 */15 * ? * *</cron_expr></schedule>
+                <schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
                 <name>Export Emarsys Data</name>
                 <run>
                     <model>aligent_emarsys/cron::exportEmarsysData</model>
@@ -216,7 +215,7 @@
             </export_emarsys_data>
 
             <import_harmony_data>
-                <schedule><cron_expr>0 */15 * ? * *</cron_expr></schedule>
+                <schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
                 <name>Import Harmony Data</name>
                 <run>
                     <model>aligent_emarsys/cron::importHarmonyData</model>
@@ -224,7 +223,7 @@
             </import_harmony_data>
 
             <export_harmony_data>
-                <schedule><cron_expr>0 */15 * ? * *</cron_expr></schedule>
+                <schedule><cron_expr>*/5 * * * *</cron_expr></schedule>
                 <name>Export Harmony Data</name>
                 <run>
                     <model>aligent_emarsys/cron::exportHarmonyData</model>
@@ -257,6 +256,11 @@
             </aligent_emarsys>
         </blocks>
         <models>
+            <newsletter>
+                <rewrite>
+                    <subscriber>Aligent_Emarsys_Model_Subscriber</subscriber>
+                </rewrite>
+            </newsletter>
             <aligent_emarsys>
                 <class>Aligent_Emarsys_Model</class>
                 <resourceModel>aligent_emarsys_resource</resourceModel>
@@ -278,65 +282,65 @@
         <events>
             <customer_save_after>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_customer_save_after>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>customerModelChanged</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_customer_save_after>
                 </observers>
             </customer_save_after>
             <sales_quote_merge_after>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_sales_quote_merge_after>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>checkoutCartMergeUpdateCookie</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_sales_quote_merge_after>
                 </observers>
             </sales_quote_merge_after>
             <customer_logout>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_customer_logout>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>removeUserFromCookie</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_customer_logout>
                 </observers>
             </customer_logout>
             <customer_login>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_customer_login>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>addUserToCookie</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_customer_login>
                 </observers>
             </customer_login>
             <checkout_cart_save_after>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_checkout_cart_save_after>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>checkoutCartSaveUpdateCookie</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_checkout_cart_save_after>
                 </observers>
             </checkout_cart_save_after>
             <sales_model_service_quote_submit_success>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_sales_model_service_quote_submit_success>
                         <type>singleton</type>
                         <class>aligent_emarsys/observer</class>
                         <method>afterCheckoutSuccess</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_sales_model_service_quote_submit_success>
                 </observers>
             </sales_model_service_quote_submit_success>
 
             <newsletter_subscriber_save_before>
                 <observers>
-                    <aligent_emarsys>
+                    <aligent_emarsys_newsletter_subscriber_save_before>
                         <class>aligent_emarsys/observer</class>
                         <method>handleSubscriber</method>
-                    </aligent_emarsys>
+                    </aligent_emarsys_newsletter_subscriber_save_before>
                 </observers>
             </newsletter_subscriber_save_before>
         </events>
@@ -360,26 +364,26 @@
         </layout>
     </frontend>
     <adminhtml>
-    <acl>
-        <resources>
-            <admin>
-                <children>
-                    <system>
-                        <children>
-                            <config>
-                                <children>
-                                    <aligent_emarsys>
-                                        <title>Aligent Emarsys</title>
-                                    </aligent_emarsys>
-                                </children>
-                            </config>
-                        </children>
-                    </system>
-                </children>
-            </admin>
-        </resources>
-    </acl>
-</adminhtml>
+        <acl>
+            <resources>
+                <admin>
+                    <children>
+                        <system>
+                            <children>
+                                <config>
+                                    <children>
+                                        <aligent_emarsys>
+                                            <title>Aligent Emarsys</title>
+                                        </aligent_emarsys>
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+                    </children>
+                </admin>
+            </resources>
+        </acl>
+    </adminhtml>
     <default>
         <aligent_emarsys>
             <settings>
@@ -388,6 +392,7 @@
                 <send_email>1</send_email>
                 <test_mode>1</test_mode>
                 <send_parent_sku>1</send_parent_sku>
+                <send_website_code>1</send_website_code>
             </settings>
             <subscription>
                 <enabled>1</enabled>
