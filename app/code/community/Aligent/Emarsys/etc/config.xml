@@ -94,7 +94,7 @@
             </output>
             <before_query_filter>
                 <class>aligent_emarsys/filter</class>
-                <method>beforeQueryFilter</method>
+                <method>beforeQueryFilterConsolidated</method>
                 <params>
                     <feed_name>emarsys</feed_name>
                     <stockStatusFromSimple>1</stockStatusFromSimple>
