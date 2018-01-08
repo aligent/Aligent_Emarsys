@@ -121,6 +121,39 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         }
     }
 
+    /**
+     * Sweep the feeds directory and consolidate all
+     * emarsys_consolidated-<store_code>.csv files into a
+     * single emarsys_consolidated.csv file, then clean up
+     * the individual store files.
+     */
+    public function consolidateEmarsysData(){
+        Mage::log("Consolidate feed data");
+        $vFeedDir = Mage::getBaseDir().Aligent_Feeds_Model_Writer_Abstract::FEED_PATH;
+        $files = scandir($vFeedDir);
+
+        $outputFile = fopen($vFeedDir . "/emarsys_consolidated.csv", "w");
+        $hasHeaders = false;
+
+        foreach($files as $file){
+            preg_match("/emarsys\_consolidated-([^\.]+)\.csv/", $file, $match);
+            if(sizeof($match) > 0){
+                $inputFile = fopen($vFeedDir . "/$file", "r");
+                $header = fgets($inputFile);
+                if(!$hasHeaders){
+                    fwrite($outputFile, $header);
+                    $hasHeaders = true;
+                }
+                while( $line = fgets($inputFile) ) {
+                    fwrite($outputFile, $line);
+                }
+                fclose($inputFile);
+                unlink($vFeedDir . "/$file");
+            }
+
+        }
+        fclose($outputFile);
+    }
 
     /**
      * Check if the subscription record being saved is new.  If it is, ensure that there isn't an existing

@@ -46,8 +46,9 @@ class Aligent_Emarsys_Model_Filter {
             );
         }
 
-        if(!isset($aParms['include_all_stores']))
+        if(!isset($aParms['include_all_stores'])){
             $oSelect->where('ss.website_id=?', array($oStore->getWebsiteId()));
+        }
 
         if ($includeSimpleParents) {
             // Do not include simples, unless they have no parent.
@@ -62,7 +63,7 @@ class Aligent_Emarsys_Model_Filter {
 
         $vSql = (string) $oSelect;
 
-        Mage::getSingleton('aligent_feeds/log')->log("Catalog Select: $vSql");
+        Mage::getSingleton('aligent_feeds/log')->log("Catalog Select is: $vSql");
     }
 
 }

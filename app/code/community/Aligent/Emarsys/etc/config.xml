@@ -97,7 +97,7 @@
             </output>
             <before_query_filter>
                 <class>aligent_emarsys/filter</class>
-                <method>beforeQueryFilterConsolidated</method>
+                <method>beforeQueryFilter</method>
                 <params>
                     <feed_name>emarsys</feed_name>
                     <stockStatusFromSimple>1</stockStatusFromSimple>
@@ -280,6 +280,15 @@
             </aligent_emarsys>
         </helpers>
         <events>
+            <aligent_feeds_complete>
+                <observers>
+                    <aligent_emarsys_feeds_after>
+                        <type>singleton</type>
+                        <class>aligent_emarsys/observer</class>
+                        <method>consolidateEmarsysData</method>
+                    </aligent_emarsys_feeds_after>
+                </observers>
+            </aligent_feeds_complete>
             <customer_save_after>
                 <observers>
                     <aligent_emarsys_customer_save_after>
