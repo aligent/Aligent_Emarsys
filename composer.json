@@ -7,11 +7,10 @@
             "type": "vcs",
             "url":"https://github.com/aligent/Aligent_Feeds.git"
         }
-
     ],
     "require": {
         "firegento/psr0autoloader": "*",
-        "aligent/feeds" : "*",
+        "aligent/feeds" : "dev-master",
         "snowcap/emarsys": "*"
     },
     "license": "MIT"

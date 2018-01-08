@@ -280,6 +280,15 @@
             </aligent_emarsys>
         </helpers>
         <events>
+            <aligent_feeds_complete>
+                <observers>
+                    <aligent_emarsys_feeds_after>
+                        <type>singleton</type>
+                        <class>aligent_emarsys/observer</class>
+                        <method>consolidateEmarsysData</method>
+                    </aligent_emarsys_feeds_after>
+                </observers>
+            </aligent_feeds_complete>
             <customer_save_after>
                 <observers>
                     <aligent_emarsys_customer_save_after>
