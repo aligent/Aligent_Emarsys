@@ -11,7 +11,6 @@ class Aligent_Emarsys_Model_Filter {
      */
     public function beforeQueryFilter(Varien_Db_Select &$oSelect, $oStore, $aParms)
     {
-        Mage::app()->getStore()->setConfig('catalog/frontend/flat_catalog_product', 0);
         /** @var Aligent_Emarsys_Helper_Data $helper */
         $helper = Mage::helper('aligent_emarsys');
 
@@ -21,19 +20,19 @@ class Aligent_Emarsys_Model_Filter {
         $attrs = array('url_key','url_path','name','image_label','small_image','small_image_label','category_id','price','availability','brand_value');
 
 
-        $oSelect = Mage::getModel('catalog/product')->getCollection();
+        $oCollection = Mage::getModel('catalog/product')->getCollection();
 
         foreach($attrs as $attr){
-            $oSelect->addAttributeToSelect($attr);
-            $oSelect->addAttributeToSort($attr);
+            $oCollection->addAttributeToSelect($attr);
+            $oCollection->addAttributeToSort($attr);
         }
-        $oSelect->addStoreFilter($storeId);
-        $oSelect->addWebsiteFilter($websiteIds);
+        $oCollection->addStoreFilter($storeId);
+        $oCollection->addWebsiteFilter($websiteIds);
 
         $vStockStatus = Mage::getModel('core/resource_setup', 'core_setup')->getTable('cataloginventory/stock_status');
         $vSuperLink = Mage::getModel('core/resource_setup', 'core_setup')->getTable('catalog/product_super_link');
 
-        $oSelect = $oSelect->getSelect();
+        $oSelect = $oCollection->getSelect();
         $oSelect->joinLeft( array( 'sl' => $vSuperLink ), '`e`.`entity_id`=`sl`.`product_id`');
         $oSelect->joinLeft( array( 'pss' => $vStockStatus ),
             '`sl`.parent_id=`pss`.`product_id` AND `pss`.website_id = ' . $oStore->getWebsiteId(),
