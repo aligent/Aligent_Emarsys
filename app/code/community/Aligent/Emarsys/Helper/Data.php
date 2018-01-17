@@ -27,7 +27,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_harmonyTerminalId = null;
     protected $_harmonyUserId = null;
     protected $_harmonyNamekeyPrefix = null;
-    protected $_harmonyIdField = null;
+    protected $_harmonyIdField = array();
     protected $_harmonyWebAgent = null;
 
     protected $_emarsysDebug = null;
@@ -35,6 +35,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysAPISecret = null;
     protected $_emarsysSubscriptionField = null;
     protected $_emarsysVoucherField = null;
+    protected $_emarsysFirstnameField = null;
+    protected $_emarsysLastnameField = null;
+    protected $_emarsysGenderField = null;
     protected $_emarsysDobField = null;
 
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
@@ -78,7 +81,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_SECRET = 'aligent_emarsys/emarsys_api_settings/emarsys_secret';
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
-    const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field_id';
+    const XML_EMARSYS_API_FIRSTNAME_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_firstname_field';
+    const XML_EMARSYS_API_LASTNAME_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_lastname_field';
+    const XML_EMARSYS_API_GENDER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_gender_field';
+    const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
 
     public function getHarmonyWebAgent(){
@@ -142,8 +148,52 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return mixed|null
      */
     public function getHarmonyIdField($store = null){
-        $this->_harmonyIdField = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD, $store);
-        return $this->_harmonyIdField;
+        $storeId = $store;
+        if (is_object($store)) {
+            $storeId = $store->getId();
+        }
+
+        if (!isset($this->_harmonyIdField[$storeId])) {
+            $this->_harmonyIdField[$storeId] = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD, $store);
+        }
+
+        return $this->_harmonyIdField[$storeId];
+    }
+
+    /**
+     * Get the Firstname field to use with Emarsys.  Blank if not collecting Firstname.
+     * @return string
+     */
+    public function getEmarsysFirstnameField(){
+        if($this->_emarsysFirstnameField === null){
+            $this->_emarsysFirstnameField = Mage::getStoreConfig(self::XML_EMARSYS_API_FIRSTNAME_FIELD);
+            if($this->_emarsysFirstnameField == '-1') $this->_emarsysFirstnameField='';
+        }
+        return $this->_emarsysFirstnameField;
+    }
+
+    /**
+     * Get the Lastname field to use with Emarsys.  Blank if not collecting Lastname.
+     * @return string
+     */
+    public function getEmarsysLastnameField(){
+        if($this->_emarsysLastnameField === null){
+            $this->_emarsysLastnameField = Mage::getStoreConfig(self::XML_EMARSYS_API_LASTNAME_FIELD);
+            if($this->_emarsysLastnameField == '-1') $this->_emarsysLastnameField='';
+        }
+        return $this->_emarsysLastnameField;
+    }
+
+    /**
+     * Get the gender field to use with Emarsys.  Blank if not collecting Gender.
+     * @return string
+     */
+    public function getEmarsysGenderField(){
+        if($this->_emarsysGenderField === null){
+            $this->_emarsysGenderField = Mage::getStoreConfig(self::XML_EMARSYS_API_GENDER_FIELD);
+            if($this->_emarsysGenderField == '-1') $this->_emarsysGenderField='';
+        }
+        return $this->_emarsysGenderField;
     }
 
     /**
