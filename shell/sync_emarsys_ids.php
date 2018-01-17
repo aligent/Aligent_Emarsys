@@ -68,7 +68,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
                 $emails[] = $row->email;
             }
 
-            if(sizeof($emails >= self::EMARSYS_EMAIL_CHUNK_SIZE)){
+            if(sizeof($emails) >= self::EMARSYS_EMAIL_CHUNK_SIZE){
                 $this->processEmails($client, $emails);
                 $emails = array();
             }
