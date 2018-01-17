@@ -57,6 +57,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
         $this->_harmonyField = $this->getHelper()->getHarmonyIdField();
         $this->_emarsysField = $client->getFieldId('id');
 
+        // We should probably limit this to only get users who do not have a emarsys sync id so they do not run multiple times.
         $query = $this->getReader()->select()->from($this->_aligentTable)
             ->reset((Varien_Db_Select::COLUMNS))
             ->columns(['email'])
@@ -78,17 +79,47 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
 
     protected function processEmails($client, $emails){
         $result = $client->getContactData(array("keyId" => $this->_emailField,"keyValues" => $emails));
+
+        $firstnameField = $this->getHelper()->getEmarsysFirstnameField();
+        $lastnameField = $this->getHelper()->getEmarsysLastnameField();
+        $genderField = $this->getHelper()->getEmarsysGenderField();
+        $dobField = $this->getHelper()->getEmarsysDobField();
+
         foreach($result->getData()['result'] as $item){
             $email = $this->getWriter()->quote($item[$this->_emailField]);
             $data = [
-                'emarsys_id' => $item[$this->_emarsysField]
+                'emarsys_id' => $item[$this->_emarsysField],
+                'emarsys_sync_dirty' => 0, // As we have synced with emarsys, we should be clean.
+                'harmony_sync_dirty' => 1, // As we have synced with emarsys and may have updated information.
             ];
+
+            // Sync optional data from Emarsys into Magento
+            if (strlen($firstnameField) !== 0) {
+                $data['first_name'] = $item[$firstnameField];
+            }
+            if (strlen($lastnameField) !== 0) {
+                $data['last_name'] = $item[$lastnameField];
+            }
+            if (strlen($genderField) !== 0) {
+                // TODO $item[$genderField] == 2 in emarsys. We need to convert this to Female.
+                $data['gender'] = $item[$genderField];
+            }
+            if (strlen($dobField) !== 0) {
+                $data['dob'] = $item[$dobField];
+            }
+
             $this->getWriter()->update($this->_aligentTable, $data, "email=$email");
+
+            // Update the aligent table for all subscribers with this email, to account for the same email used in different store scopes.
             $newsletters = $this->getReader()->select()->from($this->_newsletterTable)->where("subscriber_email=$email")->query();
             while($row = $newsletters->fetchObject()){
                 $harmonyField = $this->getHelper()->getHarmonyIdField($row->store_id);
-                $this->getHelper()->log("Setting Harmony ID from $harmonyField to value " . $item[$harmonyField] . " for store " . $row->store_id, 2);
-                $this->getWriter()->update($this->_aligentTable, ['harmony_id' => $item[$harmonyField]], "newsletter_subscriber_id=" . $row->subscriber_id);
+
+                // Do not insert harmony ID of null as this may override what is present.
+                if ($item[$harmonyField] !== null) {
+                    $this->getHelper()->log("Setting Harmony ID from $harmonyField to value " . $item[$harmonyField] . " for store " . $row->store_id, 2);
+                    $this->getWriter()->update($this->_aligentTable, ['harmony_id' => $item[$harmonyField]], "newsletter_subscriber_id=" . $row->subscriber_id);
+                }
             }
         }
     }
