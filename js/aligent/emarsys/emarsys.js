@@ -22,6 +22,7 @@ Aligent.Emarsys = Class.create({
         if(!params.dobYY) params.dobYY = null;
         if(!params.dobMM) params.dobMM = null;
         if(!params.dobDD) params.dobDD = null;
+        if(!params.gender) params.gender = null;
         params.form_key = this._config.formKey;
 
         new Ajax.Request(this._config.subscribeUrl, {
