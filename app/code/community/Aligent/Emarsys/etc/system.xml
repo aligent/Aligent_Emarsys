@@ -258,7 +258,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <comment>Should the firstname field by pulled from emarys when syncing</comment>
+                            <comment>Should the firstname field by pulled from emarsys when syncing</comment>
                         </emarsys_sync_firstname>
                         <emarsys_sync_lastname translate="label">
                             <label>Sync Lastname</label>
@@ -268,7 +268,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <comment>Should the lastname field by pulled from emarys when syncing</comment>
+                            <comment>Should the lastname field by pulled from emarsys when syncing</comment>
                         </emarsys_sync_lastname>
                         <emarsys_sync_gender translate="label">
                             <label>Sync Gender</label>
@@ -278,7 +278,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <comment>Should the gender field by pulled from emarys when syncing</comment>
+                            <comment>Should the gender field by pulled from emarsys when syncing</comment>
                         </emarsys_sync_gender>
                         <emarsys_sync_dob translate="label">
                             <label>Sync DOB</label>
@@ -288,7 +288,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <comment>Should the dob field by pulled from emarys when syncing</comment>
+                            <comment>Should the dob field by pulled from emarsys when syncing</comment>
                         </emarsys_sync_dob>
                     </fields>
                 </emarsys_api_settings>

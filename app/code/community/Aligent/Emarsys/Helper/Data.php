@@ -201,8 +201,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      */
     public function shouldSyncEmarsysDobField(){
         if($this->_emarsysSyncDOB === null){
-            $this->_emarsysSyncDOB = Mage::getStoreConfig(self::XML_EMARSYS_API_SYNC_DOB);
-            if($this->_emarsysSyncDOB == '-1') $this->_emarsysSyncDOB='';
+            $this->_emarsysSyncDOB = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_DOB);
         }
         return $this->_emarsysSyncDOB;
     }
