@@ -35,9 +35,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysAPISecret = null;
     protected $_emarsysSubscriptionField = null;
     protected $_emarsysVoucherField = null;
-    protected $_emarsysFirstnameField = null;
-    protected $_emarsysLastnameField = null;
-    protected $_emarsysGenderField = null;
+    protected $_emarsysSyncFirstname = null;
+    protected $_emarsysSyncLastname = null;
+    protected $_emarsysSyncGender = null;
+    protected $_emarsysSyncDOB = null;
     protected $_emarsysDobField = null;
 
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
@@ -81,9 +82,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_SECRET = 'aligent_emarsys/emarsys_api_settings/emarsys_secret';
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
-    const XML_EMARSYS_API_FIRSTNAME_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_firstname_field';
-    const XML_EMARSYS_API_LASTNAME_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_lastname_field';
-    const XML_EMARSYS_API_GENDER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_gender_field';
+    const XML_EMARSYS_API_SYNC_FIRSTNAME = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_firstname';
+    const XML_EMARSYS_API_SYNC_LASTNAME = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_lastname';
+    const XML_EMARSYS_API_SYNC_GENDER = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_gender';
+    const XML_EMARSYS_API_SYNC_DOB = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_dob';
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
 
@@ -161,43 +163,52 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     }
 
     /**
-     * Get the Firstname field to use with Emarsys.  Blank if not collecting Firstname.
+     * Should sync firstname field from Emarsys into Aligent table.
      * @return string
      */
-    public function getEmarsysFirstnameField(){
-        if($this->_emarsysFirstnameField === null){
-            $this->_emarsysFirstnameField = Mage::getStoreConfig(self::XML_EMARSYS_API_FIRSTNAME_FIELD);
-            if($this->_emarsysFirstnameField == '-1') $this->_emarsysFirstnameField='';
+    public function shouldSyncEmarsysFirstnameField(){
+        if($this->_emarsysSyncFirstname === null){
+            $this->_emarsysSyncFirstname = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_FIRSTNAME);
         }
-        return $this->_emarsysFirstnameField;
+        return $this->_emarsysSyncFirstname;
     }
 
     /**
-     * Get the Lastname field to use with Emarsys.  Blank if not collecting Lastname.
+     * Should sync lastname field from Emarsys into Aligent table.
      * @return string
      */
-    public function getEmarsysLastnameField(){
-        if($this->_emarsysLastnameField === null){
-            $this->_emarsysLastnameField = Mage::getStoreConfig(self::XML_EMARSYS_API_LASTNAME_FIELD);
-            if($this->_emarsysLastnameField == '-1') $this->_emarsysLastnameField='';
+    public function shouldSyncEmarsysLastnameField(){
+        if($this->_emarsysSyncLastname === null){
+            $this->_emarsysSyncLastname = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_LASTNAME);
         }
-        return $this->_emarsysLastnameField;
+        return $this->_emarsysSyncLastname;
     }
 
     /**
-     * Get the gender field to use with Emarsys.  Blank if not collecting Gender.
+     * Should sync gender field from Emarsys into Aligent table.
      * @return string
      */
-    public function getEmarsysGenderField(){
-        if($this->_emarsysGenderField === null){
-            $this->_emarsysGenderField = Mage::getStoreConfig(self::XML_EMARSYS_API_GENDER_FIELD);
-            if($this->_emarsysGenderField == '-1') $this->_emarsysGenderField='';
+    public function shouldSyncEmarsysGenderField(){
+        if($this->_emarsysSyncGender === null){
+            $this->_emarsysSyncGender = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_GENDER);
         }
-        return $this->_emarsysGenderField;
+        return $this->_emarsysSyncGender;
     }
 
     /**
-     * Get the DOB field to use with Emarsys.  Blank if not collecting DOB.
+     * Should sync DOB from Emarsys into Aligent table
+     * @return string
+     */
+    public function shouldSyncEmarsysDobField(){
+        if($this->_emarsysSyncDOB === null){
+            $this->_emarsysSyncDOB = Mage::getStoreConfig(self::XML_EMARSYS_API_SYNC_DOB);
+            if($this->_emarsysSyncDOB == '-1') $this->_emarsysSyncDOB='';
+        }
+        return $this->_emarsysSyncDOB;
+    }
+
+    /**
+     * Get the DOB field to use with Emarsys.  Blank if using default birthDate field
      * @return string
      */
     public function getEmarsysDobField(){
