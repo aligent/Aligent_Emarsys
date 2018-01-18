@@ -65,7 +65,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                             $dob
                         );
 
-                        $sub = $emHelper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $email, $dob, $gender);
+                        $sub = $emHelper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $email, $dob, $gender, Mage::getStoreConfig('general/country/default'));
                         if($sub && $sub->getData()){
                             $remoteSync->setEmarsysId($sub->getData()['id']);
                             $remoteSync->save();

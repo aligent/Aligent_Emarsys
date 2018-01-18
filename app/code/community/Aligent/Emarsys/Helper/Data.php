@@ -780,10 +780,11 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $lastName Last name to populate the record with
      * @param string $gender Gender to populate the record with
      * @param string $dob Date of birth to populate the record with
+     * @param string $country Customer country to populate the record with
      *
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
-    public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null){
+    public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null, $country = null){
         $subscriber = Mage::getModel('newsletter/subscriber')->load($id);
         if(!$subscriber->getId()){
             return null;// If we weren't passed a valid newsletter subscriber ID, just bail
@@ -798,6 +799,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         if($lastName) $remoteSync->setLastName($lastName);
         if($dob) $remoteSync->setDob($dob);
         if($gender) $remoteSync->setGender($gender);
+        if($country) $remoteSync->setCountry($country);
 
         $remoteSync->setEmail($subscriber->getSubscriberEmail());
         $remoteSync->save();

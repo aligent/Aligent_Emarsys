@@ -13,23 +13,43 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     /** @var $_client Aligent_Emarsys_Model_EmarsysClient */
     protected $_client = null;
 
+    /**
+     * @return int
+     */
     public function getEmailField(){
         return $this->getClient()->getFieldId('email');
     }
 
+    /**
+     * @return int
+     */
     public function getFirstnameField()
     {
         return $this->getClient()->getFieldId('firstName');
     }
 
+    /**
+     * @return int
+     */
     public function getLastnameField()
     {
         return $this->getClient()->getFieldId('lastName');
     }
 
+    /**
+     * @return int
+     */
     public function getGenderField()
     {
         return $this->getClient()->getFieldId('gender');
+    }
+
+    /**
+     * @return int
+     */
+    public function getCountryField()
+    {
+        return $this->getClient()->getFieldId('country');
     }
 
     public function getDobField(){
@@ -67,15 +87,32 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         }
     }
 
+    // Meeting notes
+    /*
+     * Current sale price between feed and website do not match
+     */
+
     protected function getGenderMap(){
-        if($this->_genders === null){
-            $result = $this->getClient()->getFieldChoices('gender');
-            $this->_genders = array();
-            foreach($result->getData() as $item){
-                $this->_genders[strtolower($item['choice'])] = $item['id'];
+        return $this->_getFieldMap('gender', $this->_genders);
+    }
+
+    protected function getCountryMap()
+    {
+        return $this->_getFieldMap('country', $this->_countries);
+    }
+
+    protected function _getFieldMap($fieldName, &$collection)
+    {
+        if ($collection === null) {
+            $result = $this->getClient()->getFieldChoices($fieldName);
+            $collection = array();
+
+            foreach ($result->getData() as $item) {
+                $collection[strtolower($item['choice'])] = $item['id'];
             }
         }
-        return $this->_genders;
+
+        return $collection;
     }
 
     protected function getCustomerGender($customer){
@@ -113,7 +150,8 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
             $this->getFirstnameField() => $customerData->getFirstName(),
             $this->getLastnameField() => $customerData->getLastName(),
             $this->getGenderField() => $this->mapGenderValue($gender),
-            $this->getDobField() => $customerData->getDob()
+            $this->getDobField() => $customerData->getDob(),
+            $this->getCountryField() => Mage::getStoreConfig('general/country/default', $customer->getStore())
         );
 
         if($subField) {
@@ -167,12 +205,14 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
      * @param null $email
      * @param null $dob
      * @param null $gender
+     * @param null $country
      * @return \Snowcap\Emarsys\Response
      */
-    protected function updateSubscriber($localSyncId, $isSubscribed = true, $email = null, $firstname = null, $lastname = null, $dob = null, $gender = null){
-        $data = array(
-
-        );
+    protected function updateSubscriber(
+        $localSyncId, $isSubscribed = true, $email = null, $firstname = null,
+        $lastname = null, $dob = null, $gender = null, $country = null
+    ) {
+        $data = array();
 
         $subField = $this->getSubscriptionField();
         if($subField) $data[$subField] = $this->mapSubscriptionValue($isSubscribed, $localSyncId);
@@ -181,6 +221,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         if($email) $data[$this->getEmailField()] = $email;
         if($dob) $data[$this->getDobField()] = $dob;
         if($gender) $data[$this->getGenderField()] = $this->mapGenderValue($gender);
+        if($country) $data[$this->getCountryField()] = is_numeric($country) ? $country : $this->getClient()->getChoiceId($this->getCountryField(), $country);
 
         $harmonyField = $this->getHarmonyIdField();
         if($harmonyField){
@@ -197,9 +238,9 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->updateSubscriber($localId, false, $email);
     }
 
-    public function addSubscriber($localId, $firstname, $lastname, $email, $dob, $gender = null){
+    public function addSubscriber($localId, $firstname, $lastname, $email, $dob, $gender = null, $country = null){
         try{
-            $result = $this->updateSubscriber($localId, true, $email, $firstname, $lastname, $dob, $gender);
+            $result = $this->updateSubscriber($localId, true, $email, $firstname, $lastname, $dob, $gender, $country);
             return $result;
         }catch(Exception $e){
             return null;

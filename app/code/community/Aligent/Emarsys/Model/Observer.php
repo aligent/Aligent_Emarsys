@@ -168,17 +168,22 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         if ($this->getHelper()->isSubscriptionEnabled($subscriber->getStoreId())) {
             // get customer for name details.
             $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
+            /** @var Aligent_Emarsys_Helper_Emarsys $emarsysHelper */
+            $emarsysHelper = Mage::helper('aligent_emarsys/emarsys');
+            $client = $emarsysHelper->getClient();
 
             $firstname = '';
             $lastname = '';
             $dob = '';
             $gender = '';
+            $country = '';
 
             if ($customer->getId()) {
                 $firstname = $customer->getFirstname();
                 $lastname = $customer->getLastname();
                 $dob = $customer->getDob();
                 $gender = $customer->getGender();
+                $country = $client->getChoiceId($emarsysHelper->getCountryField(), Mage::getStoreConfig('general/country/default', $customer->getStore()));
             } else {
                 // check for subscriber data.
                 if ($subscriber->getSubscriberFirstname() && $subscriber->getSubscriberLastname()) {
@@ -196,12 +201,13 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
                 $firstname,
                 $lastname,
                 $gender,
-                $dob
+                $dob,
+                $country
             );
 
             if($remoteSync) {
                 if ($subscriber->isSubscribed()) {
-                    $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender);
+                    $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender. $country);
                 } else {
                     $result = $helper->removeSubscriber($remoteSync->getId(), $subscriber->getSubscriberEmail());
                 }
