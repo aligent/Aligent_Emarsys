@@ -80,11 +80,6 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
     protected function processEmails($client, $emails){
         $result = $client->getContactData(array("keyId" => $this->_emailField,"keyValues" => $emails));
 
-        $firstnameField = $this->getHelper()->getEmarsysFirstnameField();
-        $lastnameField = $this->getHelper()->getEmarsysLastnameField();
-        $genderField = $this->getHelper()->getEmarsysGenderField();
-        $dobField = $this->getHelper()->getEmarsysDobField();
-
         foreach($result->getData()['result'] as $item){
             $email = $this->getWriter()->quote($item[$this->_emailField]);
             $data = [
@@ -93,19 +88,23 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
                 'harmony_sync_dirty' => 1, // As we have synced with emarsys and may have updated information.
             ];
 
-            // Sync optional data from Emarsys into Magento
-            if (strlen($firstnameField) !== 0) {
-                $data['first_name'] = $item[$firstnameField];
+            // Sync optional data from Emarsys into Magento only if it is not null.
+            if ($this->getHelper()->shouldSyncEmarsysFirstnameField() && $item[$this->getEmarsysHelper()->getFirstnameField()] !== null) {
+                $data['first_name'] = $item[$this->getEmarsysHelper()->getFirstnameField()];
             }
-            if (strlen($lastnameField) !== 0) {
-                $data['last_name'] = $item[$lastnameField];
+            if ($this->getHelper()->shouldSyncEmarsysLastnameField() && $item[$this->getEmarsysHelper()->getLastnameField()] !== null) {
+                $data['last_name'] = $item[$this->getEmarsysHelper()->getLastnameField()];
             }
-            if (strlen($genderField) !== 0) {
-                // TODO $item[$genderField] == 2 in emarsys. We need to convert this to Female.
-                $data['gender'] = $item[$genderField];
+            if ($this->getHelper()->shouldSyncEmarsysGenderField() && $item[$this->getEmarsysHelper()->getGenderField()] !== null) {
+                $genders = $this->getEmarsysHelper()->getGenderMap(false);
+                $gender = strtolower($item[$this->getEmarsysHelper()->getGenderField()]);
+
+                if (isset($genders[$gender])) {
+                    $data['gender'] = $genders[$gender];
+                }
             }
-            if (strlen($dobField) !== 0) {
-                $data['dob'] = $item[$dobField];
+            if ($this->getHelper()->shouldSyncEmarsysDOBField() && $item[$this->getEmarsysHelper()->getDobField()] !== null) {
+                $data['dob'] = $item[$this->getEmarsysHelper()->getDobField()];
             }
 
             $this->getWriter()->update($this->_aligentTable, $data, "email=$email");
