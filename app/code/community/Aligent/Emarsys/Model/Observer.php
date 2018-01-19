@@ -183,7 +183,8 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
                 $lastname = $customer->getLastname();
                 $dob = $customer->getDob();
                 $gender = $customer->getGender();
-                $country = $client->getChoiceId($emarsysHelper->getCountryField(), Mage::getStoreConfig('general/country/default', $customer->getStore()));
+                // TODO: this needs to be done better/the correct way
+                $country = Mage::getStoreConfig('general/country/default', $customer->getStore());
             } else {
                 // check for subscriber data.
                 if ($subscriber->getSubscriberFirstname() && $subscriber->getSubscriberLastname()) {

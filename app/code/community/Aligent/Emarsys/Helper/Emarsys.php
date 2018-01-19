@@ -9,6 +9,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     /** @var $_helper Aligent_Emarsys_Helper_Data  */
     protected $_helper = null;
     protected $_genders = null;
+    protected $_countries = null;
     protected $_httpClient = null;
     /** @var $_client Aligent_Emarsys_Model_EmarsysClient */
     protected $_client = null;
@@ -93,23 +94,29 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
      */
 
     protected function getGenderMap(){
-        return $this->_getFieldMap('gender', $this->_genders);
+        if ($this->_genders === null) {
+            $this->_genders = $this->_getFieldMap('gender');
+        }
+
+        return $this->_genders;
     }
 
-    protected function getCountryMap()
+    protected function _getCountryMap()
     {
-        return $this->_getFieldMap('country', $this->_countries);
+        if ($this->_countries === null) {
+            $this->_countries = $this->_getFieldMap('country');
+        }
+
+        return $this->_countries;
     }
 
-    protected function _getFieldMap($fieldName, &$collection)
+    protected function _getFieldMap($fieldName)
     {
-        if ($collection === null) {
-            $result = $this->getClient()->getFieldChoices($fieldName);
-            $collection = array();
+        $result = $this->getClient()->getFieldChoices($fieldName);
+        $collection = array();
 
-            foreach ($result->getData() as $item) {
-                $collection[strtolower($item['choice'])] = $item['id'];
-            }
+        foreach ($result->getData() as $item) {
+            $collection[strtolower($item['choice'])] = $item['id'];
         }
 
         return $collection;
@@ -135,6 +142,21 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     }
 
     /**
+     * @param $country string
+     * @return string|null
+     */
+    protected function _mapCountryValue($country)
+    {
+        if (empty($country)) {
+            return null;
+        }
+
+        $countryMap = $this->_getCountryMap();
+        $country = strtolower($country);
+        return isset($countryMap[$country]) ? $countryMap[$country] : null;
+    }
+
+    /**
      * Get the generic helper object for our module
      * @return Aligent_Emarsys_Helper_Data|Mage_Core_Helper_Abstract
      */
@@ -143,7 +165,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_helper;
     }
 
-    protected function abstractDataFill($customerData, $syncData, $isSubscribed, $gender){
+    protected function abstractDataFill($customerData, $syncData, $isSubscribed, $gender, $country){
         $subField = $this->getSubscriptionField();
         $data = array(
             $this->getEmailField() => $customerData->getEmail(),
@@ -151,7 +173,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
             $this->getLastnameField() => $customerData->getLastName(),
             $this->getGenderField() => $this->mapGenderValue($gender),
             $this->getDobField() => $customerData->getDob(),
-            $this->getCountryField() => Mage::getStoreConfig('general/country/default', $customer->getStore())
+            $this->getCountryField() => $this->_mapCountryValue($country)
         );
 
         if($subField) {
@@ -172,7 +194,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
         if(!$syncData || !$syncData->getId()) return null;
 
-        $data = $this->abstractDataFill($syncData, $syncData, $subscriber->isSubscribed(), $syncData->getGender());
+        $data = $this->abstractDataFill($syncData, $syncData, $subscriber->isSubscribed(), $syncData->getGender(), $syncData->getCountry());
 
         return $data;
     }
@@ -183,7 +205,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         $isSubscribed = $this->getHelper()->isCustomerSubscribed($customer);
         $genderValue = $this->getCustomerGender($customer);
 
-        $data = $this->abstractDataFill($customer, $syncData, $isSubscribed, $genderValue);
+        $data = $this->abstractDataFill($customer, $syncData, $isSubscribed, $genderValue, $syncData->getCountry());
 
         return $data;
     }
@@ -221,7 +243,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         if($email) $data[$this->getEmailField()] = $email;
         if($dob) $data[$this->getDobField()] = $dob;
         if($gender) $data[$this->getGenderField()] = $this->mapGenderValue($gender);
-        if($country) $data[$this->getCountryField()] = is_numeric($country) ? $country : $this->getClient()->getChoiceId($this->getCountryField(), $country);
+        if($country) $data[$this->getCountryField()] = $this->_mapCountryValue($country);
 
         $harmonyField = $this->getHarmonyIdField();
         if($harmonyField){
