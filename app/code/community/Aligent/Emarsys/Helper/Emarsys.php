@@ -9,6 +9,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     /** @var $_helper Aligent_Emarsys_Helper_Data  */
     protected $_helper = null;
     protected $_genders = null;
+    protected $_gendersByIndex = null;
     protected $_httpClient = null;
     /** @var $_client Aligent_Emarsys_Model_EmarsysClient */
     protected $_client = null;
@@ -67,15 +68,29 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         }
     }
 
-    protected function getGenderMap(){
+    /**
+     * By default the label for the gender will be the index.
+     * ie. 'female'=>2
+     *
+     * if the label should be the value set $labelAsIndex to false
+     * ie. 2=>'female'
+     *
+     * @param bool $labelAsIndex
+     * @return array|null
+     */
+    public function getGenderMap($labelAsIndex=true){
         if($this->_genders === null){
             $result = $this->getClient()->getFieldChoices('gender');
+
+            $this->_gendersByIndex = array();
             $this->_genders = array();
             foreach($result->getData() as $item){
                 $this->_genders[strtolower($item['choice'])] = $item['id'];
+                $this->_gendersByIndex[$item['id']] = $item['choice'];
             }
         }
-        return $this->_genders;
+
+        return ($labelAsIndex) ? $this->_genders : $this->_gendersByIndex;
     }
 
     protected function getCustomerGender($customer){

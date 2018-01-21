@@ -60,7 +60,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
         $query = $this->getReader()->select()->from($this->_aligentTable)
             ->reset((Varien_Db_Select::COLUMNS))
             ->columns(['email'])
-            ->group('email')->query();
+            ->group('email')->where('email is not null')->query();
 
         $emails = array();
         while($row = $query->fetchObject()){
@@ -68,7 +68,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
                 $emails[] = $row->email;
             }
 
-            if(sizeof($emails >= self::EMARSYS_EMAIL_CHUNK_SIZE)){
+            if(sizeof($emails) >= self::EMARSYS_EMAIL_CHUNK_SIZE){
                 $this->processEmails($client, $emails);
                 $emails = array();
             }
@@ -78,17 +78,48 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
 
     protected function processEmails($client, $emails){
         $result = $client->getContactData(array("keyId" => $this->_emailField,"keyValues" => $emails));
+
         foreach($result->getData()['result'] as $item){
             $email = $this->getWriter()->quote($item[$this->_emailField]);
             $data = [
-                'emarsys_id' => $item[$this->_emarsysField]
+                'emarsys_id' => $item[$this->_emarsysField],
+                'emarsys_sync_dirty' => 0, // As we have synced with emarsys, we should be clean.
+                'harmony_sync_dirty' => 1, // As we have synced with emarsys and may have updated information.
             ];
+
+            // Sync optional data from Emarsys into Magento only if it is not null.
+            if ($this->getHelper()->shouldSyncEmarsysFirstnameField() && $item[$this->getEmarsysHelper()->getFirstnameField()] !== null) {
+                $data['first_name'] = $item[$this->getEmarsysHelper()->getFirstnameField()];
+            }
+            if ($this->getHelper()->shouldSyncEmarsysLastnameField() && $item[$this->getEmarsysHelper()->getLastnameField()] !== null) {
+                $data['last_name'] = $item[$this->getEmarsysHelper()->getLastnameField()];
+            }
+            if ($this->getHelper()->shouldSyncEmarsysGenderField() && $item[$this->getEmarsysHelper()->getGenderField()] !== null) {
+                $genders = $this->getEmarsysHelper()->getGenderMap(false);
+                $gender = strtolower($item[$this->getEmarsysHelper()->getGenderField()]);
+
+                if (isset($genders[$gender])) {
+                    $data['gender'] = $genders[$gender];
+                }
+            }
+            if ($this->getHelper()->shouldSyncEmarsysDOBField() && $item[$this->getEmarsysHelper()->getDobField()] !== null) {
+                $data['dob'] = $item[$this->getEmarsysHelper()->getDobField()];
+            }
+
             $this->getWriter()->update($this->_aligentTable, $data, "email=$email");
-            $newsletters = $this->getReader()->select()->from($this->_newsletterTable)->where("subscriber_email=$email")->query();
-            while($row = $newsletters->fetchObject()){
-                $harmonyField = $this->getHelper()->getHarmonyIdField($row->store_id);
-                $this->getHelper()->log("Setting Harmony ID from $harmonyField to value " . $item[$harmonyField] . " for store " . $row->store_id, 2);
-                $this->getWriter()->update($this->_aligentTable, ['harmony_id' => $item[$harmonyField]], "newsletter_subscriber_id=" . $row->subscriber_id);
+
+            if ($this->getHelper()->shouldSyncEmarsysHarmonyIdField()) {
+                // Update the aligent table for all subscribers with this email, to account for the same email used in different store scopes.
+                $newsletters = $this->getReader()->select()->from($this->_newsletterTable)->where("subscriber_email=$email")->query();
+                while($row = $newsletters->fetchObject()){
+
+                    $harmonyField = $this->getHelper()->getHarmonyIdField($row->store_id);
+                    // Do not insert harmony ID of null as this may override what is present.
+                    if ($item[$harmonyField] !== null) {
+                        $this->getHelper()->log("Setting Harmony ID from $harmonyField to value " . $item[$harmonyField] . " for store " . $row->store_id, 2);
+                        $this->getWriter()->update($this->_aligentTable, ['harmony_id' => $item[$harmonyField]], "newsletter_subscriber_id=" . $row->subscriber_id);
+                    }
+                }
             }
         }
     }
