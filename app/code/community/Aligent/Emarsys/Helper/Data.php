@@ -35,6 +35,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysAPISecret = null;
     protected $_emarsysSubscriptionField = null;
     protected $_emarsysVoucherField = null;
+    protected $_emarsysSyncHarmonyId = null;
     protected $_emarsysSyncFirstname = null;
     protected $_emarsysSyncLastname = null;
     protected $_emarsysSyncGender = null;
@@ -83,6 +84,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
     const XML_EMARSYS_API_SYNC_FIRSTNAME = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_firstname';
+    const XML_EMARSYS_API_SYNC_HARMONYID = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_harmonyid';
     const XML_EMARSYS_API_SYNC_LASTNAME = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_lastname';
     const XML_EMARSYS_API_SYNC_GENDER = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_gender';
     const XML_EMARSYS_API_SYNC_DOB = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_dob';
@@ -142,6 +144,13 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_includeDisabled = Mage::getStoreConfig(self::XML_FEED_INCLUDE_DISABLED) == 1;
         }
         return $this->_includeDisabled;
+    }
+
+    public function shouldSyncEmarsysHarmonyIdField() {
+        if($this->_emarsysSyncHarmonyId === null){
+            $this->_emarsysSyncHarmonyId = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_HARMONYID);
+        }
+        return $this->_emarsysSyncHarmonyId;
     }
 
     /**

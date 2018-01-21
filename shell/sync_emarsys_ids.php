@@ -109,15 +109,17 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
 
             $this->getWriter()->update($this->_aligentTable, $data, "email=$email");
 
-            // Update the aligent table for all subscribers with this email, to account for the same email used in different store scopes.
-            $newsletters = $this->getReader()->select()->from($this->_newsletterTable)->where("subscriber_email=$email")->query();
-            while($row = $newsletters->fetchObject()){
-                $harmonyField = $this->getHelper()->getHarmonyIdField($row->store_id);
+            if ($this->getHelper()->shouldSyncEmarsysHarmonyIdField()) {
+                // Update the aligent table for all subscribers with this email, to account for the same email used in different store scopes.
+                $newsletters = $this->getReader()->select()->from($this->_newsletterTable)->where("subscriber_email=$email")->query();
+                while($row = $newsletters->fetchObject()){
 
-                // Do not insert harmony ID of null as this may override what is present.
-                if ($item[$harmonyField] !== null) {
-                    $this->getHelper()->log("Setting Harmony ID from $harmonyField to value " . $item[$harmonyField] . " for store " . $row->store_id, 2);
-                    $this->getWriter()->update($this->_aligentTable, ['harmony_id' => $item[$harmonyField]], "newsletter_subscriber_id=" . $row->subscriber_id);
+                    $harmonyField = $this->getHelper()->getHarmonyIdField($row->store_id);
+                    // Do not insert harmony ID of null as this may override what is present.
+                    if ($item[$harmonyField] !== null) {
+                        $this->getHelper()->log("Setting Harmony ID from $harmonyField to value " . $item[$harmonyField] . " for store " . $row->store_id, 2);
+                        $this->getWriter()->update($this->_aligentTable, ['harmony_id' => $item[$harmonyField]], "newsletter_subscriber_id=" . $row->subscriber_id);
+                    }
                 }
             }
         }
