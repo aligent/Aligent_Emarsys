@@ -61,7 +61,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
         $query = $this->getReader()->select()->from($this->_aligentTable)
             ->reset((Varien_Db_Select::COLUMNS))
             ->columns(['email'])
-            ->group('email')->query();
+            ->group('email')->where('email is not null')->query();
 
         $emails = array();
         while($row = $query->fetchObject()){
