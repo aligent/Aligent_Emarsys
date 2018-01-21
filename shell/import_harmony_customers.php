@@ -97,7 +97,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
             $SyncUp = $this->loadAligentSyncByField('email', $row['Email']);
             $syncData = [
                 'first_name'=>$row['First Name'],
-                'last_name'=>$row['Last Name'],
+                'last_name'=>$row['Surname'],
                 'email'=>$row['Email'],
                 'dob'=>$row['Date of Birth'],
                 'harmony_id'=>$row['Namekey'],
@@ -115,7 +115,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
         }else{
             $syncData = [
                 'first_name'=>$row['First Name'],
-                'last_name'=>$row['Last Name'],
+                'last_name'=>$row['Surname'],
                 'email'=>$row['Email'],
                 'dob'=>$row['Date of Birth'],
                 'harmony_id'=>$row['Namekey'],
