@@ -57,7 +57,6 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
         $this->_harmonyField = $this->getHelper()->getHarmonyIdField();
         $this->_emarsysField = $client->getFieldId('id');
 
-        // We should probably limit this to only get users who do not have a emarsys sync id so they do not run multiple times.
         $query = $this->getReader()->select()->from($this->_aligentTable)
             ->reset((Varien_Db_Select::COLUMNS))
             ->columns(['email'])
