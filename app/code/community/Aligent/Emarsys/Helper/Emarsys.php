@@ -172,9 +172,12 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
             $this->getFirstnameField() => $customerData->getFirstName(),
             $this->getLastnameField() => $customerData->getLastName(),
             $this->getGenderField() => $this->mapGenderValue($gender),
-            $this->getDobField() => $customerData->getDob(),
-            $this->getCountryField() => $this->_mapCountryValue($country)
+            $this->getDobField() => $customerData->getDob()
         );
+
+        if($country){
+            $data[$this->getCountryField()] = $this->_mapCountryValue($country);
+        }
 
         if($subField) {
             $data[$subField] = $this->mapSubscriptionValue($isSubscribed, $syncData->getId());
@@ -192,7 +195,9 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
 
     public function getSubscriberData($subscriber){
         $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
-        if(!$syncData || !$syncData->getId()) return null;
+        if(!$syncData || !$syncData->getId()){
+            $syncData = $this->getHelper()->ensureNewsletterSyncRecord($subscriber->getId());
+        }
 
         $data = $this->abstractDataFill($syncData, $syncData, $subscriber->isSubscribed(), $syncData->getGender(), $syncData->getCountry());
 
@@ -265,6 +270,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
             $result = $this->updateSubscriber($localId, true, $email, $firstname, $lastname, $dob, $gender, $country);
             return $result;
         }catch(Exception $e){
+            $this->getHelper()->log("Subscription error: " . $e->getMessage());
             return null;
         }
     }

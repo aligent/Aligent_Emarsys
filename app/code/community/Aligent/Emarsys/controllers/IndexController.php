@@ -72,6 +72,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
 
                             $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub)));
                         }else{
+                            Mage::helper('aligent_emarsys')->log("Error Response: " . $sub->getReplyText());
                             $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Unexpected failure'))));
                         }
                     } else{

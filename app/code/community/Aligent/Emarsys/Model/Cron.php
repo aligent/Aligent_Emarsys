@@ -55,6 +55,8 @@ class Aligent_Emarsys_Model_Cron {
                     $syncData->setLastName($customer->getLastname());
                     $syncData->save();
                 }
+            }else{
+                $helper->log("Invalid response:" . $result->getReplyText());
             }
         }
 
@@ -81,6 +83,8 @@ class Aligent_Emarsys_Model_Cron {
                 $syncData->setEmarsysSyncDirty(false);
                 $syncData->setEmarsysId($result->getData()['id']);
                 $syncData->save();
+            }else{
+                $helper->log("Invalid response: " . $result->getReplyText());
             }
         }
 

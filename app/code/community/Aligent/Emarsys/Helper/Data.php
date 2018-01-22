@@ -814,10 +814,11 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
-    public function ensureCustomerSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true){
+    public function ensureCustomerSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $country = null){
         $remoteSync = $this->findCustomerSyncRecord($id);
         $remoteSync->setHarmonySyncDirty($harmonyFlag);
         $remoteSync->setEmarsysSyncDirty($emarsysFlag);
+        if($country) $remoteSync->setCountry($country);
         $remoteSync->save();
         return $remoteSync;
     }
@@ -843,9 +844,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
                 $subscriber->save();
             }
             $remoteSync = $this->ensureNewsletterSyncRecord($subscriber->getId(),true,true, $order->getCustomerFirstname(),
-                $order->getCustomerLastname(), $order->getCustomerGender(), $order->getCustomerDob());
+                $order->getCustomerLastname(), $order->getCustomerGender(), $order->getCustomerDob(), $order->getShippingAddress()->getCountry());
         }else{
-            $remoteSync = $this->ensureCustomerSyncRecord($order->getCustomerId(), true, true);
+            $remoteSync = $this->ensureCustomerSyncRecord($order->getCustomerId(), true, true, $order->getShippingAddress()->getCountry());
         }
         return $remoteSync;
     }
