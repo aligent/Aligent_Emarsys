@@ -49,7 +49,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $subscribedField;
     }
 
-    public function unampSubscriptionValue($subscribed, $store = null){
+    public function unmapSubscriptionValue($subscribed, $store = null){
         $isDefault = ($this->getSubscriptionField($store) == null);
         if($isDefault){
             return (strtolower($subscribed)=='true');
