@@ -13,6 +13,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_sendEmail = null;
     protected $_isTestMode = null;
     protected $_sendParentSku = null;
+    protected $_useStoreSku = null;
     protected $_sendWebsiteCode = null;
     protected $_subscriptionSignupUrl = null;
     protected $_subscriptionSignupTimeout = null;
@@ -53,6 +54,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_SEND_EMAIL_PATH = 'aligent_emarsys/settings/send_email';
     const XML_EMARSYS_TEST_MODE_PATH = 'aligent_emarsys/settings/test_mode';
     const XML_EMARSYS_SEND_PARENT_SKU_PATH = 'aligent_emarsys/settings/send_parent_sku';
+    const XML_EMARSYS_USE_STORE_SKU_PATH = 'aligent_emarsys/settings/store_sku';
     const XML_EMARSYS_SEND_WEBSITE_CODE_PATH = 'aligent_emarsys/settings/send_website_code';
 
     const XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH = 'aligent_emarsys/subscription/enabled';
@@ -484,6 +486,18 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_sendParentSku = Mage::getStoreConfigFlag(self::XML_EMARSYS_SEND_PARENT_SKU_PATH);
         }
         return $this->_sendParentSku;
+    }
+
+    /**
+     * Should the store code be included in the sku sent to Emarsys from the frontend
+     * @return bool
+     */
+    public function shouldUseStoreSku() {
+        if ($this->_useStoreSku === null) {
+            $this->_useStoreSku = Mage::getStoreConfigFlag(self::XML_EMARSYS_USE_STORE_SKU_PATH);
+        }
+
+        return $this->_useStoreSku;
     }
 
     /**
