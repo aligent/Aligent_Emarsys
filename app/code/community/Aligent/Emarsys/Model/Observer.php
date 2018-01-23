@@ -148,7 +148,7 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
                     fwrite($outputFile, $line);
                 }
                 fclose($inputFile);
-                //unlink($vFeedDir . "/$file");
+                unlink($vFeedDir . "/$file");
             }
 
         }
