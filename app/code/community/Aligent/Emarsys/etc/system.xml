@@ -310,8 +310,6 @@
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <comment>Should the product SKU include the store code.</comment>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
                         </store_sku>
                         <send_website_code translate="label">
                             <label>Send Website Code</label>
