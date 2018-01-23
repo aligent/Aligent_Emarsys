@@ -136,7 +136,7 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         $hasHeaders = false;
 
         foreach($files as $file){
-            preg_match("/emarsys\_consolidated-([^\.]+)\.csv/", $file, $match);
+            preg_match("/emarsys-([^\.]+)\.csv/", $file, $match);
             if(sizeof($match) > 0){
                 $inputFile = fopen($vFeedDir . "/$file", "r");
                 $header = fgets($inputFile);

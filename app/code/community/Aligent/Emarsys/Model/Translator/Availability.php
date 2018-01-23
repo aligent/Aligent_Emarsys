@@ -2,7 +2,8 @@
 class Aligent_Emarsys_Model_Translator_Availability
 {
     public function translate($aRow) {
-        $avail = isset($aRow['availability']) ? $aRow['availability'] : false;
+        $fieldName = ($aRow['type_id']=='simple') ? 'availability' : 'ps_availability';
+        $avail = isset($aRow[$fieldName]) ? $aRow[$fieldName] : false;
         return $avail ? 'TRUE' : 'FALSE';
     }
 }
