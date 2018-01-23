@@ -43,6 +43,11 @@ class Aligent_Emarsys_Block_Emarsys extends Mage_Core_Block_Template {
         return ($this->getEmarsysHelper()->getSendWebsiteCode()) ? 1 : 0;
     }
 
+    public function shouldUseStoreSku()
+    {
+        return $this->getEmarsysHelper()->shouldUseStoreSku() ? 1 : 0;
+    }
+
     public function getCategoryId() {
         return Mage::registry('current_category')->getId();
     }
@@ -51,8 +56,23 @@ class Aligent_Emarsys_Block_Emarsys extends Mage_Core_Block_Template {
         return Mage::helper('aligent_feeds')->getCategoryPath($this->getCategoryId());
     }
 
+    /**
+     * Get the current products SKU
+     *
+     * Includes translation for when the 'use store sku' config value is set which converts a
+     * sku from 'abc123def' to 'mystore_abc123def'
+     *
+     * @return string
+     */
     public function getProductSku() {
-        return Mage::registry('current_product')->getSku();
+        $sku = Mage::registry('current_product')->getSku();
+
+        if ($this->shouldUseStoreSku()) {
+            $translator = new Aligent_Emarsys_Model_Translator_Item();
+            $sku = $translator->translate(['sku' => $sku], null, Mage::app()->getStore());
+        }
+
+        return $sku;
     }
 
     public function getSearchTerm() {

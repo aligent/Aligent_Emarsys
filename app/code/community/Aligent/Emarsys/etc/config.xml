@@ -401,6 +401,7 @@
                 <send_email>1</send_email>
                 <test_mode>1</test_mode>
                 <send_parent_sku>1</send_parent_sku>
+                <store_sku>0</store_sku>
                 <send_website_code>1</send_website_code>
             </settings>
             <subscription>
