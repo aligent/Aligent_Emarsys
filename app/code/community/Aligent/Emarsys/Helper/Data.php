@@ -43,6 +43,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysSyncDOB = null;
     protected $_emarsysDobField = null;
 
+    protected $_emarsysChunkSize = null;
+
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
     const XML_FEED_INCLUDE_SIMPLE_PARENTS = 'aligent_emarsys/feed/include_simple_parents';
     const XML_FEED_INCLUDE_DISABLED = 'aligent_emarsys/feed/include_disabled';
@@ -92,12 +94,20 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_SYNC_DOB = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_dob';
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
+    const XML_EMARSYS_API_CHUNK_SIZE = 'aligent_emarsys/emarsys_api_settings/emarsys_chunk_size';
 
     public function getHarmonyWebAgent(){
         if($this->_harmonyWebAgent === null){
             $this->_harmonyWebAgent = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_WEB_AGENT);
         }
         return $this->_harmonyWebAgent;
+    }
+
+    public function getEmarsysChunkSize(){
+        if($this->_emarsysChunkSize === null){
+            $this->_emarsysChunkSize = Mage::getStoreConfig( self::XML_EMARSYS_API_CHUNK_SIZE );
+        }
+        return $this->_emarsysChunkSize;
     }
 
     /**
