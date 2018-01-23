@@ -175,7 +175,9 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
             $oldSubscriber->setCode($subscriber->getCode());
             $oldSubscriber->save();
 
-            $observer->getControllerAction()->setFlag('',Mage_Core_Controller_Varien_Action::FLAG_NO_DISPATCH,true);
+            if($observer->getControllerAction()) {
+                $observer->getControllerAction()->setFlag('', Mage_Core_Controller_Varien_Action::FLAG_NO_DISPATCH, true);
+            }
             return true;
         }else{
             return false;
@@ -191,7 +193,6 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
     public function handleSubscriber(Varien_Event_Observer $observer)
     {
         if($this->preventSubscriberInserts($observer)) return;
-
         if(Mage::registry('emarsys_newsletter_ignore')){
             return $this;
         }
@@ -199,8 +200,17 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         /** @var $subscriber Mage_Newsletter_Model_Subscriber */
         $subscriber = $observer->getEvent()->getSubscriber();
         if ($this->getHelper()->isSubscriptionEnabled($subscriber->getStoreId())) {
-            // get customer for name details.
-            $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
+            if($subscriber->getCustomerId()){
+                // get customer for name details.
+                $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
+            }else{
+                $this->getHelper()->log("Find customer by email " . $subscriber->getSubscriberEmail());
+                $customer = Mage::getModel('customer/customer')->loadByEmail($subscriber->getSubscriberEmail());
+                if($customer->getId()){
+                    $subscriber->setCustomerId($customer->getId());
+                }
+            }
+
             /** @var Aligent_Emarsys_Helper_Emarsys $emarsysHelper */
             $emarsysHelper = Mage::helper('aligent_emarsys/emarsys');
             $client = $emarsysHelper->getClient();
@@ -216,8 +226,9 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
                 $lastname = $customer->getLastname();
                 $dob = $customer->getDob();
                 $gender = $customer->getGender();
-                // TODO: this needs to be done better/the correct way
-                $country = Mage::getStoreConfig('general/country/default', $customer->getStore());
+                if($customer->getDefaultShippingAddress()){
+                    $country = $customer->getDefaultShippingAddress()->getCountryModel()->getName();
+                }
             } else {
                 // check for subscriber data.
                 if ($subscriber->getSubscriberFirstname() && $subscriber->getSubscriberLastname()) {

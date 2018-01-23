@@ -31,6 +31,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $email = $params['email'];
             $firstname = $params['firstname'];
             $lastname = $params['lastname'];
+            $country = '';
 
             $yy = isset($params['dobYY']) ? $params['dobYY'] : null;
             $mm = isset($params['dobMM']) ? $params['dobMM'] : null;
@@ -51,6 +52,18 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
 
                     Mage::register('emarsys_newsletter_ignore', true);
                     $newsSub->subscribe($email);
+                    $testCustomer = Mage::getModel('customer/customer')->loadByEmail($email);
+                    if(!$newsSub->getCustomerId() && $testCustomer->getId()){
+                        $newsSub->setCustomerId($testCustomer->getId());
+                        $newsSub->save();
+                    }
+                    if($newsSub->getCustomerId()){
+                        $testCustomer = Mage::getModel('customer/customer')->loadByEmail($email);
+                        if($testCustomer->getDefaultShippingAddress()){
+                            $country = $testCustomer->getDefaultShippingAddress()->getCountryModel()->getName();
+                        }
+                    }
+
                     Mage::unregister('emarsys_newsletter_ignore');
                     if(Mage::helper('aligent_emarsys')->isEnabled()) {
                         /** @var $emHelper Aligent_Emarsys_Helper_Emarsys */
@@ -62,10 +75,11 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                             $firstname,
                             $lastname,
                             $gender,
-                            $dob
+                            $dob,
+                            $country
                         );
 
-                        $sub = $emHelper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $email, $dob, $gender, Mage::getStoreConfig('general/country/default'));
+                        $sub = $emHelper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $email, $dob, $gender, $country);
                         if($sub && $sub->getData()){
                             $remoteSync->setEmarsysId($sub->getData()['id']);
                             $remoteSync->save();
