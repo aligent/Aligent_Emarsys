@@ -27,9 +27,15 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
         return self::$_helper;
     }
 
+    /**
+     * Convenience method to construct a new Aligent_Emarsys_Model_EmarsysRecord
+     * from a given Emarsys data array.
+     *
+     * @param $dataArray array
+     * @return Aligent_Emarsys_Model_EmarsysRecord
+     */
     public function parseRawRow($dataArray){
-        $record = new Aligent_Emarsys_Model_EmarsysRecord($this, $dataArray);
-        return $record;
+        return new Aligent_Emarsys_Model_EmarsysRecord($this, $dataArray);
     }
 
     public static function create($emarsysUser = null, $emarsysSecret = null){
