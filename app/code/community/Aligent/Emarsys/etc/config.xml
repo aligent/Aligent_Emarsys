@@ -54,7 +54,7 @@
                 </price>
                 <msrp>
                     <xml_tag>g:msrp</xml_tag>
-                    <value>0</value>
+                    <attribute>price</attribute>
                 </msrp>
                 <availability>
                     <header>available</header>
