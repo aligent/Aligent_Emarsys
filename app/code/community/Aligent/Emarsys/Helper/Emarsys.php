@@ -101,13 +101,10 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
      */
     public function getGenderMap($labelAsIndex=true){
         if($this->_genders === null){
-            $result = $this->getClient()->getFieldChoices('gender');
-
+            $this->_genders = $this->_getFieldMap('gender');
             $this->_gendersByIndex = array();
-            $this->_genders = array();
-            foreach($result->getData() as $item){
-                $this->_genders[strtolower($item['choice'])] = $item['id'];
-                $this->_gendersByIndex[$item['id']] = $item['choice'];
+            foreach($this->_genders as $key => $item){
+                $this->_gendersByIndex[$item] = $key;
             }
         }
 
