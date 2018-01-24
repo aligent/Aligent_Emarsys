@@ -87,17 +87,19 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
 
             $Newsletter = $this->loadNewsletterByEmail('subscriber_email', $row['Email']);
             if(!$Newsletter){
+                $subStatus = ($row['Class 2']=='EMAIL') ? Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED : Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE;
+
                 $this->getWriter()->insert($this->_newsletterTable, [
                     'subscriber_email'=>$row['Email'],
                     'store_id'=>$this->_store,
-                    'subscriber_status'=>Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE]);
+                    'subscriber_status'=>$subStatus]);
                 $Newsletter = $this->loadNewsletterByEmail('subscriber_email', $row['Email']);
             }
 
             $SyncUp = $this->loadAligentSyncByField('email', $row['Email']);
             $syncData = [
                 'first_name'=>$row['First Name'],
-                'last_name'=>$row['Last Name'],
+                'last_name'=>$row['Surname'],
                 'email'=>$row['Email'],
                 'dob'=>$row['Date of Birth'],
                 'harmony_id'=>$row['Namekey'],
@@ -115,7 +117,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
         }else{
             $syncData = [
                 'first_name'=>$row['First Name'],
-                'last_name'=>$row['Last Name'],
+                'last_name'=>$row['Surname'],
                 'email'=>$row['Email'],
                 'dob'=>$row['Date of Birth'],
                 'harmony_id'=>$row['Namekey'],

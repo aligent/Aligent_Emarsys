@@ -13,6 +13,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_sendEmail = null;
     protected $_isTestMode = null;
     protected $_sendParentSku = null;
+    protected $_useStoreSku = null;
     protected $_sendWebsiteCode = null;
     protected $_subscriptionSignupUrl = null;
     protected $_subscriptionSignupTimeout = null;
@@ -27,7 +28,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_harmonyTerminalId = null;
     protected $_harmonyUserId = null;
     protected $_harmonyNamekeyPrefix = null;
-    protected $_harmonyIdField = null;
+    protected $_harmonyIdField = array();
     protected $_harmonyWebAgent = null;
 
     protected $_emarsysDebug = null;
@@ -35,7 +36,14 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysAPISecret = null;
     protected $_emarsysSubscriptionField = null;
     protected $_emarsysVoucherField = null;
+    protected $_emarsysSyncHarmonyId = null;
+    protected $_emarsysSyncFirstname = null;
+    protected $_emarsysSyncLastname = null;
+    protected $_emarsysSyncGender = null;
+    protected $_emarsysSyncDOB = null;
     protected $_emarsysDobField = null;
+
+    protected $_emarsysChunkSize = null;
 
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
     const XML_FEED_INCLUDE_SIMPLE_PARENTS = 'aligent_emarsys/feed/include_simple_parents';
@@ -48,6 +56,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_SEND_EMAIL_PATH = 'aligent_emarsys/settings/send_email';
     const XML_EMARSYS_TEST_MODE_PATH = 'aligent_emarsys/settings/test_mode';
     const XML_EMARSYS_SEND_PARENT_SKU_PATH = 'aligent_emarsys/settings/send_parent_sku';
+    const XML_EMARSYS_USE_STORE_SKU_PATH = 'aligent_emarsys/settings/store_sku';
     const XML_EMARSYS_SEND_WEBSITE_CODE_PATH = 'aligent_emarsys/settings/send_website_code';
 
     const XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH = 'aligent_emarsys/subscription/enabled';
@@ -78,14 +87,27 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_SECRET = 'aligent_emarsys/emarsys_api_settings/emarsys_secret';
     const XML_EMARSYS_API_SUBSCRIPTION_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_subscription_field_id';
     const XML_EMARSYS_API_VOUCHER_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_voucher_field_id';
-    const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field_id';
+    const XML_EMARSYS_API_SYNC_FIRSTNAME = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_firstname';
+    const XML_EMARSYS_API_SYNC_HARMONYID = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_harmonyid';
+    const XML_EMARSYS_API_SYNC_LASTNAME = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_lastname';
+    const XML_EMARSYS_API_SYNC_GENDER = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_gender';
+    const XML_EMARSYS_API_SYNC_DOB = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_dob';
+    const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
+    const XML_EMARSYS_API_CHUNK_SIZE = 'aligent_emarsys/emarsys_api_settings/emarsys_chunk_size';
 
     public function getHarmonyWebAgent(){
         if($this->_harmonyWebAgent === null){
             $this->_harmonyWebAgent = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_WEB_AGENT);
         }
         return $this->_harmonyWebAgent;
+    }
+
+    public function getEmarsysChunkSize(){
+        if($this->_emarsysChunkSize === null){
+            $this->_emarsysChunkSize = Mage::getStoreConfig( self::XML_EMARSYS_API_CHUNK_SIZE );
+        }
+        return $this->_emarsysChunkSize;
     }
 
     /**
@@ -136,18 +158,77 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         return $this->_includeDisabled;
     }
 
+    public function shouldSyncEmarsysHarmonyIdField() {
+        if($this->_emarsysSyncHarmonyId === null){
+            $this->_emarsysSyncHarmonyId = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_HARMONYID);
+        }
+        return $this->_emarsysSyncHarmonyId;
+    }
+
     /**
      * Get the Harmony ID field to populate in Emarsys, if specified.
      * @param null $store
      * @return mixed|null
      */
     public function getHarmonyIdField($store = null){
-        $this->_harmonyIdField = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD, $store);
-        return $this->_harmonyIdField;
+        $storeId = $store;
+        if (is_object($store)) {
+            $storeId = $store->getId();
+        }
+
+        if (!isset($this->_harmonyIdField[$storeId])) {
+            $this->_harmonyIdField[$storeId] = Mage::getStoreConfig(self::XML_EMARSYS_API_HARMONY_ID_FIELD, $store);
+        }
+
+        return $this->_harmonyIdField[$storeId];
     }
 
     /**
-     * Get the DOB field to use with Emarsys.  Blank if not collecting DOB.
+     * Should sync firstname field from Emarsys into Aligent table.
+     * @return string
+     */
+    public function shouldSyncEmarsysFirstnameField(){
+        if($this->_emarsysSyncFirstname === null){
+            $this->_emarsysSyncFirstname = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_FIRSTNAME);
+        }
+        return $this->_emarsysSyncFirstname;
+    }
+
+    /**
+     * Should sync lastname field from Emarsys into Aligent table.
+     * @return string
+     */
+    public function shouldSyncEmarsysLastnameField(){
+        if($this->_emarsysSyncLastname === null){
+            $this->_emarsysSyncLastname = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_LASTNAME);
+        }
+        return $this->_emarsysSyncLastname;
+    }
+
+    /**
+     * Should sync gender field from Emarsys into Aligent table.
+     * @return string
+     */
+    public function shouldSyncEmarsysGenderField(){
+        if($this->_emarsysSyncGender === null){
+            $this->_emarsysSyncGender = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_GENDER);
+        }
+        return $this->_emarsysSyncGender;
+    }
+
+    /**
+     * Should sync DOB from Emarsys into Aligent table
+     * @return string
+     */
+    public function shouldSyncEmarsysDobField(){
+        if($this->_emarsysSyncDOB === null){
+            $this->_emarsysSyncDOB = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_DOB);
+        }
+        return $this->_emarsysSyncDOB;
+    }
+
+    /**
+     * Get the DOB field to use with Emarsys.  Blank if using default birthDate field
      * @return string
      */
     public function getEmarsysDobField(){
@@ -415,6 +496,18 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_sendParentSku = Mage::getStoreConfigFlag(self::XML_EMARSYS_SEND_PARENT_SKU_PATH);
         }
         return $this->_sendParentSku;
+    }
+
+    /**
+     * Should the store code be included in the sku sent to Emarsys from the frontend
+     * @return bool
+     */
+    public function shouldUseStoreSku() {
+        if ($this->_useStoreSku === null) {
+            $this->_useStoreSku = Mage::getStoreConfigFlag(self::XML_EMARSYS_USE_STORE_SKU_PATH);
+        }
+
+        return $this->_useStoreSku;
     }
 
     /**
