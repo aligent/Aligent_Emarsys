@@ -52,13 +52,13 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
 
                     Mage::register('emarsys_newsletter_ignore', true);
                     $newsSub->subscribe($email);
-                    $testCustomer = Mage::getModel('customer/customer')->loadByEmail($email);
+                    $testCustomer = Mage::getModel('customer/customer')->setStore(Mage::app()->getStore())->loadByEmail($email);
                     if(!$newsSub->getCustomerId() && $testCustomer->getId()){
                         $newsSub->setCustomerId($testCustomer->getId());
                         $newsSub->save();
                     }
                     if($newsSub->getCustomerId()){
-                        $testCustomer = Mage::getModel('customer/customer')->loadByEmail($email);
+                        $testCustomer = Mage::getModel('customer/customer')->setStore(Mage::app()->getStore())->loadByEmail($email);
                         if($testCustomer->getDefaultShippingAddress()){
                             $country = $testCustomer->getDefaultShippingAddress()->getCountryModel()->getName();
                         }
