@@ -205,7 +205,7 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
                 $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
             }else{
                 $this->getHelper()->log("Find customer by email " . $subscriber->getSubscriberEmail());
-                $customer = Mage::getModel('customer/customer')->loadByEmail($subscriber->getSubscriberEmail(), Mage::app()->getStore());
+                $customer = Mage::getModel('customer/customer')->setStore(Mage::app()->getStore())->loadByEmail($subscriber->getSubscriberEmail());
                 if($customer->getId()){
                     $subscriber->setCustomerId($customer->getId());
                 }
@@ -252,7 +252,7 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
 
             if($remoteSync) {
                 if ($subscriber->isSubscribed()) {
-                    $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender. $country);
+                    $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender, $country);
                 } else {
                     $result = $helper->removeSubscriber($remoteSync->getId(), $subscriber->getSubscriberEmail());
                 }
