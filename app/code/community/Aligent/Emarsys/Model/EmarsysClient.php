@@ -104,6 +104,11 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
         return $this->send(HttpClient::GET, 'export/' . $id);
     }
 
+    public function getDummyExportFile($name){
+        $responseJson = $this->parseResponseCSV(file_get_contents($name));
+        return new Snowcap\Emarsys\Response(array('replyCode'=>0,'replyText'=>'OK','data'=> $responseJson));
+    }
+
     public function getExportFile($id){
         $headers = array('Content-Type: application/json', 'X-WSSE: ' . $this->getAuthenticationSignature());
         $uri = $this->baseUrl . "export/$id/data/?offset=0&limit=1000000";
