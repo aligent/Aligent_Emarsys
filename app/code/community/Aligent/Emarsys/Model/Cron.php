@@ -96,8 +96,9 @@ class Aligent_Emarsys_Model_Cron {
          **/
         $url = Mage::getStoreConfig('web/secure/base_url') . "emarsys/index/emarsyscallback";
 
-        $yesterdayGMT = strtotime(gmdate('Y-m-d H:i:s') . ' -1 day');
-        $emClient->exportChangesSince(date('Y-m-d H:i:s',$yesterdayGMT), $url);
+        $timePeriod = Mage::helper('aligent_emarsys')->getEmarsysChangePeriod();
+        $timeString = gmdate('Y-m-d H:i:s') . ' -' . $timePeriod . ' hours';
+        $emClient->exportChangesSince(date('Y-m-d H:i:s', strtotime($timeString) ), $url);
     }
 
     public function importHarmonyData(){
