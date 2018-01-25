@@ -106,7 +106,6 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
         if($result){
             $emClient = $this->emarsysHelper()->getClient();
             $results = $emClient->getExportFile($result->id);
-
             // Disable the observer in our module so we don't end up in a nice little loop.
             Mage::register('emarsys_newsletter_ignore', true);
             if($results->getReplyCode()==0){
@@ -129,12 +128,13 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
         $subscriber = $helper->getEmailSubscriber( $row->getEmail() );
         if(!$subscriber->getSubscriberId()){
             $subscriber = Mage::getModel('newsletter/subscriber');
+            $subscriber->setStoreId(Mage::app()->getStore()->getId());
             $subscriber->setSubscriberEmail($row->getEmail());
         }
         $subscriber->setSubscriberStatus( $row->getSubscriptionStatus() );
         $subscriber->save();
 
-        $syncRecord = $helper->ensureNewsletterSyncRecord($subscriber);
+        $syncRecord = $helper->ensureNewsletterSyncRecord($subscriber->getId());
         if($helper->shouldSyncEmarsysHarmonyIdField()){
             $syncRecord->setHarmonyId( $row->getHarmonyId() );
         }

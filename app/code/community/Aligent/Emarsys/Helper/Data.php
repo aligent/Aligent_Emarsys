@@ -877,7 +877,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null){
-        $subscriber = Mage::getModel('newsletter/subscriber')->load($id);
+        $subscriber = Mage::getModel('newsletter/subscriber')->setStoreId(Mage::app()->getStore()->getId())->load($id);
         if(!$subscriber->getId()){
             return null;// If we weren't passed a valid newsletter subscriber ID, just bail
         }
