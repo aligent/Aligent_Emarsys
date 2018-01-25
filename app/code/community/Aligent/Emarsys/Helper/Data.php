@@ -41,6 +41,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysSyncLastname = null;
     protected $_emarsysSyncGender = null;
     protected $_emarsysSyncDOB = null;
+    protected $_emarsysSyncCountry = null;
     protected $_emarsysDobField = null;
 
     protected $_emarsysChunkSize = null;
@@ -92,6 +93,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_SYNC_LASTNAME = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_lastname';
     const XML_EMARSYS_API_SYNC_GENDER = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_gender';
     const XML_EMARSYS_API_SYNC_DOB = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_dob';
+    const XML_EMARSYS_API_SYNC_COUNTRY = 'aligent_emarsys/emarsys_api_settings/emarsys_sync_country';
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
     const XML_EMARSYS_API_CHUNK_SIZE = 'aligent_emarsys/emarsys_api_settings/emarsys_chunk_size';
@@ -158,11 +160,25 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         return $this->_includeDisabled;
     }
 
+    /**
+     * Should sync harmony ID field from Emarsys into Aligent table
+     * @return bool
+     */
     public function shouldSyncEmarsysHarmonyIdField() {
         if($this->_emarsysSyncHarmonyId === null){
             $this->_emarsysSyncHarmonyId = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_HARMONYID);
         }
         return $this->_emarsysSyncHarmonyId;
+    }
+
+    /**
+     * Should sync country field from Emarsys into Aligent table.
+     * @return bool
+     */
+    public function shouldSyncEmarsysCountryField(){
+        if($this->_emarsysSyncCountry === null){
+            $this->_emarsysSyncCountry = Mage::getStoreConfigFlag(self::XML_EMARSYS_API_SYNC_COUNTRY);
+        }
     }
 
     /**

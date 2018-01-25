@@ -49,7 +49,7 @@ class Aligent_Emarsys_Model_EmarsysRecord {
         }
 
         $this->_gender = $this->getAbstractField( $client->getFieldId('gender') );
-        $this->_gender = $emarsysHelper->getGenderMap(false)[$this->_gender];
+        $this->_gender = isset($emarsysHelper->getGenderMap(false)[$this->_gender]) ? $emarsysHelper->getGenderMap(false)[$this->_gender] : '';
     }
 
     public function getId(){

@@ -69,7 +69,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                         $newsSub->setCustomerId($testCustomer->getId());
                         $newsSub->save();
                     }
-                    if($newsSub->getCustomerId()){
+                    if($newsSub->getCustomerId() && !$testCustomer->getId()){
                         $testCustomer = Mage::getModel('customer/customer')->setStore(Mage::app()->getStore())->loadByEmail($email);
                         if($testCustomer->getDefaultShippingAddress()){
                             $country = $testCustomer->getDefaultShippingAddress()->getCountryModel()->getName();
@@ -118,7 +118,8 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
     public function emarsyscallbackAction(){
         $raw= $this->getRequest()->getRawBody();
         $result = json_decode($raw);
-        if($result){
+
+        if($result) {
             $emClient = $this->emarsysHelper()->getClient();
             $results = $emClient->getExportFile($result->id);
 
@@ -127,6 +128,8 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             if($results->getReplyCode()==0){
                 $rows = $results->getData();
                 foreach($rows as $row){
+                    echo "Sync row\n";
+                    print_r($row);
                     $this->syncEmarsysRow( $emClient->parseRawRow($row) );
                 }
             }
@@ -168,6 +171,10 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
 
         if($helper->shouldSyncEmarsysGenderField()){
             $syncRecord->setGender( $row->getGender() );
+        }
+
+        if($helper->shouldSyncEmarsysCountryField()){
+            $syncRecord->setCountry( $row->getCountry() );
         }
         $syncRecord->setEmarsysId( $row->getId() );
         $syncRecord->setHarmonySyncDirty(true);

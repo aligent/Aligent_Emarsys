@@ -64,6 +64,7 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
                 $emarsysHelper->getSubscriptionField(),
                 $emarsysHelper->getFirstnameField(),
                 $emarsysHelper->getLastnameField(),
+                $emarsysHelper->getGenderField(),
                 $emarsysHelper->getDobField() ];
         $data = array(
             'time_range' => [date('Y-m-d', strtotime($dateString)), gmdate('Y-m-d')],
@@ -102,6 +103,12 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
         $id = 0;
         foreach($data as $key=>$id) break;
         return $this->send(HttpClient::GET, 'export/' . $id);
+    }
+
+    public function getDummyExportFile($name){
+        $name = realpath($name);
+        $responseJson = $this->parseResponseCSV(file_get_contents($name));
+        return new Snowcap\Emarsys\Response(array('replyCode'=>0, 'replyText'=>'OK','data'=>$responseJson));
     }
 
     public function getExportFile($id){
