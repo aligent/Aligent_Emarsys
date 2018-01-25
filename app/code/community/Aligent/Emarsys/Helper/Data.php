@@ -45,6 +45,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysDobField = null;
 
     protected $_emarsysChunkSize = null;
+    protected $_emarsysChangePeriod = null;
 
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
     const XML_FEED_INCLUDE_SIMPLE_PARENTS = 'aligent_emarsys/feed/include_simple_parents';
@@ -97,6 +98,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_DOB_FIELD = 'aligent_emarsys/emarsys_api_settings/emarsys_dob_field';
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
     const XML_EMARSYS_API_CHUNK_SIZE = 'aligent_emarsys/emarsys_api_settings/emarsys_chunk_size';
+    const XML_EMARSYS_API_CHANGE_PERIOD = 'aligent_emarsys/emarsys_api_settings/emarsys_changes_period';
 
     public function getHarmonyWebAgent(){
         if($this->_harmonyWebAgent === null){
@@ -110,6 +112,18 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_emarsysChunkSize = Mage::getStoreConfig( self::XML_EMARSYS_API_CHUNK_SIZE );
         }
         return $this->_emarsysChunkSize;
+    }
+
+    /**
+     * Retrieve the change period (in hours) to check for changed Emarsys records
+     * on Emarsys import.
+     * @return int
+     */
+    public function getEmarsysChangePeriod(){
+        if($this->_emarsysChangePeriod === null){
+            $this->_emarsysChangePeriod = Mage::getStoreConfig(self::XML_EMARSYS_API_CHANGE_PERIOD);
+        }
+        return $this->_emarsysChangePeriod;
     }
 
     /**
@@ -894,7 +908,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null, $country = null){
-        $subscriber = Mage::getModel('newsletter/subscriber')->load($id);
+        $subscriber = Mage::getModel('newsletter/subscriber')->setStoreId(Mage::app()->getStore()->getId())->load($id);
         if(!$subscriber->getId()){
             return null;// If we weren't passed a valid newsletter subscriber ID, just bail
         }

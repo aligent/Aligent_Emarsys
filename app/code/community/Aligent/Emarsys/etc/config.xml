@@ -309,7 +309,11 @@
                 <send_parent_sku>1</send_parent_sku>
                 <store_sku>0</store_sku>
                 <send_website_code>1</send_website_code>
+
             </settings>
+            <emarsys_api_settings>
+                <emarsys_changes_period>24</emarsys_changes_period>
+            </emarsys_api_settings>
             <subscription>
                 <enabled>1</enabled>
                 <base_url></base_url>

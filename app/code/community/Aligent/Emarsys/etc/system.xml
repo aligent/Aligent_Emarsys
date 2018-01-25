@@ -260,6 +260,18 @@
                             <show_in_store>0</show_in_store>
                         </emarsys_chunk_size>
 
+                        <emarsys_changes_period translate="label">
+                            <label>Sync Changes In Last x hours</label>
+                            <sort_order>57</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>aligent_emarsys/system_config_source_select_periods</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>How many hours ago should we check for Emarsys changes?</comment>
+                        </emarsys_changes_period>
+
+
                         <emarsys_sync_firstname translate="label">
                             <label>Sync Firstname</label>
                             <sort_order>60</sort_order>
