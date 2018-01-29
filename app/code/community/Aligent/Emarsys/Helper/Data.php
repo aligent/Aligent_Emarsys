@@ -868,6 +868,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function findNewsletterSyncRecord($subscriber){
+
         $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
         // If we don't have a sync for this subscriber and the subscriber is a customer,
         // do we have a sync for that customer?

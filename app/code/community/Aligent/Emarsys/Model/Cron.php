@@ -240,10 +240,9 @@ class Aligent_Emarsys_Model_Cron {
                 $harmonyCustomer->fillMagentoCustomer($customer);
             }
 
-            if( trim( $harmonyCustomer->name_2) !=='' && $harmonyCustomer->name_2 !== null ) {
-                $outputFile->write($harmonyCustomer->getDataArray());
-            }
+            $outputFile->write($harmonyCustomer->getDataArray());
         }
+        
         // Free up the memory that was used with this array.
         unset($customers);
         $customers = null;

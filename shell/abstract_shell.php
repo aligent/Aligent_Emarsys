@@ -36,6 +36,10 @@ abstract class Aligent_Emarsys_Abstract_Shell extends Mage_Shell_Abstract {
         return $this->_resource;
     }
 
+    /**
+     * Get the database writer interface
+     * @return Varien_Db_Adapter_Interface
+     */
     protected function getWriter(){
         if($this->_writer === null){
             $this->_writer = $this->getResource()->getConnection('core_write');
@@ -43,6 +47,10 @@ abstract class Aligent_Emarsys_Abstract_Shell extends Mage_Shell_Abstract {
         return $this->_writer;
     }
 
+    /**
+     * Get the database reader interface
+     * @return Varien_Db_Adapter_Interface
+     */
     protected function getReader(){
         if($this->_reader===null){
             $this->_reader = $this->getResource()->getConnection('core_read');
