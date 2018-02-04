@@ -15,7 +15,7 @@
     ],
     "require": {
         "firegento/psr0autoloader": "*",
-        "aligent/aligent-io": "dev-master/composer",
+        "aligent/aligent-io": "dev-composer",
         "aligent/feeds" : "dev-master",
         "snowcap/emarsys": "*"
     },
