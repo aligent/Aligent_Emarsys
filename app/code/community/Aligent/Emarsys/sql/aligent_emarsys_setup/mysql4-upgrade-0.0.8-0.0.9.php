@@ -28,11 +28,7 @@ Mage::register('emarsys_newsletter_ignore', true);
 foreach($syncs as $sync){
     if(!$sync->getNewsletterSubscriberId()){
         $customer = Mage::getModel('customer/customer')->load($sync->getCustomerEntityId());
-        $newSub = Mage::getModel('newsletter/subscriber')->setStoreId( $customer->getStore()->getId() );
-        $newSub->setCustomerId($customer->getId());
-        $newSub->setSubscriberEmail($customer->getEmail());
-        $newSub->setSubscriberStatus(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED);
-        $newSub->save();
+        $newSub = Mage::helper('aligent_emarsys')->createSubscription($customer);
     }elseif($sync->getCustomerEntityId()){
         $newSub = Mage::getModel('newsletter/subscriber')->load($sync->getNewsletterSubscriberId());
         if($newSub->getCustomerId() != $sync->getCustomerEntityId()){
@@ -43,7 +39,7 @@ foreach($syncs as $sync){
 
     $writer->insert($tableName, array(
         'ae_id' => $sync->getId(),
-        'subscriber_id' => $sync->getNewsletterSubscriberId()
+        'subscriber_id' => $newSub->getId()
     ));
 }
 Mage::unregister('emarsys_newsletter_ignore');

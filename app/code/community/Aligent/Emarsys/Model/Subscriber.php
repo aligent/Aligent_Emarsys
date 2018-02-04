@@ -34,6 +34,20 @@ class Aligent_Emarsys_Model_Subscriber extends Mage_Newsletter_Model_Subscriber 
         return $this;
     }
 
+    /**
+     * Returns the associated customer object, if one exists
+     *
+     * @return Mage_Customer_Model_Customer|null
+     */
+    public function getCustomer(){
+        if(!$this->getCustomerId()) return null;
+        $customer = Mage::getModel('customer/customer')->setStore(Mage::app()->getStore($this->getStoreId()))->loadByEmail($this->getSubscriberEmail());
+        return ($customer->getId()) ? $customer : null;
+    }
+
+    /**
+     * @return Aligent_Emarsys_Helper_Data
+     */
     protected function helper(){
         if($this->_helper == null){
             $this->_helper = Mage::helper('aligent_emarsys');

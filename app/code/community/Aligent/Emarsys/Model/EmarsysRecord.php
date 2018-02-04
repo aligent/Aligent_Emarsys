@@ -11,12 +11,12 @@ class Aligent_Emarsys_Model_EmarsysRecord {
     protected $_email = null;
     protected $_firstName = null;
     protected $_lastName = null;
-    protected $_subscriptionStatus = null;
     protected $_dob = null;
     protected $_harmonyId = null;
     protected $_id = null;
     protected $_rawData = null;
     protected $_gender = null;
+    protected $_country = null;
 
     protected static function getHelper(){
         if(self::$_helper === null){
@@ -41,49 +41,101 @@ class Aligent_Emarsys_Model_EmarsysRecord {
         $this->_dob = $this->getAbstractField( $emarsysHelper->getDobField() );
         $this->_harmonyId = $this->getAbstractField( $emarsysHelper->getHarmonyIdField() );
         $this->_id = $this->getAbstractField( $client->getFieldId('id') );
-        $this->_subscriptionStatus = $emarsysHelper->unmapSubscriptionValue( $this->getAbstractField( $emarsysHelper->getSubscriptionField() ) );
-        if($this->_subscriptionStatus == true){
-            $this->_subscriptionStatus = Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED;
-        }else{
-            $this->_subscriptionStatus = Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED;
-        }
-
         $this->_gender = $this->getAbstractField( $client->getFieldId('gender') );
         $this->_gender = isset($emarsysHelper->getGenderMap(false)[$this->_gender]) ? $emarsysHelper->getGenderMap(false)[$this->_gender] : '';
+        $this->_country = $this->getAbstractField( $emarsysHelper->getCountryField() );
     }
 
+    /**
+     * The Emarsys ID for this record
+     *
+     * @return int
+     */
     public function getId(){
         return $this->_id;
     }
 
+    /**
+     * The Harmony ID for this record
+     *
+     * @return string|null
+     */
     public function getHarmonyId(){
         return $this->_harmonyId;
     }
 
+    /**
+     * The email address
+     *
+     * @return string|null
+     */
     public function getEmail(){
         return $this->_email;
     }
 
+    /**
+     * The first name
+     * @return string|null
+     */
     public function getFirstName(){
         return $this->_firstName;
     }
 
+    /**
+     * The last name
+     * @return string|null
+     */
     public function getLastName(){
         return $this->_lastName;
     }
 
-    public function getSubscriptionStatus(){
-        return $this->_subscriptionStatus;
+    /**
+     * The country
+     * @return string|null
+     */
+    public function getCountry(){
+        return $this->_country;
     }
 
+    /**
+     * Get the Emarsys subscription status for a given store scope
+     *
+     * @param $storeId
+     * @return int
+     */
+    public function getSubscriptionStatus($storeId){
+        $subscriptionField = self::getHelper()->getSubscriptionField($storeId);
+        $subscriptionStatus = self::getHelper()->unmapSubscriptionValue( $this->getAbstractField( $subscriptionField ) );
+
+        if($subscriptionStatus == true){
+            return Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED;
+        }else{
+            return Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED;
+        }
+    }
+
+    /**
+     * The date of birth
+     * @return DateTime|null
+     */
     public function getDOB(){
         return $this->_dob;
     }
 
+    /**
+     * The gender as a descriptive string (e.g 'male' or 'female')
+     * @return null|string
+     */
     public function getGender(){
         return $this->_gender;
     }
 
+    /**
+     * Get the value of an arbitrary field, if present on the record.
+     *
+     * @param $fieldName string
+     * @return null|mixed
+     */
     public function getAbstractField($fieldName){
         return isset($this->_rawData[$fieldName]) ? $this->_rawData[$fieldName] : null;
     }

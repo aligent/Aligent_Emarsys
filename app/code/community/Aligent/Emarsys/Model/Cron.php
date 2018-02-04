@@ -168,12 +168,9 @@ class Aligent_Emarsys_Model_Cron {
     }
 
     protected function getHarmonyExportCustomersQuery(){
+        $remoteLinkTable = Mage::getModel('aligent_emarsys/aeNewsletters')->getResource()->getMainTable();
         $remoteSystemTable = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getResource()->getMainTable();
-        $customerTable = Mage::getModel('customer/customer')->getResource()->getEntityTable();
-
-        $helper = Mage::helper('aligent_emarsys/lightweightDataHelper');
-        $query = $helper->getReader()->select()->from($customerTable)->joinLeft($remoteSystemTable, 'customer_entity_id=entity_id')
-            ->where('harmony_sync_dirty=1 OR harmony_sync_dirty is null');
+        $newsletterTable = Mage::getModel('newsletter/subscriber')->getResource()->getMainTable();
 
         $customers = Mage::getModel("customer/customer")->getCollection()
             ->addNameToSelect()
@@ -197,9 +194,9 @@ class Aligent_Emarsys_Model_Cron {
             ->joinAttribute('shipping_country_code', 'customer_address/country_id', 'default_shipping', null, 'left')
             ->joinAttribute('taxvat', 'customer/taxvat', 'entity_id', null, 'left');
 
-        $customers->joinTable( [ 'remote_flags'=>'aligent_emarsys/remoteSystemSyncFlags'],
-            'customer_entity_id=entity_id',
-            array('sync_id' => 'id', 'harmony_id'=>'harmony_id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
+        $customers->joinTable(['ns'=>$newsletterTable], 'entity_id=ns.customer_id',null,null,'left');
+        $customers->joinTable(['ael'=>$remoteLinkTable], 'ns.subscriber_id=ael.subscriber_id', null,null, 'left');
+        $customers->joinTable(['ae'=>$remoteSystemTable], 'ael.ae_id=ae.id',['sync_id'=>'id','harmony_id'=>'harmony_id'], null, 'left');
         $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
 
         return $customers;
@@ -221,6 +218,7 @@ class Aligent_Emarsys_Model_Cron {
 
         $customers = $this->getHarmonyExportCustomersQuery();
         $helper->log("Customers with SQL " . $customers->getSelect());
+        die;
 
         $count = 0;
         foreach ($customers as $customer) {

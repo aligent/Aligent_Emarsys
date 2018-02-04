@@ -6,10 +6,16 @@
         {
             "type": "vcs",
             "url":"https://github.com/aligent/Aligent_Feeds.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:aligent/AligentIO.git"
         }
+
     ],
     "require": {
         "firegento/psr0autoloader": "*",
+        "aligent/aligent-io": "dev-master/composer",
         "aligent/feeds" : "dev-master",
         "snowcap/emarsys": "*"
     },
