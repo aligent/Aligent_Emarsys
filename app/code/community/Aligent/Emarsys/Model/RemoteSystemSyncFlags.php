@@ -18,45 +18,6 @@ class Aligent_Emarsys_Model_RemoteSystemSyncFlags extends Mage_Core_Model_Abstra
     }
 
     /**
-     * Locate, or if necessary, create, an Aligent_Emarsys_Remote_System_Sync_Flags record and associated
-     * linking record for a given newsletter subscription ID.
-     *
-     * @param $id The newsletter subscription ID
-     * @param bool $emarsysFlag
-     * @param bool $harmonyFlag
-     * @param null $firstName
-     * @param null $lastName
-     * @param null $gender
-     * @param null $dob
-     * @param null $country
-     * @return null|Aligent_Emarsys_Model_RemoteSystemSyncFlags
-     */
-    public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null, $country = null){
-        $subscriber = Mage::getModel('newsletter/subscriber')->setStoreId(Mage::app()->getStore()->getId())->load($id);
-        if(!$subscriber->getId()){
-            return null;// If we weren't passed a valid newsletter subscriber ID, just bail
-        }
-
-        $aeLink = Mage::getModel('aligent_emarsys/aeNewsletters')->load($id, 'subscriber_id');
-        if($aeLink->getId()){
-            return Mage::getModel("aligent_emarsys/remoteSystemSyncFlags")->load($aeLink->getId());
-        }else{
-            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
-            $remoteSync->setHarmonySyncDirty($harmonyFlag);
-            $remoteSync->setEmarsysSyncDirty($emarsysFlag);
-            if($firstName) $remoteSync->setFirstName($firstName);
-            if($lastName) $remoteSync->setLastName($lastName);
-            if($dob) $remoteSync->setDob($dob);
-            if($gender) $remoteSync->setGender($gender);
-            if($country) $remoteSync->setCountry($country);
-            $remoteSync->setEmail($subscriber->getSubscriberEmail());
-            $remoteSync->save();
-            $remoteSync->linkSubscriber($id);
-            return $remoteSync;
-        }
-    }
-
-    /**
      * Ensure a link exists between this remote sync record and the given subscriber ID
      * @param $id Subscriber ID
      * @return Aligent_Emarsys_Model_AeNewsletters
@@ -72,5 +33,47 @@ class Aligent_Emarsys_Model_RemoteSystemSyncFlags extends Mage_Core_Model_Abstra
             return $aeLink;
         }
 
+    }
+
+    /**
+     * Load a record by email address
+     *
+     * @param $email
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags|null
+     */
+    public static function loadByEmail($email){
+        $linkTable = Mage::getModel('aligent_emarsys/aeNewsletters')->getResource()->getMainTable();
+
+        $query = Mage::getModel('newsletter/subscriber')->getCollection()
+            ->addFieldToFilter('subscriber_email', $email);
+        $query->getSelect()->joinLeft(array('ae'=>$linkTable), 'ae.subscriber_id=main_table.subscriber_id', array('ae_id'=>'ae_id'));
+        $item = $query->getFirstItem();
+
+        if($item->getAeId()){
+            $sync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
+            $sync->load($item->getAeId());
+            return $sync;
+        }else{
+            return null;
+        }
+    }
+
+    public function getSubscriber($storeId){
+        $linkTable = Mage::getModel('aligent_emarsys/aeNewsletters')->getResource()->getMainTable();
+        $query = Mage::getModel('newsletter/subscriber')->setStoreId($storeId)->getCollection()
+            ->join(array('ae'=>$linkTable), 'ae.subscriber_id=main_table.subscriber_id AND ae.ae_id=' . $this->getId());
+        $item = $query->getFirstItem();
+
+        return ($item && $item->getSubscriberId()) ? $item : null;
+    }
+
+    /**
+     * @param $newEmail string
+     */
+    public function setEmail($newEmail){
+        $oldEmail = $this->getData('email');
+        if($oldEmail != $newEmail){
+            $this->setData('email', $newEmail);
+        }
     }
 }

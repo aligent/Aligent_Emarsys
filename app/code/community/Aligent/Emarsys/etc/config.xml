@@ -177,6 +177,9 @@
                     <remoteSystemSyncFlags>
                         <table>aligent_emarsys_remote_system_sync_flags</table>
                     </remoteSystemSyncFlags>
+                    <aeNewsletters>
+                        <table>ae_newsletters</table>
+                    </aeNewsletters>
                 </entities>
             </aligent_emarsys_resource>
         </models>

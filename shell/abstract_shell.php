@@ -11,9 +11,19 @@ abstract class Aligent_Emarsys_Abstract_Shell extends Mage_Shell_Abstract {
     protected $_writer = null;
     protected $_reader = null;
     protected $_helper = null;
+    protected $_stdOut = null;
 
     public function __construct(){
         parent::__construct();
+        $this->_stdOut = fopen('php://stdout','w');
+    }
+
+    public function console($line){
+        fwrite($this->_stdOut, $line);
+    }
+
+    public function __destruct(){
+        fclose($this->_stdOut);
     }
 
     /**
@@ -62,4 +72,6 @@ abstract class Aligent_Emarsys_Abstract_Shell extends Mage_Shell_Abstract {
         $class = Mage::getModel($fromClass);
         return $isEntity ? $class->getResource()->getEntityTable() : $class->getResource()->getMainTable();
     }
+
+
 }

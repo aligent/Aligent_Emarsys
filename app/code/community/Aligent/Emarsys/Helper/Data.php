@@ -849,21 +849,25 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
 
         $newsletter = Mage::getModel('newsletter/subscriber')->setStoreId($storeId);
-        $newsletter->load($customer, 'customer_id');
+        $newsletter->load($customer->getId(), 'customer_id');
+
         if(!$newsletter->getId()){
             $newsletter->loadByEmail($customer->getEmail(), $storeId);
         }
 
         if(!$newsletter->getId()){
-            Mage::register('emarsys_newsletter_ignore', true);
+            $this->startEmarsysNewsletterIgnore();
             $newsletter = $this->createSubscription($customer);
-            Mage::unregister('emarsys_newsletter_ignore');
+            $this->endEmarsysNewsletterIgnore();
         }
 
         // Ensure it's hooked to the customer
         if($newsletter->getCustomerId() != $customer->getId()){
-            $newsletter->setCustomerId($customer->getId());
-            $newsletter->save();
+            Mage::helper('aligent_emarsys/lightweightDataHelper')->getWriter()->update(
+                $newsletter->getResource()->getMainTable(),
+                array('customer_id'=>$customer->getId()),
+                'subscriber_id=' . $newsletter->getId()
+            );
         }
         return $newsletter;
 
@@ -874,7 +878,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * linked to the given customer_entity_id, or return a new model
      * with the ID set if not found.
      *
-     * @param $id The customer entity id to find
+     * @param $id int The customer entity id to find
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function findCustomerSyncRecord($id){
@@ -882,11 +886,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         if(!$customer->getId()){
             throw new InvalidArgumentException("Invalid customer ID passed");
         }
-
-        $newsletter = $this->ensureCustomerNewsletterRecord($customer);
+        $newsletter = $this->ensureCustomerNewsletter($customer);
 
         return $this->ensureNewsletterSyncRecord(
-            $newsletter,
+            $newsletter->getId(),
             true,
             true,
             $customer->getFirstname(),
@@ -903,8 +906,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     public function findNewsletterSyncRecord($subscriber){
         $syncLink = Mage::getModel('aligent_emarsys/aeNewsletters')->load($subscriber->getId(), 'subscriber_id');
         if(!$syncLink->getAeId()){
-            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load('email', $subscriber->getSubscriberEmail());
-            if($remoteSync->getId()){
+            $remoteSync = Aligent_Emarsys_Model_RemoteSystemSyncFlags::loadByEmail($subscriber->getSubscriberEmail());
+            if($remoteSync){
                 $this->createSubscriptionLink($subscriber->getId(), $remoteSync->getId());
                 return $remoteSync;
             }else{
@@ -928,25 +931,28 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $gender Gender to populate the record with
      * @param string $dob Date of birth to populate the record with
      * @param string $country Customer country to populate the record with
+     * @param int $storeId The store ID to use
      *
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
-    public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null, $country = null){
+    public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null, $country = null, $storeId = null){
         $bCreateLink = false;
 
-        $subscriber = Mage::getModel('newsletter/subscriber')->setStoreId(Mage::app()->getStore()->getId())->load($id);
+        $storeId = ($storeId===null) ? Mage::app()->getStore()->getId() : $storeId;
+
+        $subscriber = Mage::getModel('newsletter/subscriber')->setStoreId($storeId)->load($id);
+
         if(!$subscriber->getId()){
             return null;// If we weren't passed a valid newsletter subscriber ID, just bail
         }
-
         $remoteSync = $this->findNewsletterSyncRecord($subscriber);
         if(!$remoteSync){
             $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
             $bCreateLink = true;
 
         }
-        $remoteSync->setHarmonySyncDirty($harmonyFlag);
-        $remoteSync->setEmarsysSyncDirty($emarsysFlag);
+        if($harmonyFlag) $remoteSync->setHarmonySyncDirty($harmonyFlag);
+        if($emarsysFlag) $remoteSync->setEmarsysSyncDirty($emarsysFlag);
         if($firstName) $remoteSync->setFirstName($firstName);
         if($lastName) $remoteSync->setLastName($lastName);
         if($dob) $remoteSync->setDob($dob);
@@ -997,10 +1003,13 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      */
     public function ensureCustomerSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $country = null){
         $remoteSync = $this->findCustomerSyncRecord($id);
-        $remoteSync->setHarmonySyncDirty($harmonyFlag);
-        $remoteSync->setEmarsysSyncDirty($emarsysFlag);
+        if($harmonyFlag) $remoteSync->setHarmonySyncDirty($harmonyFlag);
+        if($emarsysFlag) $remoteSync->setEmarsysSyncDirty($emarsysFlag);
         if($country) $remoteSync->setCountry($country);
-        $remoteSync->save();
+
+        if($harmonyFlag | $emarsysFlag | $country){
+            $remoteSync->save();
+        }
         return $remoteSync;
     }
 
@@ -1018,9 +1027,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $subscriber = Mage::getModel('newsletter/subscriber');
             $subscriber->loadByEmail($order->getCustomerEmail(), $storeId);
             if(!$subscriber->getId()){
-                Mage::register('emarsys_newsletter_ignore', true);
+                $this->startEmarsysNewsletterIgnore();
                 $subscriber = $this->createEmailSubscription($storeId, $order->getCustomerEmail());
-                Mage::unregister('emarsys_newsletter_ignore');
+                $this->endEmarsysNewsletterIgnore();
             }
             $remoteSync = $this->ensureNewsletterSyncRecord($subscriber->getId(),
                 true,
@@ -1051,20 +1060,39 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     /**
      * Create a store scoped newsletter_subscriber record based on this customer object.
      *
-     * @param $customer Mage_Customer_Model_Customer
+     * @param $customer Mage_Customer_Model_Customer|stdClass
+     * @param $lightWeight bool Whether to use a lightweight insert (one off shell/setup scripts ONLY)
      * @return Mage_Newsletter_Model_Subscriber
      */
-    public function createSubscription($customer){
-        if(!is_a($customer, 'Mage_Customer_Model_Customer')){
-            throw new InvalidArgumentException("Expected Mage_Customer_Model_Customer, passed " . get_class($customer));
-        }
+    public function createSubscription($customer, $lightWeight = false){
+        if($lightWeight){
+            $storeId = $customer->store_id;
 
-        $subscription = Mage::getModel('newsletter/subscriber');
-        $subscription->setStoreId($customer->getStore()->getId());
-        $subscription->setCustomerId($customer->getId());
-        $subscription->setSubscriberEmail($customer->getEmail());
-        $subscription->setSubscriberStatus(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED);
-        $subscription->save();
+            $subscription = Mage::getModel('newsletter/subscriber');
+            $table = $subscription->getResource()->getMainTable();
+            $writer = Mage::helper('aligent_emarsys/lightweightDataHelper')->getWriter();
+
+            $data = array(
+                'store_id' => $storeId,
+                'customer_id' => $customer->entity_id,
+                'subscriber_email' => $customer->email,
+                'subscriber_status' => Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED
+            );
+            $writer->insert($table, $data);
+            $subscription->loadByEmail($customer->email, $storeId);
+        }else{
+            if(!is_a($customer, 'Mage_Customer_Model_Customer')){
+                throw new InvalidArgumentException("Expected Mage_Customer_Model_Customer, passed " . get_class($customer));
+            }
+            $storeId = $customer->getStore()->getId();
+
+            $subscription = Mage::getModel('newsletter/subscriber');
+            $subscription->setStoreId($storeId);
+            $subscription->setCustomerId($customer->getEntityId());
+            $subscription->setSubscriberEmail($customer->getEmail());
+            $subscription->setSubscriberStatus(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED);
+            $subscription->save();
+        }
 
         return $subscription;
     }
@@ -1101,5 +1129,13 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         $syncLink->setAeId($remoteSyncId);
         $syncLink->save();
         return $syncLink;
+    }
+
+    public function startEmarsysNewsletterIgnore(){
+        Mage::register('emarsys_newsletter_ignore', true, true);
+    }
+
+    public function endEmarsysNewsletterIgnore(){
+        Mage::unregister('emarsys_newsletter_ignore');
     }
 }

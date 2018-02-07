@@ -61,10 +61,11 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                     /** @var $newsSub Mage_Newsletter_Model_Subscriber */
                     $oResponse->setBody(json_encode(array('failure'=>true, 'input2'=>$params)));
 
-                    Mage::register('emarsys_newsletter_ignore', true);
+                    Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
                     $newsSub = Mage::getModel('newsletter/subscriber')->setStore(Mage::app()->getStore());
                     $newsSub->subscribe($email);
-                    Mage::unregister('emarsys_newsletter_ignore');
+                    Mage::helper('aligent_emarsys')->endEmarsysNewsletterIgnore();
+
                     if(Mage::helper('aligent_emarsys')->isEnabled()) {
                         /** @var $emHelper Aligent_Emarsys_Helper_Emarsys */
                         $emHelper = Mage::helper('aligent_emarsys/emarsys');
@@ -100,7 +101,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $emClient = $this->emarsysHelper()->getClient();
             $results = $emClient->getExportFile($result->id);
             // Disable the observer in our module so we don't end up in a nice little loop.
-            Mage::register('emarsys_newsletter_ignore', true);
+            Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
             if($results->getReplyCode()==0){
                 $rows = $results->getData();
                 foreach($rows as $row){
@@ -109,7 +110,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                     $this->syncEmarsysRow( $emClient->parseRawRow($row) );
                 }
             }
-            Mage::unregister('emarsys_newsletter_ignore');
+            Mage::helper('aligent_emarsys')->endEmarsysNewsletterIgnore();
         }
     }
 
