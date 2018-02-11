@@ -134,7 +134,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $subscriber = $helper->getEmailSubscriber( $row->getEmail(), $store->getId() );
             if(!$subscriber->getSubscriberId()){
                 $subscriber = $helper->createEmailSubscription($store->getId(), $row->getEmail());
-                $helper->createSubscriptionLink($subscriber->getId(), $syncRecord->getId());
+                $syncRecord->linkSubscriber($subscriber->getId());
             }
             $subscriber->setSubscriberStatus( $row->getSubscriptionStatus() );
             $subscriber->save();

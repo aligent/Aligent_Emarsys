@@ -28,7 +28,7 @@ class Aligent_Emarsys_Model_RemoteSystemSyncFlags extends Mage_Core_Model_Abstra
             return Mage::getModel("aligent_emarsys/remoteSystemSyncFlags")->load($aeLink->getId());
         }else{
             $aeLink->setSubscriberId($id);
-            $aeLink->setId($this->getId());
+            $aeLink->setAeId($this->getId());
             $aeLink->save();
             return $aeLink;
         }

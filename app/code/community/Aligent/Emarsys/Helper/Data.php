@@ -914,7 +914,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         if(!$syncLink->getAeId()){
             $remoteSync = Aligent_Emarsys_Model_RemoteSystemSyncFlags::loadByEmail($subscriber->getSubscriberEmail());
             if($remoteSync){
-                $this->createSubscriptionLink($subscriber->getId(), $remoteSync->getId());
+                $remoteSync->linkSubscriber($subscriber->getId());
                 return $remoteSync;
             }else{
                 return null;
@@ -968,7 +968,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         $remoteSync->save();
 
         if($bCreateLink){
-            $this->createSubscriptionLink($id, $remoteSync->getId());
+            $remoteSync->linkSubscriber($id);
         }
 
         return $remoteSync;
@@ -1122,19 +1122,6 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
 
         return $subscription;
-    }
-
-    /**
-     * @param $subscriptionId
-     * @param $remoteSyncId
-     * @return Aligent_Emarsys_Model_AeNewsletters
-     */
-    public function createSubscriptionLink($subscriptionId, $remoteSyncId){
-        $syncLink = Mage::getModel('aligent_emarsys/aeNewsletters');
-        $syncLink->setSubscriberId($subscriptionId);
-        $syncLink->setAeId($remoteSyncId);
-        $syncLink->save();
-        return $syncLink;
     }
 
     public function startEmarsysNewsletterIgnore(){
