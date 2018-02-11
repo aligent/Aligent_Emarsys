@@ -11,8 +11,12 @@ if (!$connection->isTableExists($tableName)) {
     $table = $connection->newTable($tableName);
     $table->addColumn('ae_id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array('unsigned' => true, 'nullable' => false));
     $table->addColumn('subscriber_id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array('unsigned' => true, 'nullable' => false));
+    $table->addIndex(
+        $installer->getIdxName($tableName, array('ae_id', 'subscriber_id'), Varien_Db_Adapter_Interface::INDEX_TYPE_UNIQUE),
+        array('ae_id','subscriber_id'),
+        array('type' => Varien_Db_Adapter_Interface::INDEX_TYPE_UNIQUE)
+    );
     $connection->createTable($table);
-    createIndex($installer, $tableName, array('ae_id','subscriber_id'), false, true);
     createIndex($installer, $tableName, array('subscriber_id'), false, true);
     createIndex($installer, $tableName, array('ae_id'), false, false);
 }
@@ -96,11 +100,12 @@ function createIndex($installer, $tableName, $columns, $primary, $unique){
 
     $indexType = ($primary) ? Varien_Db_Adapter_Interface::INDEX_TYPE_PRIMARY : Varien_Db_Adapter_Interface::INDEX_TYPE_INDEX;
 
+    if(!$primary && $unique) $indexType = Varien_Db_Adapter_Interface::INDEX_TYPE_UNIQUE;
+
     $connection->addIndex(
         $tableName,
         $installer->getIdxName($tableName, $columns, $indexType),
         $columns,
-        array('type' => $indexType, 'unique'=>$unique)
+        array('type' => $indexType, 'unique' => true)
     );
-
 }
