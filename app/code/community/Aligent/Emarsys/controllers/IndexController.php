@@ -105,8 +105,6 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             if($results->getReplyCode()==0){
                 $rows = $results->getData();
                 foreach($rows as $row){
-                    echo "Sync row\n";
-                    print_r($row);
                     $this->syncEmarsysRow( $emClient->parseRawRow($row) );
                 }
             }

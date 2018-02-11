@@ -12,9 +12,9 @@ if (!$connection->isTableExists($tableName)) {
     $table->addColumn('ae_id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array('unsigned' => true, 'nullable' => false));
     $table->addColumn('subscriber_id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array('unsigned' => true, 'nullable' => false));
     $connection->createTable($table);
-
+    createIndex($installer, $tableName, array('ae_id','subscriber_id'), false, true);
     createIndex($installer, $tableName, array('subscriber_id'), false, true);
-    createIndex($installer, $tableName, array('ae_id','subscriber_id'), true, true);
+    createIndex($installer, $tableName, array('ae_id'), false, false);
 }
 
 $syncTable = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getResource()->getMainTable();
@@ -23,9 +23,6 @@ $newsletterTable = Mage::getModel('newsletter/subscriber')->getResource()->getMa
 
 createIndex($installer,$syncTable, array('email'), false, false);
 createIndex($installer,$newsletterTable, array('subscriber_email'), false, false);
-
-echo "done";
-
 
 $lwHelper = Mage::helper('aligent_emarsys/lightweightDataHelper');
 $writer = $lwHelper->getWriter();
@@ -53,8 +50,8 @@ Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
             $data = $reader->fetchRow($sql, $sync->customer_entity_id);
             $customer = Mage::getModel('customer/customer');
             $customer->addData($data);
-            if($customer->getData('store_id')===null) $customer->setData('store_id', 0);  // this really shouldn't happen.
 
+            if($customer->getData('store_id')===null) $customer->setData('store_id', 0);  // this really shouldn't happen.
             $newSub = Mage::helper('aligent_emarsys')->ensureCustomerNewsletter($customer);
 
             $subId = $newSub->getId();
@@ -69,7 +66,8 @@ Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
             ));
         }catch(\Exception $e){
             // Some of these may fail due to duplicate key constraints, and that's OK.  Ignore it.
-
+            echo "Duplicate error: " . $e->getMessage();
+            die;
         }
         $perRecord = ( microtime(true) - $startTime ) / ($count);
         $minsToGo = floor($perRecord * ($rows - $count)); //(($perRecord * ($rows - $count)) / 1000);

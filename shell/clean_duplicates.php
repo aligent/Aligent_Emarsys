@@ -30,7 +30,9 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Aligent_Emarsys_Abstract_Sh
                 $this->getHelper()->log("Move newsletters to store");
                 $this->moveNewslettersToStore();
             }
+
             if(!$this->_dontUpdateCustomers) {
+                $this->updateNewsletterFromCustomer();
                 $this->updateSyncFromCustomer();
             }
 
@@ -73,12 +75,43 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Aligent_Emarsys_Abstract_Sh
         }
     }
 
+    protected function updateNewsletterFromCustomer(){
+        $query = Mage::getModel("newsletter/subscriber")->getCollection()
+            ->getSelect()
+            ->join( array('c'=>$this->_customerTable), 'main_table.customer_id=c.entity_id')
+            ->where('main_table.subscriber_email <> c.email');
+
+        $items = $this->getReader()->query($query);
+        $total = $this->getReader()->query($query->reset('columns')->columns(['count(*)']))->fetchColumn();
+
+        $count = 0;
+        $this->console("Total of $total\n");
+        $this->console("  0.00%");
+        while($item = $items->fetch()){
+            $data = array('subscriber_email' => $item['email']);
+            $this->getWriter()->update(
+                $this->_newsletterTable,
+                $data,
+                'subscriber_id=' . $item['subscriber_id']
+            );
+            $count++;
+            $this->console("\033[8D");
+            $percent = round( ($count / $total) * 100, 2) . "%";
+            $this->console(str_pad($percent, 8, ' '));
+            $this->getHelper()->log("Updated newsletter record " . $item['subscriber_id'] . "($percent)");
+        }
+    }
+
     protected function updateSyncFromCustomer(){
         $query = Mage::getModel("customer/customer")->getCollection()
             ->addNameToSelect()
             ->addAttributeToSelect('email')
+            ->addAttributeToSelect('firstname')
+            ->addAttributeToSelect('lastname')
             ->addAttributeToSelect('dob')
-            ->getSelect()->join(['ae'=>$this->_aligentTable], 'e.entity_id=customer_entity_id',['sync_id'=>'id']);
+            ->getSelect()->join(array('ae'=>$this->_aligentTable), 'e.entity_id=customer_entity_id',array('sync_id'=>'id', 'ae_email'=>'email'))
+        ->joinLeft(array('ns'=>$this->_newsletterTable), 'newsletter_subscriber_id=ns.subscriber_id', array('subscriber_email'=>'subscriber_email'))
+        ->where('first_name <> at_firstname.value or last_name <> at_lastname.value or e.email <> ae.email');
 
         //$items = $items->joinTable($this->_aligentTable,'entity_id=customer_entity_id',array('id'=>'sync_id'));
                 //$items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
@@ -90,12 +123,18 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Aligent_Emarsys_Abstract_Sh
         $this->console("Total of $total\n");
         $this->console("  0.00%");
         while($item = $items->fetch()){
+            $data = ['first_name' => $item['firstname'],
+                'last_name' => $item['lastname'],
+                'email' => $item['email'],
+                'harmony_sync_dirty'=>1,
+                'emarsys_sync_dirty'=>1];
+            if( strtolower($item['email']) != strtolower($item['subscriber_email']) ){
+                $this->getHelper()->log("Reset subscriber for record " . $item['sync_id']);
+                $data['newsletter_subscriber_id'] = null;
+            }
+
             $this->getWriter()->update($this->_aligentTable,
-                ['first_name' => $item['firstname'],
-                    'last_name' => $item['lastname'],
-                    'email' => $item['email'],
-                    'harmony_sync_dirty'=>1,
-                    'emarsys_sync_dirty'=>1],
+                $data,
                 'id=' . $item['sync_id']);
             $count++;
             $this->console("\033[8D");
@@ -134,7 +173,6 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Aligent_Emarsys_Abstract_Sh
         $items->removeAllFieldsFromSelect();
         $items->getSelect()->columns('max(subscriber_id) as mId, min(subscriber_id) as minId')->group(array('customer_id', 'store_id'))->having('count(subscriber_id) > 1')->where('customer_id > 0');
         $this->getHelper()->log('Remove subscribers with SQL: ' . $items->getSelectSql());
-        $this->console('Remove subscribers with SQL: ' . $items->getSelectSql());
         foreach($items as $item){
             $this->mergeSubscriberData($item->getData('mId'), $item->getData('minId'));
         }

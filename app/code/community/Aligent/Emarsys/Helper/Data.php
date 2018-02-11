@@ -849,20 +849,26 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
 
         $newsletter = Mage::getModel('newsletter/subscriber')->setStoreId($storeId);
+        $this->log("Find newsletter for customer " . $customer->getId());
+        $this->log(print_r($newsletter,true));
         $newsletter->load($customer->getId(), 'customer_id');
 
         if(!$newsletter->getId()){
+            $this->log("Can't find.  Try email '" . $customer->getEmail() . "'");
             $newsletter->loadByEmail($customer->getEmail(), $storeId);
         }
 
         if(!$newsletter->getId()){
+            $this->log("Nope.  Create it");
             $this->startEmarsysNewsletterIgnore();
             $newsletter = $this->createSubscription($customer);
             $this->endEmarsysNewsletterIgnore();
         }
+        $this->log("Ok, got ID " . $newsletter->getId());
 
         // Ensure it's hooked to the customer
         if($newsletter->getCustomerId() != $customer->getId()){
+            $this->log("Hook " . $customer->getId() . " customer to " . $newsletter->getId() . " subscriber");
             Mage::helper('aligent_emarsys/lightweightDataHelper')->getWriter()->update(
                 $newsletter->getResource()->getMainTable(),
                 array('customer_id'=>$customer->getId()),
