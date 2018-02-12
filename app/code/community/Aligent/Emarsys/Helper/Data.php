@@ -1013,7 +1013,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         if($emarsysFlag) $remoteSync->setEmarsysSyncDirty($emarsysFlag);
         if($country) $remoteSync->setCountry($country);
 
-        if($harmonyFlag | $emarsysFlag | $country){
+        if($harmonyFlag || $emarsysFlag || $country){
             $remoteSync->save();
         }
         return $remoteSync;
