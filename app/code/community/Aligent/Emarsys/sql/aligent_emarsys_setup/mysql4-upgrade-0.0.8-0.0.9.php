@@ -70,11 +70,10 @@ Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
             ));
         }catch(\Exception $e){
             // Some of these may fail due to duplicate key constraints, and that's OK.  Ignore it.
-            echo "Duplicate error: " . $e->getMessage();
-            die;
+            Mage::helper('aligent_emarsys')->log("Duplicate error: " . $e->getMessage());
         }
         $perRecord = ( microtime(true) - $startTime ) / ($count);
-        $minsToGo = floor($perRecord * ($rows - $count)); //(($perRecord * ($rows - $count)) / 1000);
+        $minsToGo = floor($perRecord * ($rows - $count));
 
         $minsToGo = gmdate("H:i:s", $minsToGo);
         $count++;
