@@ -205,7 +205,8 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
                 $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
             }else{
                 $this->getHelper()->log("Find customer by email " . $subscriber->getSubscriberEmail());
-                $customer = Mage::getModel('customer/customer')->setStore($subscriber->getStoreId())->loadByEmail($subscriber->getSubscriberEmail());
+                $store = Mage::app()->getStore($subscriber->getStoreId());
+                $customer = Mage::getModel('customer/customer')->setStore($store)->loadByEmail($subscriber->getSubscriberEmail());
                 if($customer->getId()){
                     $subscriber->setCustomerId($customer->getId());
                 }
