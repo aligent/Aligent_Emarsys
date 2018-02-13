@@ -11,22 +11,24 @@ use FtpClient\FtpClient;
 class Aligent_Emarsys_Model_Cron {
     protected $_pendingHarmonyDataItems;
     protected $_pendingEmarsysDataItems;
+    protected $_startTime;
+    protected $_total;
+    protected $_count;
+    protected $_stdOut;
+
+    protected function getHelper(){
+        return Mage::helper('aligent_emarsys');
+    }
 
     public function exportEmarsysData(){
         /** @var $emarsysHelper Aligent_Emarsys_Helper_Emarsys l*/
         $emarsysHelper = Mage::helper('aligent_emarsys/emarsys');
-        $helper = Mage::helper('aligent_emarsys');
+        $helper = $this->getHelper();
         $helper->log("Emarsys export started", 1);
 
         /** @var $news Mage_Newsletter_Model_Subscriber */
-        $customers = Mage::getModel("customer/customer")->getCollection()
-            ->addAttributeToSelect('firstname')
-            ->addAttributeToSelect('lastname')
-            ->addAttributeToSelect('gender');
-        $customers->joinTable( [ 'remote_flags'=>'aligent_emarsys/remoteSystemSyncFlags'],
-            'customer_entity_id=entity_id',
-            array('sync_id' => 'id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
-        $customers->getSelect()->where('(emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null)');
+        $customers = $this->getExportCustomersQuery(false);
+
         $eClient = $emarsysHelper->getClient();
         foreach($customers as $customer){
             $storeId = $customer->getStore()->getId();
@@ -40,50 +42,36 @@ class Aligent_Emarsys_Model_Cron {
             $helper->log("With data: " . print_r($data, true), 2);
             $result = $eClient->updateContactAndCreateIfNotExists($data);
             if($result->getReplyCode()==0){
-                if($customer->getSyncId()) {
-                    $this->_pendingEmarsysDataItems[] = $customer->getSyncId();
-                    $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getSyncId());
-                    $helper->log("Mark record " . $syncData->getId() . " as in sync with Emarsys", 2);
-                    $syncData->setEmarsysSyncDirty(false);
-                    $syncData->setEmarsysId($result->getData()['id']);
-                    $syncData->save();
-                }else{
-                    $helper->log("Create new sync record for customer " . $customer->getId(), 2);
-                    $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
-                    $syncData->setCustomerEntityId($customer->getId());
-                    $syncData->setFirstName($customer->getFirstname());
-                    $syncData->setLastName($customer->getLastname());
-                    $syncData->save();
-                }
+                $syncData = $helper->ensureCustomerSyncRecord($customer->getId());
+                $syncData->setEmarsysSyncDirty(false);
+                $syncData->setEmarsysId($result->getData()['id']);
+                $syncData->save();
+            }else{
+                $helper->log("Invalid response:" . $result->getReplyText());
             }
         }
 
-        $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
-        $subscribers->getSelect()->joinLeft(
-            ['remote_flags' =>'aligent_emarsys_remote_system_sync_flags'],
-            'subscriber_id=remote_flags.newsletter_subscriber_id',
-            array('sync_id' => 'id'), null);
-        $subscribers->getSelect()->where('( (customer_entity_id is null OR customer_entity_id=0) AND (emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null) )');
-
+        $subscribers = $this->getExportSubscribersQuery(false);
         foreach($subscribers as $subscriber){
             $storeId = $subscriber->getStoreId();
             if(!$helper->isSubscriptionEnabled($storeId)) {
-                $helper->log("Skip subscriber " . $subscriber->getId());
+                $helper->log("Skip subscriber " . $subscriber->getSubscriberId());
                 continue;
             }
-            $helper->log("Update subscriber " . $subscriber->getId());
+            $helper->log("Update subscriber " . $subscriber->getSubscriberId());
 
             $data = $emarsysHelper->getSubscriberData($subscriber);
             $result = $eClient->updateContactAndCreateIfNotExists($data);
             if($result->getReplyCode()==0){
                 $this->_pendingEmarsysDataItems[] = $subscriber->getSyncId();
-                $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getSyncId());
+                $syncData = $helper->ensureNewsletterSyncRecord($subscriber->getId());
                 $syncData->setEmarsysSyncDirty(false);
                 $syncData->setEmarsysId($result->getData()['id']);
                 $syncData->save();
+            }else{
+                $helper->log("Invalid response: " . $result->getReplyText());
             }
         }
-
     }
 
     public function importEmarsysData(){
@@ -96,7 +84,7 @@ class Aligent_Emarsys_Model_Cron {
          **/
         $url = Mage::getStoreConfig('web/secure/base_url') . "emarsys/index/emarsyscallback";
 
-        $timePeriod = Mage::helper('aligent_emarsys')->getEmarsysChangePeriod();
+        $timePeriod = $this->getHelper()->getEmarsysChangePeriod();
         $timeString = gmdate('Y-m-d H:i:s') . ' -' . $timePeriod . ' hours';
         $emClient->exportChangesSince(date('Y-m-d H:i:s', strtotime($timeString) ), $url);
     }
@@ -108,7 +96,7 @@ class Aligent_Emarsys_Model_Cron {
     public function exportHarmonyData()
     {
         try {
-            $helper = Mage::helper('aligent_emarsys');
+            $helper = $this->getHelper();
             $helper->log("Harmony export starting");
             if(!$helper->getHarmonyCustomerExportLive()){
                 $fileName = Mage::getBaseDir('var') . '/harmony_dump.tab';
@@ -142,7 +130,7 @@ class Aligent_Emarsys_Model_Cron {
 
     protected function pushHarmonyExportData($fixedWidthData){
         /** @var $helper Aligent_Emarsys_Helper_Data */
-        $helper = Mage::helper('aligent_emarsys');
+        $helper = $this->getHelper();
         $host = $helper->getHarmonyFTPServer();
         $port = $helper->getHarmonyFTPPort();
         $user = $helper->getHarmonyFTPUsername();
@@ -163,13 +151,29 @@ class Aligent_Emarsys_Model_Cron {
         }
     }
 
-    protected function getHarmonyExportCustomersQuery(){
+    protected function getExportSubscribersQuery($isHarmony = true){
+        $remoteLinkTable = Mage::getModel('aligent_emarsys/aeNewsletters')->getResource()->getMainTable();
         $remoteSystemTable = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getResource()->getMainTable();
-        $customerTable = Mage::getModel('customer/customer')->getResource()->getEntityTable();
 
-        $helper = Mage::helper('aligent_emarsys/lightweightDataHelper');
-        $query = $helper->getReader()->select()->from($customerTable)->joinLeft($remoteSystemTable, 'customer_entity_id=entity_id')
-            ->where('harmony_sync_dirty=1 OR harmony_sync_dirty is null');
+        $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
+        $subscribers->getSelect()->joinLeft(['ael'=>$remoteLinkTable], 'ael.subscriber_id=main_table.subscriber_id',['ae_subscriber_id'=>'subscriber_id']);
+        $subscribers->getSelect()->joinLeft(['ae'=>$remoteSystemTable], 'ael.ae_id=ae.id', ['sync_id'=>'id']);
+
+        $where = '(customer_id is null OR customer_id=0) AND ';
+        if($isHarmony) {
+            $where .= "(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)";
+        }else{
+            $where .= "(emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null)";
+        }
+        $subscribers->getSelect()->where($where);
+
+        return $subscribers;
+    }
+
+    protected function getExportCustomersQuery($isHarmony = true){
+        $remoteLinkTable = Mage::getModel('aligent_emarsys/aeNewsletters')->getResource()->getMainTable();
+        $remoteSystemTable = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getResource()->getMainTable();
+        $newsletterTable = Mage::getModel('newsletter/subscriber')->getResource()->getMainTable();
 
         $customers = Mage::getModel("customer/customer")->getCollection()
             ->addNameToSelect()
@@ -193,17 +197,23 @@ class Aligent_Emarsys_Model_Cron {
             ->joinAttribute('shipping_country_code', 'customer_address/country_id', 'default_shipping', null, 'left')
             ->joinAttribute('taxvat', 'customer/taxvat', 'entity_id', null, 'left');
 
-        $customers->joinTable( [ 'remote_flags'=>'aligent_emarsys/remoteSystemSyncFlags'],
-            'customer_entity_id=entity_id',
-            array('sync_id' => 'id', 'harmony_id'=>'harmony_id'), null, 'left');//->addExpressionAttributeToSelect('sync_id','remote_flags.id', 'sync_id');
-        $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
+        $customers->getSelect()->joinLeft(['ns'=>$newsletterTable], 'e.entity_id=ns.customer_id');
+        $customers->getSelect()->joinLeft(['ael'=>$remoteLinkTable], 'ns.subscriber_id=ael.subscriber_id');
+        $customers->getSelect()->joinLeft(['ae'=>$remoteSystemTable], 'ael.ae_id=ae.id',['sync_id'=>'id','harmony_id'=>'harmony_id', 'emarsys_id'=>'emarsys_id']);
 
+        if($isHarmony){
+            $customers->getSelect()->where('(harmony_sync_dirty = 1 OR harmony_sync_dirty is null)');
+        }else{
+            $customers->getSelect()->where('(emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null)');
+        }
+
+        $this->getHelper()->log("Customers with SQL " . $customers->getSelect());
         return $customers;
     }
 
     protected function getHarmonyExportData( $fileName = 'php://temp'){
         $this->_pendingHarmonyDataItems = array();
-        $helper = Mage::helper('aligent_emarsys');
+        $helper = $this->getHelper();
 
         if($fileName != 'php://temp'){
             $helper->log("Creating $fileName");
@@ -215,65 +225,110 @@ class Aligent_Emarsys_Model_Cron {
         $handle = fopen($fileName, 'rw+');
         $outputFile = new Aligent_Emarsys_Model_HarmonyDiaryWriter($handle);
 
-        $customers = $this->getHarmonyExportCustomersQuery();
-        $helper->log("Customers with SQL " . $customers->getSelect());
+        $customers = $this->getExportCustomersQuery(true);
 
-        $count = 0;
-        foreach ($customers as $customer) {
+        $reader = Mage::helper('aligent_emarsys/lightweightDataHelper')->getReader();
+        $customerQuery = $customers->getSelect();
+        $result = $reader->query($customerQuery);
+
+        $total = $reader->query($customerQuery->reset('columns')->columns(['count(*)']))->fetchColumn();
+
+        $this->startProgress($total, true);
+        while($data = $result->fetchObject() ){
+            $customer = Mage::getModel('customer/customer');
+            $customer->addData($data);
             $helper->log("Processing customer " . $customer->getId());
             if (!$helper->isSubscriptionEnabled($customer->getStore()->getId())) {
+                $helper->log("Skipping");
+                $this->logProgress();
                 continue;
             }
-
-            $this->_pendingHarmonyDataItems[] = $customer->getSyncId();
-            $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
-            $count++;
-            $helper->log(round(($count / sizeof($customers)) * 100, 2) . "% $count of " . sizeof($customers));
-
-            if ($customer->getSyncId()) {
-                $harmonyCustomer->fillMagentoCustomerFromData($customer, $customer->getSyncId(), $customer->getHarmonyId());
-            } else {
-                $harmonyCustomer->fillMagentoCustomer($customer);
+            if($data->sync_id){
+                $syncRecord = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($data->sync_id);
+            }else{
+                $syncRecord = $helper->ensureCustomerSyncRecord($customer->getId(), false, false);
             }
-
-            if( trim( $harmonyCustomer->name_2) !=='' && $harmonyCustomer->name_2 !== null ) {
+            if(!in_array($syncRecord->getId(), $this->_pendingHarmonyDataItems)){
+                $this->_pendingHarmonyDataItems[] = $syncRecord->getId();
+                $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
+                $harmonyCustomer->fillMagentoCustomerFromData($customer, $syncRecord->getId(), $syncRecord->getHarmonyId());
                 $outputFile->write($harmonyCustomer->getDataArray());
+            }else{
+                Mage::helper('aligent_emarsys')->log("Duplicate sync " . $syncRecord->getId());
             }
+            $this->logProgress();
         }
         // Free up the memory that was used with this array.
         unset($customers);
         $customers = null;
         gc_collect_cycles();
+        $this->endProgress();
 
-        $subscribers = Mage::getModel("newsletter/subscriber")->getCollection();
-        $subscribers->getSelect()->joinLeft(
-            ['remote_flags' =>'aligent_emarsys_remote_system_sync_flags'],
-            'remote_flags.newsletter_subscriber_id=main_table.subscriber_id',
-            array('sync_id' => 'id'), null);
-        $subscribers->getSelect()->where('( (customer_id is null OR customer_id=0) AND (harmony_sync_dirty = 1 OR harmony_sync_dirty is null) )');
+        $subscribers = $this->getExportSubscribersQuery(true);
         $helper->log("Get subscribers with: " . $subscribers->getSelectSql(), 2);
-
         try {
+            $this->startProgress(sizeof($subscribers), true);
             foreach ($subscribers as $subscriber) {
-                $helper->log("Processing subscriber " . $subscriber->getId());
+                $helper->log("Processing subscriber " . $subscriber->getSubscriberId());
                 if (!$helper->isSubscriptionEnabled($subscriber->getStoreId())) continue;
-                $this->_pendingHarmonyDataItems[] = $subscriber->getSyncId();
-                $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
-                $harmonyCustomer->fillMagentoSubscriber($subscriber);
-                // Harmony isn't OK with blank last names
-                if( trim( $harmonyCustomer->name_2) !=='' && $harmonyCustomer->name_2 !== null ){
+                $syncRecord = $helper->ensureNewsletterSyncRecord($subscriber->getSubscriberId(),null,null,null,null,null,null,null, $subscriber->getStoreId());
+                if(!in_array($syncRecord->getId(), $this->_pendingHarmonyDataItems)){
+                    $this->_pendingHarmonyDataItems[] = $syncRecord->getId();
+                    $harmonyCustomer = new Aligent_Emarsys_Model_HarmonyDiary();
+                    $harmonyCustomer->fillMagentoSubscriber($subscriber);
                     $outputFile->write($harmonyCustomer->getDataArray());
+                }else{
+                    Mage::helper('aligent_emarsys')->log("Duplicate sync " . $syncRecord->getId());
                 }
+                $this->logProgress();
             }
             rewind($handle);
             $data = stream_get_contents($handle);
             fclose($handle);
-            $helper->log("Finished");
+            $this->endProgress();
             $helper->log("Size of data: " . sizeof($data));
             return $data;
         }catch(Exception $e){
             $helper->log("Error: " . $e->getMessage());
             return '';
+        }
+    }
+
+    protected function startProgress($total, $alsoStdOut = false){
+        $this->_total = $total;
+        $this->_startTime = microtime(true);
+        $this->_count = 0;
+        $this->_stdOut = $alsoStdOut ? fopen('php://stdout','w') : null;
+
+        if($this->_stdOut){
+            fwrite($this->_stdOut, "\n");
+            fwrite($this->_stdOut, str_pad("",100," ", STR_PAD_LEFT));
+        }
+    }
+
+    protected function logProgress(){
+        $currentTime = microtime(true);
+        $this->_count++;
+        $perRecord = ($currentTime - $this->_startTime) / $this->_count;
+        $toGo = gmdate("H:i:s",$perRecord * ($this->_total - $this->_count));
+        $percent = round(($this->_count / $this->_total) * 100, 2);
+
+        $message = $percent . "%, " . $this->_count . " of " . $this->_total . ", estimate $toGo";
+        str_pad($message, 100 , ' ', STR_PAD_LEFT);
+        $this->getHelper()->log($message);
+        if($this->_stdOut){
+            fwrite($this->_stdOut, "\033[100D");
+            fwrite($this->_stdOut, $message);
+        }
+    }
+
+    protected function endProgress(){
+        $this->getHelper()->log("Completed " . $this->_count . " in " . gmdate('H:i:s', microtime(true)-$this->_startTime));
+        if($this->_stdOut){
+            fwrite($this->_stdOut, "\033[100D");
+            fwrite($this->_stdOut, "Completed in " . gmdate('H:i:s', microtime(true)-$this->_startTime) . "\n");
+            fclose($this->_stdOut);
+            $this->_stdOut = null;
         }
     }
 }

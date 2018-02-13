@@ -12,15 +12,14 @@
  */
 
 require_once 'abstract.php';
+require_once 'abstract_shell.php';
 
-class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
-    protected $_helper = null;
+class Aligent_Emarsys_Shell_Clean_Duplicates extends Aligent_Emarsys_Abstract_Shell {
     protected $_store = null;
-    protected $_reader = null;
-    protected $_writer = null;
-    protected $_resource = null;
     protected $_newsletterTable = null;
     protected $_aligentTable = null;
+    protected $_customerTable = null;
+    protected $_dontUpdateCustomers = false;
 
     // Shell script point of entry
     public function run(){
@@ -31,24 +30,22 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
                 $this->getHelper()->log("Move newsletters to store");
                 $this->moveNewslettersToStore();
             }
+
+            if(!$this->_dontUpdateCustomers) {
+                $this->updateNewsletterFromCustomer();
+                $this->updateSyncFromCustomer();
+            }
+
             $this->getHelper()->log("De dupe newsletter subscribers");
             $this->dedupeNewsletterSubscriberTable();
             $this->dedupeFromCustomerId();
             $this->dedupeFromNewsletterId();
-            $this->updateSyncFromCustomer();
             $this->dedupeFromEmailAddress();
 
             $this->getHelper()->log("Merge complete");
         }catch(\Exception $e){
             $this->getHelper()->log("Exception: " . $e);
         }
-    }
-
-    protected function getHelper(){
-        if($this->_helper === null){
-            $this->_helper = Mage::helper('aligent_emarsys');
-        }
-        return $this->_helper;
     }
 
     protected function dedupeFromCustomerId(){
@@ -78,18 +75,72 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
         }
     }
 
+    protected function updateNewsletterFromCustomer(){
+        $query = Mage::getModel("newsletter/subscriber")->getCollection()
+            ->getSelect()
+            ->join( array('c'=>$this->_customerTable), 'main_table.customer_id=c.entity_id')
+            ->where('main_table.subscriber_email <> c.email');
+
+        $items = $this->getReader()->query($query);
+        $total = $this->getReader()->query($query->reset('columns')->columns(['count(*)']))->fetchColumn();
+
+        $count = 0;
+        $this->console("Total of $total\n");
+        $this->console("  0.00%");
+        while($item = $items->fetch()){
+            $data = array('subscriber_email' => $item['email']);
+            $this->getWriter()->update(
+                $this->_newsletterTable,
+                $data,
+                'subscriber_id=' . $item['subscriber_id']
+            );
+            $count++;
+            $this->console("\033[8D");
+            $percent = round( ($count / $total) * 100, 2) . "%";
+            $this->console(str_pad($percent, 8, ' '));
+            $this->getHelper()->log("Updated newsletter record " . $item['subscriber_id'] . "($percent)");
+        }
+    }
+
     protected function updateSyncFromCustomer(){
-        $items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
-        $items->getSelect()->where('customer_entity_id > 0');
-        foreach($items as $item){
-            $customer = Mage::getModel('customer/customer')->load($item->getCustomerEntityId());
-            $item->setFirstName($customer->getFirstName());
-            $item->setLastName($customer->getLastName());
-            $item->setEmail($customer->getEmail());
-            $item->setHarmonySyncDirty(1);
-            $item->setEmarsysSyncDirty(1);
-            $item->save();
-            $this->getHelper()->log("Updated sync record " . $item->getId());
+        $query = Mage::getModel("customer/customer")->getCollection()
+            ->addNameToSelect()
+            ->addAttributeToSelect('email')
+            ->addAttributeToSelect('firstname')
+            ->addAttributeToSelect('lastname')
+            ->addAttributeToSelect('dob')
+            ->getSelect()->join(array('ae'=>$this->_aligentTable), 'e.entity_id=customer_entity_id',array('sync_id'=>'id', 'ae_email'=>'email'))
+        ->joinLeft(array('ns'=>$this->_newsletterTable), 'newsletter_subscriber_id=ns.subscriber_id', array('subscriber_email'=>'subscriber_email'))
+        ->where('first_name <> at_firstname.value or last_name <> at_lastname.value or e.email <> ae.email');
+
+        //$items = $items->joinTable($this->_aligentTable,'entity_id=customer_entity_id',array('id'=>'sync_id'));
+                //$items = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getCollection();
+
+        $items = $this->getReader()->query($query);
+        $total = $this->getReader()->query($query->reset('columns')->columns(['count(*)']))->fetchColumn();
+
+        $count = 0;
+        $this->console("Total of $total\n");
+        $this->console("  0.00%");
+        while($item = $items->fetch()){
+            $data = ['first_name' => $item['firstname'],
+                'last_name' => $item['lastname'],
+                'email' => $item['email'],
+                'harmony_sync_dirty'=>1,
+                'emarsys_sync_dirty'=>1];
+            if( strtolower($item['email']) != strtolower($item['subscriber_email']) ){
+                $this->getHelper()->log("Reset subscriber for record " . $item['sync_id']);
+                $data['newsletter_subscriber_id'] = null;
+            }
+
+            $this->getWriter()->update($this->_aligentTable,
+                $data,
+                'id=' . $item['sync_id']);
+            $count++;
+            $this->console("\033[8D");
+            $percent = round( ($count / $total) * 100, 2) . "%";
+            $this->console(str_pad($percent, 8, ' '));
+            $this->getHelper()->log("Updated sync record " . $item['sync_id'] . "($percent)");
         }
     }
 
@@ -115,6 +166,16 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
         foreach($items as $item){
             $this->mergeSubscriberData($item->getData('mId'), $item->getData('minId'));
         }
+
+        $this->getHelper()->log("Get newsletter dupes by customer ID");
+        // Now email duplicates
+        $items = Mage::getModel('newsletter/subscriber')->getCollection();
+        $items->removeAllFieldsFromSelect();
+        $items->getSelect()->columns('max(subscriber_id) as mId, min(subscriber_id) as minId')->group(array('customer_id', 'store_id'))->having('count(subscriber_id) > 1')->where('customer_id > 0');
+        $this->getHelper()->log('Remove subscribers with SQL: ' . $items->getSelectSql());
+        foreach($items as $item){
+            $this->mergeSubscriberData($item->getData('mId'), $item->getData('minId'));
+        }
     }
 
     protected function moveNewslettersToStore(){
@@ -128,24 +189,6 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
 
         $table = $customer->getResource()->getEntityTable();
         $resource->getConnection('core_write')->update($table, ['store_id'=>$this->_store->getId()], 'store_id=' . Mage_Core_Model_App::ADMIN_STORE_ID);
-    }
-
-    protected function getResource(){
-        return Mage::getSingleton('core/resource');
-    }
-
-    protected function getWriter(){
-        if($this->_writer === null){
-            $this->_writer = $this->getResource()->getConnection('core_write');
-        }
-        return $this->_writer;
-    }
-
-    protected function getReader(){
-        if($this->_reader===null){
-            $this->_reader = $this->getResource()->getConnection('core_read');
-        }
-        return $this->_reader;
     }
 
     protected function loadSubscriberData($fromId){
@@ -230,6 +273,8 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
         parent::__construct();
         set_time_limit(0);
         $this->_store = $this->getArg('store');
+        $this->_dontUpdateCustomers = ($this->getArg('ignoreCustomerUpdate')===false) ? false : true;
+
         if($this->_store !== null){
             $this->_store = Mage::getModel('core/store')->load($this->_store);
             if( !$this->_store->getId() ){
@@ -238,6 +283,7 @@ class Aligent_Emarsys_Shell_Clean_Duplicates extends Mage_Shell_Abstract {
         }
         $this->_newsletterTable = Mage::getModel('newsletter/subscriber')->getResource()->getMainTable();
         $this->_aligentTable = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->getResource()->getMainTable();
+        $this->_customerTable = Mage::getModel('customer/customer')->getResource()->getEntityTable();
     }
 }
 

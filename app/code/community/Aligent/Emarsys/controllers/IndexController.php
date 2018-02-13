@@ -43,6 +43,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $email = $params['email'];
             $firstname = $params['firstname'];
             $lastname = $params['lastname'];
+            $country = '';
 
             $yy = isset($params['dobYY']) ? $params['dobYY'] : null;
             $mm = isset($params['dobMM']) ? $params['dobMM'] : null;
@@ -58,32 +59,25 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                     $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Email is already registered. Please use a different email.'), 'input'=>$params)));
                 }else{
                     /** @var $newsSub Mage_Newsletter_Model_Subscriber */
-                    $newsSub = Mage::getModel('newsletter/subscriber');
                     $oResponse->setBody(json_encode(array('failure'=>true, 'input2'=>$params)));
 
-                    Mage::register('emarsys_newsletter_ignore', true);
+                    Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
+                    $newsSub = Mage::getModel('newsletter/subscriber')->setStore(Mage::app()->getStore());
                     $newsSub->subscribe($email);
-                    Mage::unregister('emarsys_newsletter_ignore');
+                    Mage::helper('aligent_emarsys')->endEmarsysNewsletterIgnore();
+
                     if(Mage::helper('aligent_emarsys')->isEnabled()) {
                         /** @var $emHelper Aligent_Emarsys_Helper_Emarsys */
                         $emHelper = Mage::helper('aligent_emarsys/emarsys');
-                        $remoteSync = Mage::helper('aligent_emarsys')->ensureNewsletterSyncRecord(
-                            $newsSub->getId(),
-                            false,
-                            true,
-                            $firstname,
-                            $lastname,
-                            $gender,
-                            $dob
-                        );
-
-                        $sub = $emHelper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $email, $dob, $gender);
+                        $remoteSync = Mage::helper('aligent_emarsys')->ensureNewsletterSyncRecord( $newsSub->getId(), false, true );
+                        // Attempt to send the data to Emarsys
+                        $sub = $emHelper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $email, $dob, $gender, $country);
                         if($sub && $sub->getData()){
                             $remoteSync->setEmarsysId($sub->getData()['id']);
                             $remoteSync->save();
-
                             $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub)));
                         }else{
+                            Mage::helper('aligent_emarsys')->log("Error Response: " . $sub->getReplyText());
                             $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Unexpected failure'))));
                         }
                     } else{
@@ -95,7 +89,6 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                 $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Invalid email address'), 'input'=>$params)));
             }
         }
-
         $oResponse->setHeader('Content-type', 'application/json');
     }
 
@@ -103,18 +96,19 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
     public function emarsyscallbackAction(){
         $raw= $this->getRequest()->getRawBody();
         $result = json_decode($raw);
-        if($result){
+
+        if($result) {
             $emClient = $this->emarsysHelper()->getClient();
             $results = $emClient->getExportFile($result->id);
             // Disable the observer in our module so we don't end up in a nice little loop.
-            Mage::register('emarsys_newsletter_ignore', true);
+            Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
             if($results->getReplyCode()==0){
                 $rows = $results->getData();
                 foreach($rows as $row){
                     $this->syncEmarsysRow( $emClient->parseRawRow($row) );
                 }
             }
-            Mage::unregister('emarsys_newsletter_ignore');
+            Mage::helper('aligent_emarsys')->endEmarsysNewsletterIgnore();
         }
     }
 
@@ -122,19 +116,51 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
      * @param $row Aligent_Emarsys_Model_EmarsysRecord
      */
     public function syncEmarsysRow($row){
+        $stores = Mage::app()->getStores();
+
         /** @var $helper Aligent_Emarsys_Helper_Data  */
         $helper = Mage::helper('aligent_emarsys');
 
-        $subscriber = $helper->getEmailSubscriber( $row->getEmail() );
-        if(!$subscriber->getSubscriberId()){
-            $subscriber = Mage::getModel('newsletter/subscriber');
-            $subscriber->setStoreId(Mage::app()->getStore()->getId());
-            $subscriber->setSubscriberEmail($row->getEmail());
-        }
-        $subscriber->setSubscriberStatus( $row->getSubscriptionStatus() );
-        $subscriber->save();
+        $syncRecord = $helper->ensureEmailSyncRecord(
+            $row->getEmail(),
+            $row->getFirstName(),
+            $row->getLastName(),
+            $row->getGender(),
+            $row->getDOB(),
+            $row->getCountry()
+        );
 
-        $syncRecord = $helper->ensureNewsletterSyncRecord($subscriber->getId());
+        foreach($stores as $store){
+            $subscriber = $helper->getEmailSubscriber( $row->getEmail(), $store->getId() );
+            if(!$subscriber->getSubscriberId()){
+                $subscriber = $helper->createEmailSubscription($store->getId(), $row->getEmail());
+                $syncRecord->linkSubscriber($subscriber->getId());
+            }
+            $subscriber->setSubscriberStatus( $row->getSubscriptionStatus() );
+            $subscriber->save();
+
+            $customer = $subscriber->getCustomer();
+            if($customer){
+                if($helper->shouldSyncEmarsysFirstnameField()) {
+                    $customer->setFirstname($row->getFirstName());
+                }
+
+                if($helper->shouldSyncEmarsysLastnameField()){
+                    $customer->setLastname($row->getLastName());
+                }
+
+                if($helper->shouldSyncEmarsysGenderField()){
+                    $customer->setGender($row->getGender());
+                }
+
+                if($helper->shouldSyncEmarsysDobField()){
+                    $customer->setDob($row->getDOB());
+                }
+                $customer->save();
+            }
+
+        }
+
         if($helper->shouldSyncEmarsysHarmonyIdField()){
             $syncRecord->setHarmonyId( $row->getHarmonyId() );
         }
@@ -154,35 +180,14 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
         if($helper->shouldSyncEmarsysGenderField()){
             $syncRecord->setGender( $row->getGender() );
         }
+
+        if($helper->shouldSyncEmarsysCountryField()){
+            $syncRecord->setCountry( $row->getCountry() );
+        }
         $syncRecord->setEmarsysId( $row->getId() );
         $syncRecord->setHarmonySyncDirty(true);
         $syncRecord->setEmarsysSyncDirty(false);
         $syncRecord->save();
-
-        if(!$subscriber->getCustomerId()){
-            $customer = Mage::getModel('customer/customer')->loadByEmail($row->getEmail());
-        }else{
-            $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
-        }
-        if(!$customer->getId()) return;
-        $subscriber->setCustomerId($customer->getId());
-
-        if($helper->shouldSyncEmarsysFirstnameField()) {
-            $customer->setFirstname($row->getFirstName());
-        }
-
-        if($helper->shouldSyncEmarsysLastnameField()){
-            $customer->setLastname($row->getLastName());
-        }
-
-        if($helper->shouldSyncEmarsysGenderField()){
-            $customer->setGender($row->getGender());
-        }
-
-        if($helper->shouldSyncEmarsysDobField()){
-            $customer->setDob($row->getDOB());
-        }
-        $customer->save();
     }
 
     protected function isSubscribed($email){

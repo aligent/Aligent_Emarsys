@@ -9,28 +9,49 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     /** @var $_helper Aligent_Emarsys_Helper_Data  */
     protected $_helper = null;
     protected $_genders = null;
+    protected $_countries = null;
     protected $_gendersByIndex = null;
     protected $_httpClient = null;
     /** @var $_client Aligent_Emarsys_Model_EmarsysClient */
     protected $_client = null;
 
+    /**
+     * @return int
+     */
     public function getEmailField(){
         return $this->getClient()->getFieldId('email');
     }
 
+    /**
+     * @return int
+     */
     public function getFirstnameField()
     {
         return $this->getClient()->getFieldId('firstName');
     }
 
+    /**
+     * @return int
+     */
     public function getLastnameField()
     {
         return $this->getClient()->getFieldId('lastName');
     }
 
+    /**
+     * @return int
+     */
     public function getGenderField()
     {
         return $this->getClient()->getFieldId('gender');
+    }
+
+    /**
+     * @return int
+     */
+    public function getCountryField()
+    {
+        return $this->getClient()->getFieldId('country');
     }
 
     public function getDobField(){
@@ -43,8 +64,13 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->getHelper()->getHarmonyIdField($store);
     }
 
-    public function getSubscriptionField($store = null){
-        $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField($store);
+    /**
+     * Get the field used for subscription data in the scope of the given store ID;
+     * @param null $storeId
+     * @return null|string
+     */
+    public function getSubscriptionField($storeId = null){
+        $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField($storeId);
         if(!is_numeric($subscribedField) || $subscribedField == -1) $subscribedField = null;
         return $subscribedField;
     }
@@ -80,17 +106,35 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
      */
     public function getGenderMap($labelAsIndex=true){
         if($this->_genders === null){
-            $result = $this->getClient()->getFieldChoices('gender');
-
+            $this->_genders = $this->_getFieldMap('gender');
             $this->_gendersByIndex = array();
-            $this->_genders = array();
-            foreach($result->getData() as $item){
-                $this->_genders[strtolower($item['choice'])] = $item['id'];
-                $this->_gendersByIndex[$item['id']] = $item['choice'];
+            foreach($this->_genders as $key => $item){
+                $this->_gendersByIndex[$item] = $key;
             }
         }
 
         return ($labelAsIndex) ? $this->_genders : $this->_gendersByIndex;
+    }
+
+    protected function _getCountryMap()
+    {
+        if ($this->_countries === null) {
+            $this->_countries = $this->_getFieldMap('country');
+        }
+
+        return $this->_countries;
+    }
+
+    protected function _getFieldMap($fieldName)
+    {
+        $result = $this->getClient()->getFieldChoices($fieldName);
+        $collection = array();
+
+        foreach ($result->getData() as $item) {
+            $collection[strtolower($item['choice'])] = $item['id'];
+        }
+
+        return $collection;
     }
 
     protected function getCustomerGender($customer){
@@ -113,6 +157,21 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     }
 
     /**
+     * @param $country string
+     * @return string|null
+     */
+    protected function _mapCountryValue($country)
+    {
+        if (empty($country)) {
+            return null;
+        }
+
+        $countryMap = $this->_getCountryMap();
+        $country = strtolower($country);
+        return isset($countryMap[$country]) ? $countryMap[$country] : null;
+    }
+
+    /**
      * Get the generic helper object for our module
      * @return Aligent_Emarsys_Helper_Data|Mage_Core_Helper_Abstract
      */
@@ -121,7 +180,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->_helper;
     }
 
-    protected function abstractDataFill($customerData, $syncData, $isSubscribed, $gender){
+    protected function abstractDataFill($customerData, $syncData, $isSubscribed, $gender, $country){
         $subField = $this->getSubscriptionField();
         $data = array(
             $this->getEmailField() => $customerData->getEmail(),
@@ -130,6 +189,10 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
             $this->getGenderField() => $this->mapGenderValue($gender),
             $this->getDobField() => $customerData->getDob()
         );
+
+        if($country){
+            $data[$this->getCountryField()] = $this->_mapCountryValue($country);
+        }
 
         if($subField) {
             $data[$subField] = $this->mapSubscriptionValue($isSubscribed, $syncData->getId());
@@ -147,9 +210,11 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
 
     public function getSubscriberData($subscriber){
         $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
-        if(!$syncData || !$syncData->getId()) return null;
+        if(!$syncData || !$syncData->getId()){
+            $syncData = $this->getHelper()->ensureNewsletterSyncRecord($subscriber->getId());
+        }
 
-        $data = $this->abstractDataFill($syncData, $syncData, $subscriber->isSubscribed(), $syncData->getGender());
+        $data = $this->abstractDataFill($syncData, $syncData, $subscriber->isSubscribed(), $syncData->getGender(), $syncData->getCountry());
 
         return $data;
     }
@@ -160,7 +225,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         $isSubscribed = $this->getHelper()->isCustomerSubscribed($customer);
         $genderValue = $this->getCustomerGender($customer);
 
-        $data = $this->abstractDataFill($customer, $syncData, $isSubscribed, $genderValue);
+        $data = $this->abstractDataFill($customer, $syncData, $isSubscribed, $genderValue, $syncData->getCountry());
 
         return $data;
     }
@@ -182,12 +247,14 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
      * @param null $email
      * @param null $dob
      * @param null $gender
+     * @param null $country
      * @return \Snowcap\Emarsys\Response
      */
-    protected function updateSubscriber($localSyncId, $isSubscribed = true, $email = null, $firstname = null, $lastname = null, $dob = null, $gender = null){
-        $data = array(
-
-        );
+    protected function updateSubscriber(
+        $localSyncId, $isSubscribed = true, $email = null, $firstname = null,
+        $lastname = null, $dob = null, $gender = null, $country = null
+    ) {
+        $data = array();
 
         $subField = $this->getSubscriptionField();
         if($subField) $data[$subField] = $this->mapSubscriptionValue($isSubscribed, $localSyncId);
@@ -196,6 +263,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         if($email) $data[$this->getEmailField()] = $email;
         if($dob) $data[$this->getDobField()] = $dob;
         if($gender) $data[$this->getGenderField()] = $this->mapGenderValue($gender);
+        if($country) $data[$this->getCountryField()] = $this->_mapCountryValue($country);
 
         $harmonyField = $this->getHarmonyIdField();
         if($harmonyField){
@@ -212,11 +280,12 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $this->updateSubscriber($localId, false, $email);
     }
 
-    public function addSubscriber($localId, $firstname, $lastname, $email, $dob, $gender = null){
+    public function addSubscriber($localId, $firstname, $lastname, $email, $dob, $gender = null, $country = null){
         try{
-            $result = $this->updateSubscriber($localId, true, $email, $firstname, $lastname, $dob, $gender);
+            $result = $this->updateSubscriber($localId, true, $email, $firstname, $lastname, $dob, $gender, $country);
             return $result;
         }catch(Exception $e){
+            $this->getHelper()->log("Subscription error: " . $e->getMessage());
             return null;
         }
     }

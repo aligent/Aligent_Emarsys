@@ -140,7 +140,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
     // Shell script point of entry
     public function run() {
 
-        Mage::register('emarsys_newsletter_ignore', true);
+        $this->getHelper()->startEmarsysNewsletterIgnore();
         echo "Import customers into: " . $this->_storeObject->getName() . "\n";
 
         $stream = fopen($this->_file, "r");
@@ -170,7 +170,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
         fclose($stream);
 
         echo "\nImported $imported, skipped $errors\n";
-        Mage::unregister('emarsys_newsletter_ignore');
+        $this->getHelper()->endEmarsysNewsletterIgnore();
     }
 
     protected function validateArguments(){

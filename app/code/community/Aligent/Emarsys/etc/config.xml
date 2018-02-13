@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Aligent_Emarsys>
-            <version>0.0.7</version>
+            <version>0.0.9</version>
         </Aligent_Emarsys>
     </modules>
     <default>
@@ -54,7 +54,7 @@
                 </price>
                 <msrp>
                     <xml_tag>g:msrp</xml_tag>
-                    <value>0</value>
+                    <attribute>price</attribute>
                 </msrp>
                 <availability>
                     <header>available</header>
@@ -177,6 +177,9 @@
                     <remoteSystemSyncFlags>
                         <table>aligent_emarsys_remote_system_sync_flags</table>
                     </remoteSystemSyncFlags>
+                    <aeNewsletters>
+                        <table>ae_newsletters</table>
+                    </aeNewsletters>
                 </entities>
             </aligent_emarsys_resource>
         </models>

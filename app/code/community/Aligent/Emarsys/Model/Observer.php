@@ -175,7 +175,9 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
             $oldSubscriber->setCode($subscriber->getCode());
             $oldSubscriber->save();
 
-            $observer->getControllerAction()->setFlag('',Mage_Core_Controller_Varien_Action::FLAG_NO_DISPATCH,true);
+            if($observer->getControllerAction()) {
+                $observer->getControllerAction()->setFlag('', Mage_Core_Controller_Varien_Action::FLAG_NO_DISPATCH, true);
+            }
             return true;
         }else{
             return false;
@@ -191,7 +193,6 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
     public function handleSubscriber(Varien_Event_Observer $observer)
     {
         if($this->preventSubscriberInserts($observer)) return;
-
         if(Mage::registry('emarsys_newsletter_ignore')){
             return $this;
         }
@@ -199,19 +200,35 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         /** @var $subscriber Mage_Newsletter_Model_Subscriber */
         $subscriber = $observer->getEvent()->getSubscriber();
         if ($this->getHelper()->isSubscriptionEnabled($subscriber->getStoreId())) {
-            // get customer for name details.
-            $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
+            if($subscriber->getCustomerId()){
+                // get customer for name details.
+                $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
+            }else{
+                $this->getHelper()->log("Find customer by email " . $subscriber->getSubscriberEmail());
+                $customer = Mage::getModel('customer/customer')->setStore($subscriber->getStoreId())->loadByEmail($subscriber->getSubscriberEmail());
+                if($customer->getId()){
+                    $subscriber->setCustomerId($customer->getId());
+                }
+            }
+
+            /** @var Aligent_Emarsys_Helper_Emarsys $emarsysHelper */
+            $emarsysHelper = Mage::helper('aligent_emarsys/emarsys');
+            $client = $emarsysHelper->getClient();
 
             $firstname = '';
             $lastname = '';
             $dob = '';
             $gender = '';
+            $country = '';
 
             if ($customer->getId()) {
                 $firstname = $customer->getFirstname();
                 $lastname = $customer->getLastname();
                 $dob = $customer->getDob();
                 $gender = $customer->getGender();
+                if($customer->getDefaultShippingAddress()){
+                    $country = $customer->getDefaultShippingAddress()->getCountryModel()->getName();
+                }
             } else {
                 // check for subscriber data.
                 if ($subscriber->getSubscriberFirstname() && $subscriber->getSubscriberLastname()) {
@@ -229,12 +246,13 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
                 $firstname,
                 $lastname,
                 $gender,
-                $dob
+                $dob,
+                $country
             );
 
             if($remoteSync) {
                 if ($subscriber->isSubscribed()) {
-                    $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender);
+                    $result = $helper->addSubscriber($remoteSync->getId(), $firstname, $lastname, $subscriber->getSubscriberEmail(), $dob, $gender, $country);
                 } else {
                     $result = $helper->removeSubscriber($remoteSync->getId(), $subscriber->getSubscriberEmail());
                 }
@@ -250,17 +268,16 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
 
     public function customerModelChanged(Varien_Event_Observer $observer)
     {
+        /** @var Mage_Customer_Model_Customer $customer */
         $customer = $observer->getEvent()->getCustomer();
 
         if(Mage::registry('emarsys_customer_save_observer_executed')){
             return $this; //this method has already been executed once in this request (see comment below)
         }
 
-        $harmonyIgnore = $customer->getHarmonyIgnoreFlag();
-        $emarsysIgnore = $customer->getEmarsysIgnoreFlag();
-        if($harmonyIgnore && $emarsysIgnore) return $this;
+        /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $record */
+        $record = Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId(), true, true);
 
-        $record = Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId(), !$emarsysIgnore, !$harmonyIgnore);
         $record->setFirstName($customer->getFirstName());
         $record->setLastName($customer->getLastName());
         $record->setEmail($customer->getEmail());
