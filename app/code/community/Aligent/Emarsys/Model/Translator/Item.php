@@ -12,6 +12,7 @@ class Aligent_Emarsys_Model_Translator_Item
      */
     public function translate($aRow, $vField, $oStore)
     {
-        return $oStore->getCode() . '_' . $aRow['sku'];
+        $aRow['item'] = $oStore->getCode() . "_" . $aRow['sku'];
+        return $aRow['item'];
     }
 }

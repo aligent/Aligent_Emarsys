@@ -18,10 +18,10 @@
                 <id>
                     <header>item</header>
                     <xml_tag>g:id</xml_tag>
-                    <attribute>sku</attribute>
-                    <!-- if we don't override the value and special tags with blank, it will grab them from the Aligent Feeds config.xml -->
-                    <value></value>
-                    <special></special>
+                    <singleton>
+                        <class>aligent_emarsys/translator_item</class>
+                        <method>translate</method>
+                    </singleton>
                 </id>
                 <url>
                     <header>link</header>
@@ -49,12 +49,20 @@
                     </singleton>
                 </category>
                 <price>
+                    <header>price</header>
                     <xml_tag>g:price</xml_tag>
-                    <attribute>price</attribute>
+                    <singleton>
+                        <class>aligent_emarsys/translator_displayprice</class>
+                        <method>translateCurrentPrice</method>
+                    </singleton>
                 </price>
                 <msrp>
+                    <header>msrp</header>
                     <xml_tag>g:msrp</xml_tag>
-                    <attribute>price</attribute>
+                    <singleton>
+                        <class>aligent_emarsys/translator_displayprice</class>
+                        <method>translate</method>
+                    </singleton>
                 </msrp>
                 <availability>
                     <header>available</header>
@@ -79,7 +87,7 @@
                     <xml_tag>g:display_price</xml_tag>
                     <singleton>
                         <class>aligent_emarsys/translator_displayprice</class>
-                        <method>translate</method>
+                        <method>translateDisplay</method>
                         <field>price</field>
                     </singleton>
                 </display_price>

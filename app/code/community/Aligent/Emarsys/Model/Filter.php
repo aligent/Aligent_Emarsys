@@ -17,8 +17,7 @@ class Aligent_Emarsys_Model_Filter {
         $websiteIds = array($oStore->getWebsiteId());
         $storeId = $oStore->getStoreId();
 
-        $attrs = array('url_key','url_path','name','image_label','small_image','small_image_label','category_id','price','availability','brand_value');
-
+        $attrs = array('url_key','url_path','name','image_label','small_image','small_image_label','category_id','price','availability','brand_value','msrp','special_price');
 
         $oCollection = Mage::getModel('catalog/product')->getCollection();
 
