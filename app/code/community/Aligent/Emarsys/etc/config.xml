@@ -49,7 +49,6 @@
                     </singleton>
                 </category>
                 <price>
-                    <header>price</header>
                     <xml_tag>g:price</xml_tag>
                     <singleton>
                         <class>aligent_emarsys/translator_displayprice</class>
@@ -59,10 +58,7 @@
                 <msrp>
                     <header>msrp</header>
                     <xml_tag>g:msrp</xml_tag>
-                    <singleton>
-                        <class>aligent_emarsys/translator_displayprice</class>
-                        <method>translate</method>
-                    </singleton>
+                    <attribute>price</attribute>
                 </msrp>
                 <availability>
                     <header>available</header>
