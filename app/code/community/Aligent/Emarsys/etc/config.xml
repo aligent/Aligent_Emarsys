@@ -56,7 +56,6 @@
                     </singleton>
                 </price>
                 <msrp>
-                    <header>msrp</header>
                     <xml_tag>g:msrp</xml_tag>
                     <attribute>price</attribute>
                 </msrp>
