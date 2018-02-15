@@ -12,6 +12,10 @@ class Aligent_Emarsys_Model_Translator_Item
      */
     public function translate($aRow, $vField, $oStore)
     {
-        return $oStore->getCode() . '_' . $aRow['sku'];
+        if(Mage::helper('aligent_emarsys')->shouldUseStoreSku()){
+            return $oStore->getCode() . '_' . $aRow['sku'];
+        }else{
+            return $aRow['sku'];
+        }
     }
 }
