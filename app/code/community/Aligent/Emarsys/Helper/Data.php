@@ -774,11 +774,17 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $tempItem = array();
 
             $tempItem['id'] = $itemToUse->getSku();
+            if(Mage::helper('aligent_emarsys')->shouldUseStoreSku() ){
+                $tempItem['id'] = Mage::app()->getStore()->getCode() . '_' . $tempItem['id'];
+            }
 
             if ($itemToUse->getProductType() == 'configurable') {
                 $product = $itemToUse->getProduct();
                 // getSku() will get the child, must grab the data specifically.
                 $tempItem['parentid'] = $product->getData('sku');
+            }
+            if(Mage::helper('aligent_emarsys')->shouldUseStoreSku() ){
+                $tempItem['parentid'] = Mage::app()->getStore()->getCode() . '_' . $tempItem['parentid'];
             }
 
             $qty = $itemToUse->getQty();
@@ -797,6 +803,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         $dataWrapper = new Varien_Object($cartArray);
         Mage::dispatchEvent('aligent_emarsys_webextend_format_cart', array('cart_array'=>$dataWrapper));
         $cartArray = $dataWrapper->getData();
+
         return $cartArray;
     }
 
