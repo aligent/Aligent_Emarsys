@@ -782,9 +782,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
                 $product = $itemToUse->getProduct();
                 // getSku() will get the child, must grab the data specifically.
                 $tempItem['parentid'] = $product->getData('sku');
-            }
-            if(Mage::helper('aligent_emarsys')->shouldUseStoreSku() ){
-                $tempItem['parentid'] = Mage::app()->getStore()->getCode() . '_' . $tempItem['parentid'];
+
+                if(Mage::helper('aligent_emarsys')->shouldUseStoreSku() ){
+                    $tempItem['parentid'] = Mage::app()->getStore()->getCode() . '_' . $tempItem['parentid'];
+                }
             }
 
             $qty = $itemToUse->getQty();
