@@ -794,6 +794,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $cartArray[$tempItem['id']] = $tempItem;
         }
 
+        $dataWrapper = new Varien_Object($cartArray);
+        Mage::dispatchEvent('aligent_emarsys_webextend_format_cart', array('cart_array'=>$dataWrapper));
+        $cartArray = $dataWrapper->getData();
         return $cartArray;
     }
 
