@@ -17,21 +17,30 @@ class Aligent_Emarsys_Model_Filter {
         $websiteIds = array($oStore->getWebsiteId());
         $storeId = $oStore->getStoreId();
 
-        $attrs = array('url_key','url_path','name','image_label','small_image','small_image_label','category_id','price','availability','brand_value','msrp','special_price');
+        $attrs = array('url_path','name','image_label','small_image','small_image_label','category_id','price','availability','brand_value','msrp','special_price');
 
-        $oCollection = Mage::getModel('catalog/product')->getCollection();
+        $oProductModel = Mage::getModel('catalog/product');
+        $oCollection = $oProductModel->getCollection();
+
+        $oSelect = $oCollection->getSelect();
+        $attrUrlKey = Mage::getSingleton('eav/config')->getCollectionAttribute($oProductModel->getResource()->getType(), 'url_key');
+        $vUrlKey = $attrUrlKey->getBackendTable();
+
+        $oSelect->joinLeft( array( 'uk' => $vUrlKey), 'e.entity_id=uk.entity_id and uk.store_id=' . $storeId . ' and uk.attribute_id=' . $attrUrlKey->getId(), array('url_key'=> 'uk.value'));
+        $oSelect->joinLeft( array( 'ukd' => $vUrlKey), 'e.entity_id=ukd.entity_id and ukd.store_id=0 and ukd.attribute_id=' . $attrUrlKey->getId(), array('url_key_dft'=> 'ukd.value'));
 
         foreach($attrs as $attr){
             $oCollection->addAttributeToSelect($attr);
             $oCollection->addAttributeToSort($attr);
         }
+
         $oCollection->addStoreFilter($storeId);
         $oCollection->addWebsiteFilter($websiteIds);
 
+        $oSelect = $oCollection->getSelect();
         $vStockStatus = Mage::getModel('core/resource_setup', 'core_setup')->getTable('cataloginventory/stock_status');
         $vSuperLink = Mage::getModel('core/resource_setup', 'core_setup')->getTable('catalog/product_super_link');
 
-        $oSelect = $oCollection->getSelect();
         $oSelect->joinLeft( array( 'sl' => $vSuperLink ), '`e`.`entity_id`=`sl`.`product_id`');
         $oSelect->joinLeft( array( 'pss' => $vStockStatus ),
             '`sl`.parent_id=`pss`.`product_id` AND `pss`.website_id = ' . $oStore->getWebsiteId(),
@@ -54,6 +63,7 @@ class Aligent_Emarsys_Model_Filter {
         $oSelect->where('`e`.`type_id` <> ? OR (`e`.`type_id` = ? AND `sl`.`parent_id` IS NULL)', 'simple');
 
         $vSql = (string) $oSelect;
+
         Mage::getSingleton('aligent_feeds/log')->log("Catalog Select is: $vSql");
     }
 }
