@@ -275,15 +275,16 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         if(Mage::registry('emarsys_customer_save_observer_executed')){
             return $this; //this method has already been executed once in this request (see comment below)
         }
+        Mage::register('emarsys_customer_save_observer_executed', true);
 
         /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $record */
         $record = Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId(), true, true);
 
         $record->setFirstName($customer->getFirstName());
         $record->setLastName($customer->getLastName());
-        $record->setEmail($customer->getEmail());
         $record->save();
-        Mage::register('emarsys_customer_save_observer_executed', true);
+
+        $record->setCustomerEmail($customer);
     }
 }
 

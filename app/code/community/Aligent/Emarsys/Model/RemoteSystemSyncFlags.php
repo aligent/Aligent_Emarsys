@@ -32,8 +32,19 @@ class Aligent_Emarsys_Model_RemoteSystemSyncFlags extends Mage_Core_Model_Abstra
             $aeLink->save();
             return $aeLink;
         }
-
     }
+
+    /**
+     * Removes the link between the given subscriber and this sync record, if it exists.
+     * @param $id
+     */
+    public function unlinkSubscriber($id){
+        $aeLink = Mage::getModel('aligent_emarsys/aeNewsletters')->load($id, 'subscriber_id');
+        if($aeLink && $aeLink->getAeId()==$this->getId()){
+            $aeLink->delete();
+        }
+    }
+
 
     /**
      * Load a record by email address
@@ -59,9 +70,8 @@ class Aligent_Emarsys_Model_RemoteSystemSyncFlags extends Mage_Core_Model_Abstra
     }
 
     public function getSubscriber($storeId){
-        $linkTable = Mage::getModel('aligent_emarsys/aeNewsletters')->getResource()->getMainTable();
         $query = Mage::getModel('newsletter/subscriber')->setStoreId($storeId)->getCollection()
-            ->join(array('ae'=>$linkTable), 'ae.subscriber_id=main_table.subscriber_id AND ae.ae_id=' . $this->getId());
+            ->join(array('ae'=>'aligent_emarsys/aeNewsletters'), 'ae.subscriber_id=main_table.subscriber_id AND ae.ae_id=' . $this->getId());
         $item = $query->getFirstItem();
 
         return ($item && $item->getSubscriberId()) ? $item : null;
@@ -74,6 +84,40 @@ class Aligent_Emarsys_Model_RemoteSystemSyncFlags extends Mage_Core_Model_Abstra
         $oldEmail = $this->getData('email');
         if($oldEmail != $newEmail){
             $this->setData('email', $newEmail);
+        }
+    }
+
+    /**
+     * Gets all subscribers linked to this record
+     * @return Mage_Core_Model_Resource_Db_Collection_Abstract
+     */
+    public function getSubscribers(){
+        $query = Mage::getModel('newsletter/subscriber')->getCollection();
+        $query->join(array('ae'=>'aligent_emarsys/aeNewsletters'), 'ae.subscriber_id=main_table.subscriber_id AND ae.ae_id=' . $this->getId());
+        return $query;
+    }
+
+    /**
+     * @param Mage_Customer_Model_Customer $customer
+     */
+    public function setCustomerEmail($customer){
+        if($customer->getOrigData('email') == $customer->getData('email') || $customer->getOrigData('email') == null) return;
+
+        $existingSubs = $this->getSubscribers();
+        if($existingSubs->count() > 1){
+            $newRecord = Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId());
+            foreach($existingSubs as $sub){
+                if($sub->getCustomerId() == $customer->getId()){
+                    $this->unlinkSubscriber($sub->getId());
+                    $sub->setSubscriberEmail($customer->getEmail());
+                    $sub->save();
+                    $newRecord->linkSubscriber($sub->getId());
+                }
+            }
+        }else{
+            $sub = $existingSubs->getFirstItem();
+            $sub->setSubscriberEmail($customer->getEmail());
+            $sub->save();
         }
     }
 }
