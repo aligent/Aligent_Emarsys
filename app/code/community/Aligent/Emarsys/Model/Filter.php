@@ -76,6 +76,8 @@ class Aligent_Emarsys_Model_Filter {
             'id' => $objAttr->getId()
         );
         self::$_attributes[$attrName] = $data;
+
+        $objAttr = null;
         return $data;
     }
 
