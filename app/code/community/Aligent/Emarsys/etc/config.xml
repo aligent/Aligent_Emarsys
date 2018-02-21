@@ -31,15 +31,23 @@
                         <method>translate</method>
                     </singleton>
                 </url>
-                <title>
+                <name>
+                    <header>title</header>
+                    <xml_tag>title</xml_tag>
                     <attribute>name</attribute>
-                </title>
-                <image>
+                    <singleton>
+                        <class>aligent_emarsys/translator_default</class>
+                        <method>translate</method>
+                    </singleton>
+                </name>
+                <thumbnail>
                     <header>image</header>
-                    <xml_tag>g:image</xml_tag>
-                    <special>product_media_base_url</special>
-                    <attribute>thumbnail</attribute>
-                </image>
+                    <xml_tag>image</xml_tag>
+                    <singleton>
+                        <class>aligent_emarsys/translator_image</class>
+                        <method>translate</method>
+                    </singleton>
+                </thumbnail>
                 <category>
                     <header>category</header>
                     <xml_tag>g:category</xml_tag>
@@ -57,7 +65,10 @@
                 </price>
                 <msrp>
                     <xml_tag>g:msrp</xml_tag>
-                    <attribute>price</attribute>
+                    <singleton>
+                        <class>aligent_emarsys/translator_default</class>
+                        <method>translate</method>
+                    </singleton>
                 </msrp>
                 <availability>
                     <header>available</header>
@@ -67,10 +78,13 @@
                         <method>translate</method>
                     </singleton>
                 </availability>
-                <brand>
+                <brand_value>
                     <xml_tag>g:brand</xml_tag>
-                    <attribute>brand_value</attribute>
-                </brand>
+                    <singleton>
+                        <class>aligent_emarsys/translator_default</class>
+                        <method>translate</method>
+                    </singleton>
+                </brand_value>
                 <zoom_image>
                     <header>zoom_image</header>
                     <xml_tag>g:zoom_image</xml_tag>

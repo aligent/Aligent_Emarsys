@@ -17,23 +17,20 @@ class Aligent_Emarsys_Model_Filter {
         $websiteIds = array($oStore->getWebsiteId());
         $storeId = $oStore->getStoreId();
 
-        $attrs = array('url_path','name','image_label','small_image','small_image_label','category_id','price','availability','brand_value','msrp','special_price');
+        $attrs = array('url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','msrp','special_price');
 
         $oProductModel = Mage::getModel('catalog/product');
         $oCollection = $oProductModel->getCollection();
 
         $oSelect = $oCollection->getSelect();
-        $attrUrlKey = Mage::getSingleton('eav/config')->getCollectionAttribute($oProductModel->getResource()->getType(), 'url_key');
-        $vUrlKey = $attrUrlKey->getBackendTable();
-
-        $oSelect->joinLeft( array( 'uk' => $vUrlKey), 'e.entity_id=uk.entity_id and uk.store_id=' . $storeId . ' and uk.attribute_id=' . $attrUrlKey->getId(), array('url_key'=> 'uk.value'));
-        $oSelect->joinLeft( array( 'ukd' => $vUrlKey), 'e.entity_id=ukd.entity_id and ukd.store_id=0 and ukd.attribute_id=' . $attrUrlKey->getId(), array('url_key_dft'=> 'ukd.value'));
 
         foreach($attrs as $attr){
-            $oCollection->addAttributeToSelect($attr);
-            $oCollection->addAttributeToSort($attr);
+            $attrData = $this->getAttribute($attr);
+            $vTable = "tbl_$attr";
+            $vDftTable = "tblDft_$attr";
+            $this->addAttributeJoin($oSelect, $attr, $attrData['id'], $attrData['table'], $vTable, $storeId);
+            $this->addAttributeJoin($oSelect, $attr . '_dft', $attrData['id'], $attrData['table'], $vDftTable, 0);
         }
-
         $oCollection->addStoreFilter($storeId);
         $oCollection->addWebsiteFilter($websiteIds);
 
@@ -65,5 +62,25 @@ class Aligent_Emarsys_Model_Filter {
         $vSql = (string) $oSelect;
 
         Mage::getSingleton('aligent_feeds/log')->log("Catalog Select is: $vSql");
+    }
+
+    protected function getAttribute($attrName){
+        $oProductModel = Mage::getModel('catalog/product');
+        $objAttr = Mage::getSingleton('eav/config')->getCollectionAttribute($oProductModel->getResource()->getType(), $attrName);
+        $data = array(
+            'table' => $objAttr->getBackendTable(),
+            'id' => $objAttr->getId()
+        );
+        $objAttr = null;
+        $oProductModel = null;
+        return $data;
+    }
+
+    protected function addAttributeJoin(&$oSelect, $attrName, $attrId, $tableName, $tableAlias, $storeId){
+        $oSelect->joinLeft(
+            array( $tableAlias => $tableName),
+            "e.entity_id = $tableAlias.entity_id and $tableAlias.store_id = $storeId and $tableAlias.attribute_id=" . $attrId,
+            array($attrName=> "$tableAlias.value")
+        );
     }
 }
