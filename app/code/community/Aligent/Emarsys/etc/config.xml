@@ -37,6 +37,7 @@
                     <attribute>name</attribute>
                     <singleton>
                         <class>aligent_emarsys/translator_default</class>
+                        <field>title</field>
                         <method>translate</method>
                     </singleton>
                 </name>
@@ -52,7 +53,7 @@
                     <header>category</header>
                     <xml_tag>g:category</xml_tag>
                     <singleton>
-                        <class>aligent_feeds/translator_categories</class>
+                        <class>aligent_emarsys/translator_categories</class>
                         <method>translate</method>
                     </singleton>
                 </category>
@@ -68,6 +69,7 @@
                     <singleton>
                         <class>aligent_emarsys/translator_default</class>
                         <method>translate</method>
+                        <field>msrp</field>
                     </singleton>
                 </msrp>
                 <availability>
@@ -82,6 +84,7 @@
                     <xml_tag>g:brand</xml_tag>
                     <singleton>
                         <class>aligent_emarsys/translator_default</class>
+                        <field>brand</field>
                         <method>translate</method>
                     </singleton>
                 </brand_value>
