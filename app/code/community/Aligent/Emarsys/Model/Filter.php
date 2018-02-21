@@ -69,9 +69,8 @@ class Aligent_Emarsys_Model_Filter {
 
     protected function getAttribute($attrName){
         if(isset(self::$_attributes[$attrName])) return self::$_attributes[$attrName];
-        $oProductModel = $this->getProductModel();
 
-        $objAttr = Mage::getSingleton('eav/config')->getCollectionAttribute($oProductModel->getResource()->getType(), $attrName);
+        $objAttr = Mage::getSingleton('eav/config')->getCollectionAttribute($this->getProductModel()->getResource()->getType(), $attrName);
         $data = array(
             'table' => $objAttr->getBackendTable(),
             'id' => $objAttr->getId()
