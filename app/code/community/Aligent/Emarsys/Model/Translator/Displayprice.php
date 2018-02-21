@@ -4,15 +4,17 @@ class Aligent_Emarsys_Model_Translator_Displayprice
 {
 
     public function translateCurrentPrice($aRow, $vField, $oStore){
-        $price = $aRow['special_price']!==null ? $aRow['special_price'] : $aRow['price'];
-        return $price;
+        $specialPrice = $aRow['special_price'] !== null ? $aRow['special_price'] : $aRow['special_price_dft'];
+        $price = $aRow['price'] !== null ? $aRow['price'] : $aRow['price_dft'];
+
+        return $specialPrice !== null ? $specialPrice : $price;
     }
 
-    public function translateDisplay($aRow, $vField, $oStore)
-    {
-        $price = $aRow['special_price']!==null ? $aRow['special_price'] : $aRow['price'];
-
-        return Mage::helper('core')->currencyByStore($price, $oStore, true, false);
+    public function translateDisplay($aRow, $vField, $oStore){
+        $specialPrice = $aRow['special_price'] !== null ? $aRow['special_price'] : $aRow['special_price_dft'];
+        $price = $aRow['price'] !== null ? $aRow['price'] : $aRow['price_dft'];
+        $displayPrice = $specialPrice !== null ? $specialPrice : $price;
+        return Mage::helper('core')->currencyByStore($displayPrice, $oStore, true, false);
     }
 
 }

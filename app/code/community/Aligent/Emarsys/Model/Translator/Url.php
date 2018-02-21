@@ -10,7 +10,8 @@ class Aligent_Emarsys_Model_Translator_Url{
     public function translate($aRow, $vField, $oStore) {
         $vUrl = $oStore->getBaseUrl();
 
-        $vUrl .= $aRow['url_key'];
+        $vUrl .= ($aRow['url_key'] !== null) ? $aRow['url_key'] : $aRow['url_key_dft'];
+
         // only add the UrlSuffix when it exists
         if (Mage::helper('catalog/product')->getProductUrlSuffix()) $vUrl .= '.'.Mage::helper('catalog/product')->getProductUrlSuffix();
 

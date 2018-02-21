@@ -17,21 +17,27 @@ class Aligent_Emarsys_Model_Filter {
         $websiteIds = array($oStore->getWebsiteId());
         $storeId = $oStore->getStoreId();
 
-        $attrs = array('url_key','url_path','name','image_label','small_image','small_image_label','category_id','price','availability','brand_value','msrp','special_price');
+        $attrs = array('url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','msrp','special_price');
 
-        $oCollection = Mage::getModel('catalog/product')->getCollection();
+        $oProductModel = Mage::getModel('catalog/product');
+        $oCollection = $oProductModel->getCollection();
+
+        $oSelect = $oCollection->getSelect();
 
         foreach($attrs as $attr){
-            $oCollection->addAttributeToSelect($attr);
-            $oCollection->addAttributeToSort($attr);
+            $attrData = $this->getAttribute($attr);
+            $vTable = "tbl_$attr";
+            $vDftTable = "tblDft_$attr";
+            $this->addAttributeJoin($oSelect, $attr, $attrData['id'], $attrData['table'], $vTable, $storeId);
+            $this->addAttributeJoin($oSelect, $attr . '_dft', $attrData['id'], $attrData['table'], $vDftTable, 0);
         }
         $oCollection->addStoreFilter($storeId);
         $oCollection->addWebsiteFilter($websiteIds);
 
+        $oSelect = $oCollection->getSelect();
         $vStockStatus = Mage::getModel('core/resource_setup', 'core_setup')->getTable('cataloginventory/stock_status');
         $vSuperLink = Mage::getModel('core/resource_setup', 'core_setup')->getTable('catalog/product_super_link');
 
-        $oSelect = $oCollection->getSelect();
         $oSelect->joinLeft( array( 'sl' => $vSuperLink ), '`e`.`entity_id`=`sl`.`product_id`');
         $oSelect->joinLeft( array( 'pss' => $vStockStatus ),
             '`sl`.parent_id=`pss`.`product_id` AND `pss`.website_id = ' . $oStore->getWebsiteId(),
@@ -54,6 +60,27 @@ class Aligent_Emarsys_Model_Filter {
         $oSelect->where('`e`.`type_id` <> ? OR (`e`.`type_id` = ? AND `sl`.`parent_id` IS NULL)', 'simple');
 
         $vSql = (string) $oSelect;
+
         Mage::getSingleton('aligent_feeds/log')->log("Catalog Select is: $vSql");
+    }
+
+    protected function getAttribute($attrName){
+        $oProductModel = Mage::getModel('catalog/product');
+        $objAttr = Mage::getSingleton('eav/config')->getCollectionAttribute($oProductModel->getResource()->getType(), $attrName);
+        $data = array(
+            'table' => $objAttr->getBackendTable(),
+            'id' => $objAttr->getId()
+        );
+        $objAttr = null;
+        $oProductModel = null;
+        return $data;
+    }
+
+    protected function addAttributeJoin(&$oSelect, $attrName, $attrId, $tableName, $tableAlias, $storeId){
+        $oSelect->joinLeft(
+            array( $tableAlias => $tableName),
+            "e.entity_id = $tableAlias.entity_id and $tableAlias.store_id = $storeId and $tableAlias.attribute_id=" . $attrId,
+            array($attrName=> "$tableAlias.value")
+        );
     }
 }
