@@ -4,6 +4,9 @@
  * Applies filters to the feed data
  */
 class Aligent_Emarsys_Model_Filter {
+    protected static $_productModel = null;
+    protected static $_attributes = array();
+
     /**
      * @param Varien_Db_Select $oSelect
      * @param $oStore Mage_Core_Model_Store
@@ -19,7 +22,7 @@ class Aligent_Emarsys_Model_Filter {
 
         $attrs = array('url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','msrp','special_price');
 
-        $oProductModel = Mage::getModel('catalog/product');
+        $oProductModel = $this->getProductModel();
         $oCollection = $oProductModel->getCollection();
 
         $oSelect = $oCollection->getSelect();
@@ -65,12 +68,16 @@ class Aligent_Emarsys_Model_Filter {
     }
 
     protected function getAttribute($attrName){
-        $oProductModel = Mage::getModel('catalog/product');
+        if(isset(self::$_attributes[$attrName])) return self::$_attributes[$attrName];
+        $oProductModel = $this->getProductModel();
+
         $objAttr = Mage::getSingleton('eav/config')->getCollectionAttribute($oProductModel->getResource()->getType(), $attrName);
         $data = array(
             'table' => $objAttr->getBackendTable(),
             'id' => $objAttr->getId()
         );
+        self::$_attributes[$attrName] = $data;
+
         $objAttr = null;
         $oProductModel = null;
         return $data;
@@ -82,5 +89,13 @@ class Aligent_Emarsys_Model_Filter {
             "e.entity_id = $tableAlias.entity_id and $tableAlias.store_id = $storeId and $tableAlias.attribute_id=" . $attrId,
             array($attrName=> "$tableAlias.value")
         );
+    }
+
+    /**
+     * @return Mage_Catalog_Model_Product
+     */
+    protected function getProductModel(){
+        if(self::$_productModel===null) self::$_productModel = Mage::getModel('catalog/product');
+        return self::$_productModel;
     }
 }
