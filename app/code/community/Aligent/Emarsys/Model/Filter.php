@@ -6,6 +6,7 @@
 class Aligent_Emarsys_Model_Filter {
     protected static $_productModel = null;
     protected static $_attributes = array();
+    protected static $_attributeValues = array();
 
     /**
      * @param Varien_Db_Select $oSelect
@@ -89,19 +90,11 @@ class Aligent_Emarsys_Model_Filter {
      */
     protected function addAttributeJoin(&$oSelect, $attrData, $storeId){
         $tableAlias = "tbl" . ($storeId==0 ? 'Dft' : '') . '_' . $attrData['name'];
-        if($attrData['frontend_type']=='select'){
-            $oSelect->joinLeft(
-                array( $tableAlias => $attrData['table']),
-                "e.entity_id = $tableAlias.entity_id and $tableAlias.store_id = $storeId and $tableAlias.attribute_id=" . $attrData['id'],
-                array($attrData['name']  . ($storeId==0 ? '_dft' : '') => "(select value from eav_attribute_option_value where option_id=$tableAlias.value order by store_id limit 1)")
-            );
-        }else{
-            $oSelect->joinLeft(
-                array( $tableAlias => $attrData['table']),
-                "e.entity_id = $tableAlias.entity_id and $tableAlias.store_id = $storeId and $tableAlias.attribute_id=" . $attrData['id'],
-                array($attrData['name']  . ($storeId==0 ? '_dft' : '') => "$tableAlias.value")
-            );
-        }
+        $oSelect->joinLeft(
+            array( $tableAlias => $attrData['table']),
+            "e.entity_id = $tableAlias.entity_id and $tableAlias.store_id = $storeId and $tableAlias.attribute_id=" . $attrData['id'],
+            array($attrData['name']  . ($storeId==0 ? '_dft' : '') => "$tableAlias.value")
+        );
     }
 
     /**
@@ -110,5 +103,26 @@ class Aligent_Emarsys_Model_Filter {
     protected function getProductModel(){
         if(self::$_productModel===null) self::$_productModel = Mage::getModel('catalog/product');
         return self::$_productModel;
+    }
+
+    public static function getAttributeOptions($attrName, $storeId){
+        if(isset(self::$_attributeValues[$attrName]) && isset(self::$_attributeValues[$attrName][$storeId])){
+            return self::$_attributeValues[$attrName][$storeId];
+        }
+
+        if(!isset(self::$_attributeValues[$attrName])) self::$_attributeValues[$attrName] = array();
+
+        $attribute = Mage::getModel('eav/config')->getAttribute(4,$attrName);
+        $values = array();
+        if($attribute->usesSource()) {
+            $options = $attribute->getSource()->getAllOptions(false);
+            foreach($options as $option) {
+                if(count($option)==2) {
+                    $values[$option['value']] = $option['label'];
+                }
+            }
+        }
+        self::$_attributeValues[$attrName][$storeId] = $values;
+        return $values;
     }
 }

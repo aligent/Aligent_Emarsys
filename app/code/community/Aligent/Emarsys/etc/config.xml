@@ -83,7 +83,7 @@
                 <brand_value>
                     <xml_tag>g:brand</xml_tag>
                     <singleton>
-                        <class>aligent_emarsys/translator_default</class>
+                        <class>aligent_emarsys/translator_brand</class>
                         <field>brand</field>
                         <method>translate</method>
                     </singleton>
