@@ -112,7 +112,7 @@ class Aligent_Emarsys_Model_Filter {
 
         if(!isset(self::$_attributeValues[$attrName])) self::$_attributeValues[$attrName] = array();
 
-        $attribute = Mage::getModel('eav/config')->getAttribute(4,$attrName);
+        $attribute = Mage::getModel('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY,$attrName);
         $values = array();
         if($attribute->usesSource()) {
             $options = $attribute->getSource()->getAllOptions(false);
