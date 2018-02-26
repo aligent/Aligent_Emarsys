@@ -1038,6 +1038,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     public function ensureOrderSyncRecord($order){
         $storeId = $order->getStoreId();
 
+        // If the order contains only virtual products, it may not have a shipping address
         $country = ($order->getShippingAddress()) ? $order->getShippingAddress()->getCountry() : null;
 
         // Is there a customer ID?
