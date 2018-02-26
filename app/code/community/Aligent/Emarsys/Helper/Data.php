@@ -1038,6 +1038,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     public function ensureOrderSyncRecord($order){
         $storeId = $order->getStoreId();
 
+        $country = ($order->getShippingAddress()) ? $order->getShippingAddress()->getCountry() : null;
+
         // Is there a customer ID?
         if($order->getCustomerIsGuest()){
             // Ok, let's try to find a subscriber
@@ -1055,9 +1057,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
                 $order->getCustomerLastname(),
                 $order->getCustomerGender(),
                 $order->getCustomerDob(),
-                $order->getShippingAddress()->getCountry());
+                $country);
         }else{
-            $remoteSync = $this->ensureCustomerSyncRecord($order->getCustomerId(), true, true, $order->getShippingAddress()->getCountry());
+            $remoteSync = $this->ensureCustomerSyncRecord($order->getCustomerId(), true, true, $country);
         }
         return $remoteSync;
     }
