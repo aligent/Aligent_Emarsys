@@ -5,7 +5,7 @@ class Aligent_Emarsys_Model_Translator_Availability
         $avail = isset($aRow['availability']) ? $aRow['availability'] : false;
         $parentAvail = isset($aRow['ps_availability']) ? $aRow['ps_availability'] : false;
 
-        if($aRow['type_id']!=='simple' && !$parentAvail) $avail = false;
+        $avail = ($aRow['type_id']!=='simple') ? $avail : $parentAvail;
 
         return $avail ? 'TRUE' : 'FALSE';
     }
