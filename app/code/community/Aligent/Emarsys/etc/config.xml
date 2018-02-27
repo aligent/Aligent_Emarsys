@@ -91,8 +91,10 @@
                 <zoom_image>
                     <header>zoom_image</header>
                     <xml_tag>g:zoom_image</xml_tag>
-                    <special>product_media_base_url</special>
-                    <attribute>small_image</attribute>
+                    <singleton>
+                        <class>aligent_emarsys/translator_image</class>
+                        <method>translateZoom</method>
+                    </singleton>
                 </zoom_image>
                 <display_price>
                     <header>c_display_price</header>
