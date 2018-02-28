@@ -41,10 +41,14 @@ class Aligent_Emarsys_Shell_Move_Url_Keys extends Aligent_Emarsys_Abstract_Shell
                 'value' => $result['value']
             );
 
-            $writer->insert(
-                $urlKeys,
-                $data
-            );
+            try{
+                $writer->insert(
+                    $urlKeys,
+                    $data
+                );
+            }catch(\Exception $e){
+
+            }
 
             $iCount++;
             $this->console("\033[30D");
