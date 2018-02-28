@@ -12,11 +12,20 @@ class Aligent_Emarsys_Model_Translator_Image
      */
     public function translate($aRow, $vField, $oStore)
     {
+        return $this->getRowImage('thumbnail', $aRow, $oStore);
+    }
 
-        $vThumbnail = $aRow['thumbnail']!=NULL ? $aRow['thumbnail'] : $aRow['thumbnail_dft'];
-        $vThumbnail = ltrim($vThumbnail, "\/");
-        $vThumbnail = $oStore->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . $vThumbnail;
+    public function translateZoom($aRow, $vField, $oStore){
+        return $this->getRowImage('small_image', $aRow, $oStore);
+    }
 
-        return $vThumbnail;
+    protected function getRowImage($field, $aRow, $oStore){
+        $vImage = $aRow[$field]!==NULL ? $aRow[$field] : $aRow[$field . '_dft'];
+        $vImage = ltrim($vImage, "\/");
+        if($vImage !== '') {
+            $vImage = $oStore->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . $vImage;
+        }
+        return $vImage;
+
     }
 }
