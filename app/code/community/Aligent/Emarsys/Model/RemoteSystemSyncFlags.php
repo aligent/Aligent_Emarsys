@@ -29,7 +29,12 @@ class Aligent_Emarsys_Model_RemoteSystemSyncFlags extends Mage_Core_Model_Abstra
         }else{
             $aeLink->setSubscriberId($id);
             $aeLink->setAeId($this->getId());
+            $writer = Mage::getSingleton('core/resource')->getConnection('core_write');
+            $tableName = $aeLink->getResource()->getMainTable();
+            $writer->insert($tableName, array('subscriber_id'=>$id, 'ae_id'=>$id));
             $aeLink->save();
+            $writer->commit();
+
             return $aeLink;
         }
     }
@@ -102,13 +107,16 @@ class Aligent_Emarsys_Model_RemoteSystemSyncFlags extends Mage_Core_Model_Abstra
      */
     public function setCustomerEmail($customer){
         if($customer->getOrigData('email') == $customer->getData('email') || $customer->getOrigData('email') == null) return;
+        if(!$this->getId()) return;
 
+        $oHelper = Mage::helper('aligent_emarsys');
+        $oHelper->log("Setting customer email from " . $customer->getOrigData('email') . " to " . $customer->getData('email'));
         $existingSubs = $this->getSubscribers();
         if($existingSubs->count() > 1){
             $newRecord = Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId());
             foreach($existingSubs as $sub){
                 if($sub->getCustomerId() == $customer->getId()){
-                    $this->unlinkSubscriber($sub->getId());
+                    $this->unlinkSubscriber($sub->getSubscriberId());
                     $sub->setSubscriberEmail($customer->getEmail());
                     $sub->save();
                     $newRecord->linkSubscriber($sub->getId());

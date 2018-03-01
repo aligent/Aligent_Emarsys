@@ -196,6 +196,7 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         if(Mage::registry('emarsys_newsletter_ignore')){
             return $this;
         }
+        $this->getHelper()->startEmarsysNewsletterIgnore();
 
         /** @var $subscriber Mage_Newsletter_Model_Subscriber */
         $subscriber = $observer->getEvent()->getSubscriber();
@@ -265,6 +266,7 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
             }
 
         }
+        $this->getHelper()->endEmarsysNewsletterIgnore();
     }
 
     public function customerModelChanged(Varien_Event_Observer $observer)
@@ -278,7 +280,9 @@ class Aligent_Emarsys_Model_Observer extends Varien_Event_Observer
         Mage::register('emarsys_customer_save_observer_executed', true);
 
         /** @var Aligent_Emarsys_Model_RemoteSystemSyncFlags $record */
+        $this->getHelper()->startEmarsysNewsletterIgnore();
         $record = Mage::helper('aligent_emarsys')->ensureCustomerSyncRecord($customer->getId(), true, true);
+        $this->getHelper()->endEmarsysNewsletterIgnore();
 
         $record->setFirstName($customer->getFirstName());
         $record->setLastName($customer->getLastName());

@@ -953,8 +953,6 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags
      */
     public function ensureNewsletterSyncRecord($id, $emarsysFlag = true, $harmonyFlag = true, $firstName = null, $lastName = null, $gender = null, $dob = null, $country = null, $storeId = null){
-        $bCreateLink = false;
-
         $storeId = ($storeId===null) ? Mage::app()->getStore()->getId() : $storeId;
 
         $subscriber = Mage::getModel('newsletter/subscriber')->setStoreId($storeId)->load($id);
@@ -964,23 +962,51 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
         $remoteSync = $this->findNewsletterSyncRecord($subscriber);
         if(!$remoteSync){
-            $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
-            $bCreateLink = true;
-
-        }
-        if($harmonyFlag) $remoteSync->setHarmonySyncDirty($harmonyFlag);
-        if($emarsysFlag) $remoteSync->setEmarsysSyncDirty($emarsysFlag);
-        if($firstName) $remoteSync->setFirstName($firstName);
-        if($lastName) $remoteSync->setLastName($lastName);
-        if($dob) $remoteSync->setDob($dob);
-        if($gender) $remoteSync->setGender($gender);
-        if($country) $remoteSync->setCountry($country);
-        $remoteSync->setEmail($subscriber->getSubscriberEmail());
-        $remoteSync->save();
-
-        if($bCreateLink){
+            $remoteSync = self::insert($firstName, $lastName, $dob, $gender, $country, $subscriber->getSubscriberEmail(), $harmonyFlag, $emarsysFlag);
             $remoteSync->linkSubscriber($id);
+        }else{
+            if($harmonyFlag) $remoteSync->setHarmonySyncDirty($harmonyFlag);
+            if($emarsysFlag) $remoteSync->setEmarsysSyncDirty($emarsysFlag);
+            if($firstName) $remoteSync->setFirstName($firstName);
+            if($lastName) $remoteSync->setLastName($lastName);
+            if($dob) $remoteSync->setDob($dob);
+            if($gender) $remoteSync->setGender($gender);
+            if($country) $remoteSync->setCountry($country);
+            $remoteSync->setEmail($subscriber->getSubscriberEmail());
+            $remoteSync->save();
         }
+
+        return $remoteSync;
+    }
+
+    /**
+     * @param $firstName
+     * @param $lastName
+     * @param $dob
+     * @param $gender
+     * @param $country
+     * @param $email
+     * @param bool $harmonyFlag
+     * @param bool $emarsysFlag
+     * @return Aligent_Emarsys_Model_RemoteSystemSyncFlags|false|Mage_Core_Model_Abstract
+     */
+    public static function insert($firstName, $lastName, $dob, $gender, $country, $email, $harmonyFlag = false, $emarsysFlag = false){
+        $remoteSync = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags');
+
+        $writer = Mage::getSingleton('core/resource')->getConnection('core_write');
+        $data = array(
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'gender' => $gender,
+            'dob' => $dob,
+            'country' => $country,
+            'email' => $email
+        );
+        $table = $remoteSync->getResource()->getMainTable();
+        $writer->insert($table, $data);
+        $writer->commit();
+
+        $remoteSync->load($data['email'], 'email');
 
         return $remoteSync;
     }
@@ -1000,13 +1026,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         if($remoteSync->getId()) return $remoteSync;
 
         // Still here?  We'll need to create a bare bones record.
-        $remoteSync->setEmail($email);
-        $remoteSync->setFirstName($firstName);
-        $remoteSync->setLastName($lastName);
-        $remoteSync->setGender($gender);
-        $remoteSync->setDob($dob);
-        $remoteSync->setCountry($country);
-        $remoteSync->save();
+        $remoteSync = self::insert($firstName, $lastName, $dob, $gender, $country, $email);
 
         return $remoteSync;
     }
@@ -1074,6 +1094,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     public function log($message, $logLevel = 1){
         if($logLevel == 1 || $this->getEmarsysDebug() ){
             Mage::log($message, null, 'aligent_emarsys.log',true);
+            file_put_contents("/var/www/html/var/log/kath.log", $message . "\n", FILE_APPEND);
         }
     }
 
@@ -1105,7 +1126,6 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
                 throw new InvalidArgumentException("Expected Mage_Customer_Model_Customer, passed " . get_class($customer));
             }
             $storeId = $customer->getStore()->getId();
-
             $subscription = Mage::getModel('newsletter/subscriber');
             $subscription->setStoreId($storeId);
             $subscription->setCustomerId($customer->getEntityId());
