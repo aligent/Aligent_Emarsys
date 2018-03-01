@@ -56,7 +56,6 @@ class Aligent_Emarsys_Shell_Move_Url_Keys extends Aligent_Emarsys_Abstract_Shell
             $message .= "% ($iCount of $iTotal)";
             $message = str_pad($message, 30, ' ');
             $this->console("$message");
-            $writer->delete($varchar, 'value_id=' . $result['vuk_value_id'] );
         }
         $this->console("\nDone\n");
     }
