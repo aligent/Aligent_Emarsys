@@ -23,7 +23,7 @@ class Aligent_Emarsys_Model_Translator_Image
         $vImage = $aRow[$field]!==NULL ? $aRow[$field] : $aRow[$field . '_dft'];
         $vImage = trim($vImage, "\/");
         if($vImage !== '') {
-            $vImage = $oStore->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . $vImage;
+            $vImage = $oStore->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'catalog/product/' . $vImage;
         }
         return $vImage;
 
