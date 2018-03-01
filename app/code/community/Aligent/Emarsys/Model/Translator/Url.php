@@ -10,6 +10,7 @@ class Aligent_Emarsys_Model_Translator_Url{
     public function translate($aRow, $vField, $oStore) {
         $vUrl = $oStore->getBaseUrl();
         $urlKey = ($aRow['url_key'] !== null) ? $aRow['url_key'] : $aRow['url_key_dft'];
+        $urlKey = trim($urlKey);
 
         if($urlKey == '') return $urlKey;
 
