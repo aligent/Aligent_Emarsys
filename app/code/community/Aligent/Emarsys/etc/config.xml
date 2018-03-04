@@ -37,7 +37,7 @@
                     <attribute>name</attribute>
                     <singleton>
                         <class>aligent_emarsys/translator_default</class>
-                        <field>title</field>
+                        <field>name</field>
                         <method>translate</method>
                     </singleton>
                 </name>
