@@ -1,5 +1,6 @@
 <?php
 class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
+    protected $_feedGiftcardPrice = array();
     protected $_feedStockFromSimple = null;
     protected $_includeSimpleParents = null;
     protected $_includeDisabled = null;
@@ -47,6 +48,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysChunkSize = null;
     protected $_emarsysChangePeriod = null;
 
+    const XML_FEED_GIFTCARD_PRICE = 'aligent_emarsys/feed/default_giftcard_price';
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
     const XML_FEED_INCLUDE_SIMPLE_PARENTS = 'aligent_emarsys/feed/include_simple_parents';
     const XML_FEED_INCLUDE_DISABLED = 'aligent_emarsys/feed/include_disabled';
@@ -112,6 +114,21 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_emarsysChunkSize = Mage::getStoreConfig( self::XML_EMARSYS_API_CHUNK_SIZE );
         }
         return $this->_emarsysChunkSize;
+    }
+
+    public function getGiftcardDefaultPrice($oStore = null){
+        $storeId = $oStore;
+        if (is_object($oStore)) {
+            $storeId = $oStore->getId();
+        }
+        if($storeId === null){
+            $storeId = Mage::app()->getStore()->getId();
+        }
+
+        if(!isset($this->_feedGiftcardPrice[$storeId])){
+            $this->_feedGiftcardPrice[$storeId] = Mage::getStoreConfig(self::XML_FEED_GIFTCARD_PRICE, $storeId);
+        }
+        return $this->_feedGiftcardPrice[$storeId];
     }
 
     /**
