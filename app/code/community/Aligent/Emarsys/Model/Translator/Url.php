@@ -12,12 +12,13 @@ class Aligent_Emarsys_Model_Translator_Url{
         $urlKey = ($aRow['url_key'] !== null) ? $aRow['url_key'] : $aRow['url_key_dft'];
         $urlKey = trim($urlKey);
 
-        if($urlKey == '') return $urlKey;
-
-        $vUrl .= $urlKey;
-
-        // only add the UrlSuffix when it exists
-        if (Mage::helper('catalog/product')->getProductUrlSuffix()) $vUrl .= '.'.Mage::helper('catalog/product')->getProductUrlSuffix();
+        if($urlKey == ''){
+            $vUrl .= 'catalog/product/view/id/' . $aRow['entity_id'];
+        }else{
+            $vUrl .= $urlKey;
+            // only add the UrlSuffix when it exists
+            if (Mage::helper('catalog/product')->getProductUrlSuffix()) $vUrl .= '.'.Mage::helper('catalog/product')->getProductUrlSuffix();
+        }
 
         return $vUrl;
     }

@@ -17,4 +17,8 @@ class Aligent_Emarsys_Model_Translator_Displayprice
         return Mage::helper('core')->currencyByStore($displayPrice, $oStore, true, false);
     }
 
+    public function translate($aRow, $vField, $oStore){
+        return $aRow['price'] !== null ? $aRow['price'] : $aRow['price_dft'];
+    }
+
 }

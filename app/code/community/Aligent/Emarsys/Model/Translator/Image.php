@@ -24,6 +24,8 @@ class Aligent_Emarsys_Model_Translator_Image
         $vImage = trim($vImage, "\/");
         if($vImage !== '') {
             $vImage = $oStore->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'catalog/product/' . $vImage;
+        }else{
+            $vImage = $oStore->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
         }
         return $vImage;
 
