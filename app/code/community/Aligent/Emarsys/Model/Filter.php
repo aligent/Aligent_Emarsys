@@ -21,7 +21,7 @@ class Aligent_Emarsys_Model_Filter {
         $websiteIds = array($oStore->getWebsiteId());
         $storeId = $oStore->getStoreId();
 
-        $attrs = array('url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','msrp','special_price', 'brand');
+        $attrs = array('url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','special_price', 'brand');
 
         $oProductModel = $this->getProductModel();
         $oCollection = $oProductModel->getCollection();

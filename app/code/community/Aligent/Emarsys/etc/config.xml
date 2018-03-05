@@ -67,9 +67,9 @@
                 <msrp>
                     <xml_tag>g:msrp</xml_tag>
                     <singleton>
-                        <class>aligent_emarsys/translator_default</class>
+                        <class>aligent_emarsys/translator_displayprice</class>
                         <method>translate</method>
-                        <field>msrp</field>
+                        <field>price</field>
                     </singleton>
                 </msrp>
                 <availability>
