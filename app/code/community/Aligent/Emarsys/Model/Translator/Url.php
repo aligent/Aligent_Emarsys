@@ -13,7 +13,7 @@ class Aligent_Emarsys_Model_Translator_Url{
         $urlKey = trim($urlKey);
 
         if($urlKey == ''){
-            $vUrl = Mage::helper('catalog/product')->getProductUrl($aRow['entity_id']);
+            $vUrl .= 'catalog/product/view/id/' . $aRow['entity_id'];
         }else{
             $vUrl .= $urlKey;
             // only add the UrlSuffix when it exists
