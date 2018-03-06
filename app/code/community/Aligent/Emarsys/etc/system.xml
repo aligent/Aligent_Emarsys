@@ -23,6 +23,13 @@
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
                     <fields>
+                        <default_giftcard_price>
+                            <label>Default price for giftcards</label>
+                            <frontend_type>text</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </default_giftcard_price>
                         <stock_from_simple translate="label">
                             <label>Use stock from simple products?</label>
                             <comment>1 for yes, 0 for no</comment>
