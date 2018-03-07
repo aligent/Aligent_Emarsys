@@ -6,6 +6,9 @@
  * Time: 9:45 AM
  */
 class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
+    const EMARSYS_SUBSCRIBED = 1;
+    const EMARSYS_UNSUBSCRIBED = 2;
+
     /** @var $_helper Aligent_Emarsys_Helper_Data  */
     protected $_helper = null;
     protected $_genders = null;
@@ -78,7 +81,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     public function unmapSubscriptionValue($subscribed, $store = null){
         $currentField = $this->getSubscriptionField($store);
         $dftField = $this->getClient()->getFieldId('optin');
-        $isDefault = ($currentField == null || $currentField == $dftField);
+        $isDefault = ($currentField === null || $currentField === $dftField);
 
         if($isDefault){
             switch($subscribed){
@@ -90,6 +93,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
                     return Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE;
             }
         }else {
+            // Subscribed can be null or an empty string, and both are equivalent here.
             if($subscribed==null) return Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE;
             return (is_numeric($subscribed) && $subscribed!=0) ? Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED : Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED;
         }
@@ -97,9 +101,9 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
 
     public function mapSubscriptionValue($subscribed, $customer){
         if(is_object($customer)) $customer = $customer->getId();
-        $isDefault = ($this->getSubscriptionField() == null || $this->getSubscriptionField() == $this->getClient()->getFieldId('optin'));
+        $isDefault = ($this->getSubscriptionField() === null || $this->getSubscriptionField() === $this->getClient()->getFieldId('optin'));
         if($isDefault){
-            return ($subscribed) ? 1 : 2;
+            return ($subscribed) ? self::EMARSYS_SUBSCRIBED : self::EMARSYS_UNSUBSCRIBED;
         }else {
             return ($subscribed) ? $customer : null;
         }
