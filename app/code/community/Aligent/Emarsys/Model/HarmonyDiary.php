@@ -110,13 +110,35 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->email = $this->limitString($subscriber->getEmail(), 60);
 
         $this->date_of_birth = $this->harmonyDate( $localSyncData->getDob());
-        $this->{'classification.1'} = $subscriber->getSubscriberStatus() == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED ? 'EMAIL' : 'NOEML';
+
+        switch($subscriber->getSubscriberStatus()){
+            case Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED:
+                $emailStatus = 'EMAIL';
+                break;
+            case Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE:
+                $emailStatus = '';
+                break;
+            default:
+                $emailStatus = 'NOEML';
+        }
+
+        $this->{'classification.1'} = $emailStatus;
         $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncData->getId());
     }
 
-    public function isCustomerSubscribed($customer){
-        return $this->_helper->isCustomerSubscribed($customer);
-
+    public function getCustomerSubscribed($customer){
+        $subscriber = $this->_helper->getCustomerSubscriber($customer);
+        switch($subscriber->getSubscriberStatus()){
+            case Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED:
+                $emailStatus = 'EMAIL';
+                break;
+            case Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE:
+                $emailStatus = '';
+                break;
+            default:
+                $emailStatus = 'NOEML';
+        }
+        return $emailStatus;
     }
 
     public function fillMagentoCustomerFromData($customer, $localSyncId, $localSyncHarmonyId){
@@ -132,7 +154,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->fillMagentoShippingAddress($customer);
 
         $this->date_of_birth = $this->harmonyDate( $customer->getDob() );
-        $this->{'classification.1'} = $this->isCustomerSubscribed($customer) ? 'EMAIL' : 'NOEML';
+        $this->{'classification.1'} = $this->getCustomerSubscribed($customer);
 
         $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncId);
     }
@@ -151,7 +173,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $this->fillMagentoShippingAddress($customer);
 
         $this->date_of_birth = $this->harmonyDate( $customer->getDob() );
-        $this->{'classification.1'} = $this->isCustomerSubscribed($customer) ? 'EMAIL' : 'NOEML';
+        $this->{'classification.1'} = $this->getCustomerSubscribed($customer);
 
         $this->namekey = Aligent_Emarsys_Model_HarmonyDiary::generateNamekey($localSyncData->getId());
     }

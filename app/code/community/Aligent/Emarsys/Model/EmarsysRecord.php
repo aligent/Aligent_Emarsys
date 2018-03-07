@@ -105,12 +105,11 @@ class Aligent_Emarsys_Model_EmarsysRecord {
      */
     public function getSubscriptionStatus($storeId){
         $subscriptionField = self::getHelper()->getSubscriptionField($storeId);
-        $subscriptionStatus = self::getHelper()->unmapSubscriptionValue( $this->getAbstractField( $subscriptionField ) );
 
-        if($subscriptionStatus == true){
-            return Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED;
+        if($this->getAbstractField($subscriptionField)===null){
+            return Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE;
         }else{
-            return Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED;
+            return self::getHelper()->unmapSubscriptionValue( $this->getAbstractField( $subscriptionField ) );
         }
     }
 
