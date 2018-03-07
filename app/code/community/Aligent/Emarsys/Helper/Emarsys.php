@@ -76,11 +76,22 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     }
 
     public function unmapSubscriptionValue($subscribed, $store = null){
-        $isDefault = ($this->getSubscriptionField($store) == null);
+        $currentField = $this->getSubscriptionField($store);
+        $dftField = $this->getClient()->getFieldId('optin');
+        $isDefault = ($currentField == null || $currentField == $dftField);
+
         if($isDefault){
-            return (strtolower($subscribed)=='true');
+            switch($subscribed){
+                case 1:
+                    return Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED;
+                case 2:
+                    return Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED;
+                default:
+                    return Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE;
+            }
         }else {
-            return (is_numeric($subscribed) && $subscribed!=0);
+            if($subscribed==null) return Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE;
+            return (is_numeric($subscribed) && $subscribed!=0) ? Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED : Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED;
         }
     }
 
@@ -208,13 +219,17 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         return $data;
     }
 
+    /**
+     * @param $subscriber Mage_Newsletter_Model_Subscriber
+     * @return array
+     */
     public function getSubscriberData($subscriber){
         $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($subscriber->getId(), 'newsletter_subscriber_id');
         if(!$syncData || !$syncData->getId()){
             $syncData = $this->getHelper()->ensureNewsletterSyncRecord($subscriber->getId());
         }
 
-        $data = $this->abstractDataFill($syncData, $syncData, $subscriber->isSubscribed(), $syncData->getGender(), $syncData->getCountry());
+        $data = $this->abstractDataFill($syncData, $syncData, $subscriber->getStatus(), $syncData->getGender(), $syncData->getCountry());
 
         return $data;
     }
@@ -222,10 +237,10 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     public function getCustomerData($customer){
         $syncData = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($customer->getId(), 'customer_entity_id');
 
-        $isSubscribed = $this->getHelper()->isCustomerSubscribed($customer);
+        $subscriber = $this->getHelper()->getCustomerSubscriber($customer);
         $genderValue = $this->getCustomerGender($customer);
 
-        $data = $this->abstractDataFill($customer, $syncData, $isSubscribed, $genderValue, $syncData->getCountry());
+        $data = $this->abstractDataFill($customer, $syncData, $subscriber->getStatus(), $genderValue, $syncData->getCountry());
 
         return $data;
     }

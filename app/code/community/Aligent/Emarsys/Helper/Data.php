@@ -1113,7 +1113,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
                 'store_id' => $storeId,
                 'customer_id' => $customer->entity_id,
                 'subscriber_email' => $customer->email,
-                'subscriber_status' => Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED
+                'subscriber_status' => Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE
             );
             $writer->insert($table, $data);
             $subscription->loadByEmail($customer->email, $storeId);
@@ -1127,7 +1127,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $subscription->setStoreId($storeId);
             $subscription->setCustomerId($customer->getEntityId());
             $subscription->setSubscriberEmail($customer->getEmail());
-            $subscription->setSubscriberStatus(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED);
+            $subscription->setSubscriberStatus(Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE);
             $subscription->save();
         }
 
