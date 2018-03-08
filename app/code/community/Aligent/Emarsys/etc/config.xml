@@ -80,14 +80,14 @@
                         <method>translate</method>
                     </singleton>
                 </availability>
-                <brand_value>
+                <brand>
                     <xml_tag>g:brand</xml_tag>
                     <singleton>
                         <class>aligent_emarsys/translator_brand</class>
                         <field>brand</field>
                         <method>translate</method>
                     </singleton>
-                </brand_value>
+                </brand>
                 <zoom_image>
                     <header>zoom_image</header>
                     <xml_tag>g:zoom_image</xml_tag>
