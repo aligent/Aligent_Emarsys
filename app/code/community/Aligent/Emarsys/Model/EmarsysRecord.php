@@ -103,7 +103,7 @@ class Aligent_Emarsys_Model_EmarsysRecord {
      * @param $storeId
      * @return int
      */
-    public function getSubscriptionStatus($storeId){
+    public function getSubscriptionStatus($storeId = null){
         $subscriptionField = self::getHelper()->getSubscriptionField($storeId);
 
         if($this->getAbstractField($subscriptionField)===null){
