@@ -79,8 +79,8 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     }
 
     public function unmapSubscriptionValue($subscribed, $store = null){
-        $currentField = $this->getSubscriptionField($store);
-        $dftField = $this->getClient()->getFieldId('optin');
+        $currentField = $this->getSubscriptionField($store) . '';
+        $dftField = $this->getClient()->getFieldId('optin') . '';
         $isDefault = ($currentField === null || $currentField === $dftField);
 
         if($isDefault){
