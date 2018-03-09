@@ -22,7 +22,7 @@ class Aligent_Emarsys_Sync_Emarsys_Subscription_Status extends Aligent_Emarsys_A
 
         $query = $this->getReader()->select()->from($this->_newsletterTable)
             ->reset((Varien_Db_Select::COLUMNS))
-            ->columns(['subscriber_email'])
+            ->columns(['subscriber_email','subscriber_status'])
             ->group('subscriber_email')->where('subscriber_email is not null')->query();
         $emails = array();
         $total = $query->rowCount();
@@ -32,7 +32,7 @@ class Aligent_Emarsys_Sync_Emarsys_Subscription_Status extends Aligent_Emarsys_A
             $this->console("\033[8D");
             $this->console(str_pad(round(($i/ $total) * 100, 2) . '%',6));
             if(!in_array($row->subscriber_email, $emails)){
-                $emails[] = $row->subscriber_email;
+                $emails[$row->subscriber_email] = $row->subscriber_status;
             }
 
             if(sizeof($emails) >= $this->getHelper()->getEmarsysChunkSize() ){
@@ -43,14 +43,25 @@ class Aligent_Emarsys_Sync_Emarsys_Subscription_Status extends Aligent_Emarsys_A
         $this->processEmails($client, $emails, $statusField);
     }
 
+    /**
+     * @param $client
+     * @param $emails
+     * @param $statusField
+     */
     protected function processEmails($client, $emails, $statusField){
-        $result = $client->getContactData(array("keyId" => $this->_emailField,"keyValues" => $emails));
+        $emailAds = array_keys($emails);
+        $result = $client->getContactData(array("keyId" => $this->_emailField,"keyValues" => $emailAds));
 
         foreach($result->getData()['result'] as $item){
             $row = new Aligent_Emarsys_Model_EmarsysRecord($client, $item);
             $status = $row->getSubscriptionStatus();
+            $nsStatus = $emailAds[$row->getEmail()];
 
-            if($status !== Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE){
+            /**
+             * We always want the subscription status from Emarsys UNLESS Emarsys has a null and we have
+             * a subscription value
+             */
+            if( !($status===Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE && $nsStatus===Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED) ){
                 $email = $this->getWriter()->quote($row->getEmail());
                 $data = [
                     'subscriber_status' => $row->getSubscriptionStatus()
