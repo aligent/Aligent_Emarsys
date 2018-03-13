@@ -75,6 +75,10 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     public function getSubscriptionField($storeId = null){
         $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField($storeId);
         if(!is_numeric($subscribedField) || $subscribedField == -1) $subscribedField = null;
+
+        if($subscribedField==null){
+            $subscribedField = $this->getClient()->getFieldId('optin');
+        }
         return $subscribedField;
     }
 
@@ -101,7 +105,7 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
 
     public function mapSubscriptionValue($subscribed, $customer){
         if(is_object($customer)) $customer = $customer->getId();
-        $isDefault = ($this->getSubscriptionField() === null || $this->getSubscriptionField() === $this->getClient()->getFieldId('optin'));
+        $isDefault = ($this->getSubscriptionField() === null || $this->getSubscriptionField() == $this->getClient()->getFieldId('optin'));
         if($isDefault){
             return ($subscribed) ? self::EMARSYS_SUBSCRIBED : self::EMARSYS_UNSUBSCRIBED;
         }else {
