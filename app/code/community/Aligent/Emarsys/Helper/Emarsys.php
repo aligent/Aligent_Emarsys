@@ -75,6 +75,10 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
     public function getSubscriptionField($storeId = null){
         $subscribedField = $this->getHelper()->getEmarsysAPISubscriptionField($storeId);
         if(!is_numeric($subscribedField) || $subscribedField == -1) $subscribedField = null;
+
+        if($subscribedField==null){
+            $subscribedField = $this->getClient()->getFieldId('optin');
+        }
         return $subscribedField;
     }
 
