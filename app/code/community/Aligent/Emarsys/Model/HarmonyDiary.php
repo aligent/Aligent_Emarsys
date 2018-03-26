@@ -105,8 +105,8 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $localSyncData = $this->_helper->ensureNewsletterSyncRecord($subscriber->getId());
 
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
-        $this->name_1 = $this->limitString( $localSyncData->getFirstName(), 30) ;
-        $this->name_2 = $this->limitString( $localSyncData->getLastName(), 30);
+        $this->name_1 = $this->limitString( $localSyncData->getLastName(), 30);
+        $this->name_2 = $this->limitString( $localSyncData->getFirstName(), 30);
         $this->email = $this->limitString($subscriber->getEmail(), 60);
 
         $this->date_of_birth = $this->harmonyDate( $localSyncData->getDob());
@@ -145,7 +145,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
         //$localSyncData = $this->ensureSyncData($customer);
 
         $this->action = ($localSyncHarmonyId) ? 'M' : 'A';
-        $this->name_1 = $this->limitString( $customer->getLastname(), 30 );
+        $this->name_1 = $this->limitString( $customer->getLastname(), 30);
         $this->name_2 = $this->limitString( $customer->getFirstname(), 30);
         $this->email = $this->limitString($customer->getEmail(), 60);
         $this->{'telephone.0'} = $this->limitString( $customer->getTelephone(), 20);
@@ -164,7 +164,7 @@ class Aligent_Emarsys_Model_HarmonyDiary
         $localSyncData = $this->ensureSyncData($customer);
 
         $this->action = ($localSyncData->getHarmonyId()) ? 'M' : 'A';
-        $this->name_1 = $this->limitString( $customer->getLastname(), 30 );
+        $this->name_1 = $this->limitString( $customer->getLastname(), 30);
         $this->name_2 = $this->limitString( $customer->getFirstname(), 30);
         $this->email = $this->limitString($customer->getEmail(), 60);
         $this->{'telephone.0'} = $this->limitString( $customer->getTelephone(), 20);
