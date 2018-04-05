@@ -59,7 +59,7 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
 
     public function exportChangesSince($dateString, $callback = null){
         /** @var Aligent_Emarsys_Helper_Emarsys $emarsysHelper */
-        $emarsysHelper = self::getHelper();
+        $emarsysHelper = Mage::helper('aligent_emarsys/emarsys');
         $fields = [ $emarsysHelper->getEmailField(),
                 $emarsysHelper->getSubscriptionField(),
                 $emarsysHelper->getFirstnameField(),
