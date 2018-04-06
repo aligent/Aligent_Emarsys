@@ -42,8 +42,8 @@ class Aligent_Emarsys_Model_EmarsysRecord {
         $this->_harmonyId = $this->getAbstractField( $emarsysHelper->getHarmonyIdField() );
         $this->_id = $this->getAbstractField( $client->getFieldId('id') );
         $this->_gender = $this->getAbstractField( $client->getFieldId('gender') );
-        $this->_gender = isset($emarsysHelper->getGenderMap(false)[$this->_gender]) ? $emarsysHelper->getGenderMap(false)[$this->_gender] : '';
         $this->_country = $this->getAbstractField( $emarsysHelper->getCountryField() );
+
     }
 
     /**

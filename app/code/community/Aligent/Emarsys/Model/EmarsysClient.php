@@ -65,7 +65,9 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
                 $emarsysHelper->getFirstnameField(),
                 $emarsysHelper->getLastnameField(),
                 $emarsysHelper->getGenderField(),
-                $emarsysHelper->getDobField() ];
+                $emarsysHelper->getDobField(),
+                $emarsysHelper->getHarmonyIdField(),
+                $emarsysHelper->getCountryField()];
         $data = array(
             'time_range' => [date('Y-m-d', strtotime($dateString)), gmdate('Y-m-d')],
             'contact_fields' => $fields,

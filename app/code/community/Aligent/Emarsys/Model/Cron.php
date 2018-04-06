@@ -234,7 +234,7 @@ class Aligent_Emarsys_Model_Cron {
         $total = $reader->query($customerQuery->reset('columns')->columns(['count(*)']))->fetchColumn();
 
         $this->startProgress($total, true);
-        while($data = $result->fetchObject() ){
+        while($data = $result->fetch() ){
             $customer = Mage::getModel('customer/customer');
             $customer->addData($data);
             $helper->log("Processing customer " . $customer->getId());

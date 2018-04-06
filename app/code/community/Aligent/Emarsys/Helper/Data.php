@@ -48,6 +48,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_emarsysChunkSize = null;
     protected $_emarsysChangePeriod = null;
 
+    protected $_syncStoresList = null;
+
     const XML_FEED_GIFTCARD_PRICE = 'aligent_emarsys/feed/default_giftcard_price';
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
     const XML_FEED_INCLUDE_SIMPLE_PARENTS = 'aligent_emarsys/feed/include_simple_parents';
@@ -101,6 +103,35 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_API_HARMONY_ID_FIELD = 'aligent_emarsys/emarsys_api_settings/harmony_id_field';
     const XML_EMARSYS_API_CHUNK_SIZE = 'aligent_emarsys/emarsys_api_settings/emarsys_chunk_size';
     const XML_EMARSYS_API_CHANGE_PERIOD = 'aligent_emarsys/emarsys_api_settings/emarsys_changes_period';
+    const XML_EMARSYS_API_SYNC_STORES = 'aligent_emarsys/emarsys_api_settings/emarsys_subscribe_in_stores';
+
+
+    public function syncInStore($storeId){
+        return in_array($storeId, $this->getSyncStoresList());
+    }
+
+    public function getSyncStoresList(){
+        if($this->_syncStoresList === null){
+            $this->_syncStoresList = Mage::getStoreConfig(self::XML_EMARSYS_API_SYNC_STORES);
+            // If this isn't set, replicate the old behavior by loading a list of all stores.
+            // Otherwise, parse the string as an array
+            if($this->_syncStoresList === null){
+                $stores = Mage::app()->getStores();
+                $this->_syncStoresList = array();
+                foreach($stores as $store){
+                    $this->_syncStoresList[] = $store->getId();
+                }
+            }else{
+                if($this->_syncStoresList===''){
+                    // Explicitly set as "none".  Use an empty array.
+                    $this->_syncStoresList = array();
+                }else{
+                    $this->_syncStoresList = explode(",", $this->_syncStoresList);
+                }
+            }
+        }
+        return $this->_syncStoresList;
+    }
 
     public function getHarmonyWebAgent(){
         if($this->_harmonyWebAgent === null){
@@ -836,9 +867,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
     /**
      * @param $email string
+     * @param $storeId
      * @return Mage_Newsletter_Model_Subscriber
      */
-    public function getEmailSubscriber($email, $storeId){
+    public function getEmailSubscriber($email, $storeId = null){
         return Mage::getModel('newsletter/subscriber')->loadByEmail($email, $storeId);
     }
 
@@ -1142,9 +1174,13 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     public function createEmailSubscription($storeId, $email){
         // First up, is there a customer in this store scope with that email address?
         $customer = Mage::getModel('customer/customer')->setStore(Mage::app()->getStore($storeId))->loadByEmail($email);
-        if($customer->getId()){
-            $subscription = $this->createSubscription($customer);
-        }else{
+        $subscription = null;
+
+        if($customer->getId()) {
+            $subscription = $this->getCustomerSubscriber($customer);
+            if (!$subscription->getSubscriberId()) $subscription = null;
+        }
+        if($subscription===null){
             $subscription = Mage::getModel('newsletter/subscriber');
             $subscription->setStoreId($storeId);
             $subscription->setSubscriberEmail($email);

@@ -339,6 +339,14 @@
                             <show_in_store>0</show_in_store>
                             <comment>Should the country field be pulled from emarsys when syncing</comment>
                         </emarsys_sync_country>
+                        <emarsys_subscribe_in_stores>
+                            <label>Sync subscription to these stores</label>
+                            <sort_order>90</sort_order>
+                            <frontend_type>multiselect</frontend_type>
+                            <source_model>adminhtml/system_config_source_store</source_model>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                        </emarsys_subscribe_in_stores>
                     </fields>
                 </emarsys_api_settings>
                 <settings translate="label" module="aligent_emarsys">

@@ -96,19 +96,24 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
     public function emarsyscallbackAction(){
         $raw= $this->getRequest()->getRawBody();
         $result = json_decode($raw);
+        $helper = Mage::helper('aligent_emarsys');
 
         if($result) {
             $emClient = $this->emarsysHelper()->getClient();
             $results = $emClient->getExportFile($result->id);
             // Disable the observer in our module so we don't end up in a nice little loop.
-            Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
+            $helper->startEmarsysNewsletterIgnore();
             if($results->getReplyCode()==0){
                 $rows = $results->getData();
+                $helper->log("Begining importing Emarsys rows, " . sizeof($rows));
                 foreach($rows as $row){
-                    $this->syncEmarsysRow( $emClient->parseRawRow($row) );
+                    $theRow = $emClient->parseRawRow($row);
+                    $helper->log("Import " . $theRow->serialize());
+                    $this->syncEmarsysRow( $theRow );
                 }
+                $helper->log("Finished importing Emarsys rows");
             }
-            Mage::helper('aligent_emarsys')->endEmarsysNewsletterIgnore();
+            $helper->endEmarsysNewsletterIgnore();
         }
     }
 
@@ -131,7 +136,10 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
         );
 
         foreach($stores as $store){
+            if(!$helper->syncInStore($store->getId())) continue;
             $subscriber = $helper->getEmailSubscriber( $row->getEmail(), $store->getId() );
+            $customer = Mage::getModel('customer/customer')->setStore(Mage::app()->getStore($store->getId()))->loadByEmail($row->getEmail());
+            if($customer) $subscriber =$helper->getCustomerSubscriber($customer);
             if(!$subscriber->getSubscriberId()){
                 $subscriber = $helper->createEmailSubscription($store->getId(), $row->getEmail());
                 $syncRecord->linkSubscriber($subscriber->getId());
