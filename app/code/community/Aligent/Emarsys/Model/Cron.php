@@ -144,7 +144,11 @@ class Aligent_Emarsys_Model_Cron {
             $client->login($user, $pass);
             $client->chdir($exportDir);
             $client->pasv(true);
-            $client->putFromString(date('Y-m-d-H-i-s-') . 'magento', $fixedWidthData);
+            $fileName = date('Y-m-d-H-i-s-') . 'magento';
+            $dir = Mage::getBaseDir('var') . "/harmony_export";
+            if(!file_exists($dir)) mkdir($dir);
+            file_put_contents($dir . "/$fileName", $fixedWidthData);
+            $client->putFromString($fileName, $fixedWidthData);
             return true;
         }catch(\Exception $e){
             return false;
