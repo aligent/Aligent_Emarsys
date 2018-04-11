@@ -88,10 +88,13 @@ class Aligent_Emarsys_Helper_Emarsys extends Mage_Core_Helper_Abstract {
         $isDefault = ($currentField === null || $currentField === $dftField);
 
         if($isDefault){
+            $subscribed = strtoupper($subscribed) . '';
             switch($subscribed){
-                case 1:
+                case '1':
+                case 'TRUE':
                     return Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED;
-                case 2:
+                case 'FALSE':
+                case '2':
                     return Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED;
                 default:
                     return Mage_Newsletter_Model_Subscriber::STATUS_NOT_ACTIVE;
