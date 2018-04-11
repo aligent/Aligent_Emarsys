@@ -139,9 +139,12 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             if(!$helper->syncInStore($store->getId())) continue;
             $subscriber = $helper->getEmailSubscriber( $row->getEmail(), $store->getId() );
             $customer = Mage::getModel('customer/customer')->setStore(Mage::app()->getStore($store->getId()))->loadByEmail($row->getEmail());
-            if($customer) $subscriber =$helper->getCustomerSubscriber($customer);
+
+            if($customer->getId() && !$subscriber->getSubscriberId()) $subscriber =$helper->getCustomerSubscriber($customer);
+
             if(!$subscriber->getSubscriberId()){
                 $subscriber = $helper->createEmailSubscription($store->getId(), $row->getEmail());
+                $subscriber->setCustomerId($customer->getId());
                 $syncRecord->linkSubscriber($subscriber->getId());
             }
             $subscriber->setSubscriberStatus( $row->getSubscriptionStatus() );
