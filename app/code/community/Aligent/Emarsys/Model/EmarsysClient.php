@@ -203,6 +203,7 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
             foreach($this->_remoteFields->getData() as $field){
                 $this->_labelMap[$field['name']] = $field['id'];
             }
+            $this->_labelMap['user_id'] = 'id';
         }
         return $this->_remoteFields;
     }
