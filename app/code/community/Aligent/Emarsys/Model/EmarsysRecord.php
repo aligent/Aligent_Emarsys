@@ -25,6 +25,21 @@ class Aligent_Emarsys_Model_EmarsysRecord {
         return self::$_helper;
     }
 
+    public function serialize(){
+        $data = array(
+            'email' => $this->_email,
+            'firstName' => $this->_firstName,
+            'lastName' => $this->_lastName,
+            'dob' => $this->_dob,
+            'harmony_id'=>$this->_harmonyId,
+            'id' => $this->_id,
+            'gender' => $this->_gender,
+            'country' => $this->_country,
+            'raw' => $this->_rawData
+        );
+        return print_r($data, true);
+    }
+
     /**
      * Aligent_Emarsys_Model_EmarsysRecord constructor.
      * @param $client Aligent_Emarsys_Model_EmarsysClient
