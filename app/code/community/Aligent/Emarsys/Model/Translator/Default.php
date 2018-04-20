@@ -12,6 +12,7 @@ class Aligent_Emarsys_Model_Translator_Default
      */
     public function translate($aRow, $vField, $oStore)
     {
-        return $aRow[$vField] !== null ? $aRow[$vField] : $aRow[$vField . '_dft'];
+        $aRow[$vField] = ($aRow[$vField] !== null) ? $aRow[$vField] : $aRow[$vField . '_dft'];
+        return $aRow[$vField];
     }
 }

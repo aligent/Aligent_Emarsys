@@ -14,7 +14,18 @@ class Aligent_Emarsys_Model_Translator_Displayprice
         $specialPrice = $aRow['special_price'] !== null ? $aRow['special_price'] : $aRow['special_price_dft'];
         $price = $this->getRegularPrice($aRow, $oStore);
         $displayPrice = $specialPrice !== null ? $specialPrice : $price;
-        return Mage::helper('core')->currencyByStore($displayPrice, $oStore, true, false);
+
+        $storeLocale = Mage::app()->setCurrentStore($oStore->getCode())->getLocale();
+
+        $options = array();
+        $currencyCode = $oStore->getCurrentCurrencyCode();
+
+        $symbol = (Mage::helper('aligent_emarsys')->getFeedCurrencySymbol($oStore->getCode()));
+        if($symbol && $symbol !== '') $options['symbol'] = $symbol;
+
+        $formatted = $storeLocale->currency($currencyCode)->toCurrency($displayPrice, $options);
+
+        return $formatted;
     }
 
     public function translate($aRow, $vField, $oStore){
