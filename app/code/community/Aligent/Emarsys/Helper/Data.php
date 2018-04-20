@@ -6,6 +6,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_includeDisabled = null;
     protected $_harmonyDumpFile = null;
     protected $_harmonyExportLive = null;
+    protected $_currencySymbols = array();
 
     protected $_cookieName = null;
     protected $_enabled = null;
@@ -54,6 +55,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
     const XML_FEED_INCLUDE_SIMPLE_PARENTS = 'aligent_emarsys/feed/include_simple_parents';
     const XML_FEED_INCLUDE_DISABLED = 'aligent_emarsys/feed/include_disabled';
+    const XML_FEED_CURRENCY_SYMBOL = 'aligent_emarsys/feed/currency_symbol';
 
     const XML_EMARSYS_ENABLED_PATH = 'aligent_emarsys/settings/enabled';
     const XML_EMARSYS_COOKIE_NAME_PATH = 'aligent_emarsys/settings/cookie_key';
@@ -108,6 +110,13 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
     public function syncInStore($storeId){
         return in_array($storeId, $this->getSyncStoresList());
+    }
+
+    public function getFeedCurrencySymbol($storeCode){
+        if(!isset($this->_currencySymbols[$storeCode])){
+            $this->_currencySymbols[$storeCode] = Mage::getStoreConfig(self::XML_FEED_CURRENCY_SYMBOL, $storeCode);
+        }
+        return $this->_currencySymbols[$storeCode];
     }
 
     public function getSyncStoresList(){

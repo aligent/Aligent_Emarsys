@@ -35,8 +35,16 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
      * AJAX request to add an email to the cookie.
      */
     public function newslettersubscribeAction() {
+        $contactEmail = Mage::getStoreConfig('trans_email/ident_support/email');
         $oResponse = $this->getResponse();
-        $oResponse->setBody('{"failure": true}');
+        $oResponse->setBody(json_encode(
+            array(
+                'success' => false,
+                'message' => "Oops. It looks like there has been a problem with your subscription. 
+                    Please try to clear your cookies (Ctrl+Shift+Delete) or email us at <a href=\"mailto:$contactEmail\">$contactEmail</a>"
+            )
+
+        ));
 
         if($this->_validateFormKey()) {
             $params = $this->getRequest()->getParams();
@@ -56,10 +64,10 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $gender = isset($params['gender']) ? $params['gender'] : null;
             if (Zend_Validate::is($email, 'EmailAddress')) {
                 if($this->isSubscribed($email)){
-                    $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Email is already registered. Please use a different email.'), 'input'=>$params)));
+                    $oResponse->setBody(json_encode(array('success'=>false, 'message'=> $this->__('Email is already registered. Please use a different email.'), 'input'=>$params)));
                 }else{
                     /** @var $newsSub Mage_Newsletter_Model_Subscriber */
-                    $oResponse->setBody(json_encode(array('failure'=>true, 'input2'=>$params)));
+                    $oResponse->setBody(json_encode(array('success'=>false, 'input2'=>$params)));
 
                     Mage::helper('aligent_emarsys')->startEmarsysNewsletterIgnore();
                     $newsSub = Mage::getModel('newsletter/subscriber')->setStore(Mage::app()->getStore());
@@ -78,7 +86,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
                             $oResponse->setBody(json_encode(array('success'=>true, 'sub_id'=>$newsSub->getId(), 'result'=>$sub)));
                         }else{
                             Mage::helper('aligent_emarsys')->log("Error Response: " . $sub->getReplyText());
-                            $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Unexpected failure'))));
+                            $oResponse->setBody(json_encode(array('success'=>false, 'message'=> $this->__('Unexpected failure'))));
                         }
                     } else{
                         $oResponse->setBody('{"success": true}');
@@ -86,7 +94,7 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
 
                 }
             }else{
-                $oResponse->setBody(json_encode(array('failure'=>true, 'message'=> $this->__('Invalid email address'), 'input'=>$params)));
+                $oResponse->setBody(json_encode(array('success'=>false, 'message'=> $this->__('Invalid email address'), 'input'=>$params)));
             }
         }
         $oResponse->setHeader('Content-type', 'application/json');
