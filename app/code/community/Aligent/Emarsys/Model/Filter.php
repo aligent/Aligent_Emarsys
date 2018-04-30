@@ -27,6 +27,7 @@ class Aligent_Emarsys_Model_Filter {
         $oCollection = $oProductModel->getCollection();
 
         $oSelect = $oCollection->getSelect();
+        $oSelect->columns('sku');
 
         foreach($attrs as $attr){
             $attrData = $this->getAttribute($attr);
