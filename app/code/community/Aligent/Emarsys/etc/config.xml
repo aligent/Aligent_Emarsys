@@ -34,7 +34,6 @@
                 <name>
                     <header>title</header>
                     <xml_tag>title</xml_tag>
-                    <attribute>name</attribute>
                     <singleton>
                         <class>aligent_emarsys/translator_default</class>
                         <field>name</field>
