@@ -15,6 +15,9 @@ class Aligent_Emarsys_Model_Filter {
      */
     public function beforeQueryFilter(Varien_Db_Select &$oSelect, $oStore, $aParms)
     {
+        $configValue = Mage::app()->getStore()->getConfig('catalog/frontend/flat_catalog_product');
+        Mage::app()->getStore()->setConfig('catalog/frontend/flat_catalog_product', 0);
+
         /** @var Aligent_Emarsys_Helper_Data $helper */
         $helper = Mage::helper('aligent_emarsys');
 
@@ -65,6 +68,8 @@ class Aligent_Emarsys_Model_Filter {
         $vSql = (string) $oSelect;
 
         Mage::getSingleton('aligent_feeds/log')->log("Catalog Select is: $vSql");
+
+        Mage::app()->getStore()->setConfig('catalog/frontend/flat_catalog_product', $configValue);
     }
 
     protected function getAttribute($attrName){
