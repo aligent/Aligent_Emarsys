@@ -235,7 +235,13 @@ Aligent.Emarsys = Class.create({
                     }
                 }
 
-                ScarabQueue.push(['cart', this._convertCart(cookie['cart'])]);
+                // If we're on order success page, clear the cart to avoid erroneous
+                // abandonded cart emails.  Otherwise, send the current cart
+                if(this._state.sendSuccess){
+                    ScarabQueue.push(['cart', []]);
+                } else {
+                    ScarabQueue.push(['cart', this._convertCart(cookie['cart'])]);
+                }
 
                 // PDP
                 if (this._state.sendPDP) {
