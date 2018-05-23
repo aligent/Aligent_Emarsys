@@ -11,7 +11,7 @@ class Aligent_Emarsys_Model_Translator_Availability
         $stock = ($aRow['type_id']!=='simple') ? $stock : $parentStock;
         $avail = ($aRow['type_id']!=='simple') ? $avail : $parentAvail;
 
-        if($avail && $stock==0) $avail=false;
+        if($avail && $stock > 0) $avail=false;
 
         return $avail ? 'TRUE' : 'FALSE';
     }
