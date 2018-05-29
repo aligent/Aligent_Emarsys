@@ -27,7 +27,7 @@ class Aligent_Emarsys_Model_Filter {
         $websiteIds = array($oStore->getWebsiteId());
         $storeId = $oStore->getStoreId();
 
-        $attrs = array('url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','special_price', 'brand');
+        $attrs = array('status','url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','special_price', 'brand');
 
         $oProductModel = $this->getProductModel();
         $oCollection = $oProductModel->getCollection();
@@ -47,22 +47,23 @@ class Aligent_Emarsys_Model_Filter {
         $vStockStatus = Mage::getModel('core/resource_setup', 'core_setup')->getTable('cataloginventory/stock_status');
         $vSuperLink = Mage::getModel('core/resource_setup', 'core_setup')->getTable('catalog/product_super_link');
 
-        $oSelect->joinLeft( array( 'sl' => $vSuperLink ), '`e`.`entity_id`=`sl`.`product_id`');
+        $oSelect->joinLeft( array( 'slt' => $vSuperLink), 'e.entity_id=slt.product_id');
+        $oSelect->joinLeft( array( 'sl' => $vSuperLink ), '`e`.`entity_id`=`sl`.`parent_id`');
         $oSelect->joinLeft( array( 'pss' => $vStockStatus ),
-            '`sl`.parent_id=`pss`.`product_id` AND `pss`.website_id = ' . $oStore->getWebsiteId(),
+            '`sl`.product_id=`pss`.`product_id` AND `pss`.website_id = ' . $oStore->getWebsiteId(),
             array(
                 'ps_stock_qty' => 'sum(`pss`.`qty`)',
-                'ps_availability' => 'sum(`pss`.`stock_status`)'
+                'ps_availability' => 'max(`pss`.`stock_status`)'
             )
         );
 
         $oSelect->joinLeft( array( 'ss' => $vStockStatus ),
-                '`e`.`entity_id`=`ss`.`product_id` AND `ss`.website_id = ' . $oStore->getWebsiteId(),
-                array(
-                    'stock_qty' => 'sum(`ss`.`qty`)',
-                    'availability' => 'sum(`ss`.`stock_status`)'
-                )
-            )->group('COALESCE(`sl`.`parent_id`, `e`.`entity_id`)');
+            '`e`.`entity_id`=`ss`.`product_id` AND `ss`.website_id = ' . $oStore->getWebsiteId(),
+            array(
+                'stock_qty' => 'sum(`ss`.`qty`)',
+                'availability' => 'max(`ss`.`stock_status`)'
+            )
+        )->group('COALESCE(`slt`.`parent_id`, `e`.`entity_id`)');
 
 
         // Do not include simples, unless they have no parent.
