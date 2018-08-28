@@ -114,7 +114,7 @@ class Aligent_Emarsys_Shell_Sync_Emarsys_Ids extends Aligent_Emarsys_Abstract_Sh
                     $harmonyField = $this->getHelper()->getHarmonyIdField($newsRow->store_id);
                     // Do not insert harmony ID of null as this may override what is present.
                     if ($row->getHarmonyId() !== null) {
-                        $this->getHelper()->log("Setting Harmony ID from $harmonyField to value " . $row->getHarmonyId() . " for store " . $newsRow->store_id, 2);
+                        $this->getHelper()->log("Setting Harmony ID from $harmonyField to value " . $row->getHarmonyId() . " for store " . $newsRow->store_id, Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
                         $this->getWriter()->update($this->_aligentTable, ['harmony_id' => $row->getHarmonyId()], "newsletter_subscriber_id=" . $newsRow->subscriber_id);
                     }
                 }
