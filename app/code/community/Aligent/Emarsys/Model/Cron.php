@@ -55,10 +55,10 @@ class Aligent_Emarsys_Model_Cron {
         foreach($subscribers as $subscriber){
             $storeId = $subscriber->getStoreId();
             if(!$helper->isSubscriptionEnabled($storeId)) {
-                $helper->log("Skip subscriber " . $subscriber->getSubscriberId());
+                $helper->log("Skip subscriber " . $subscriber->getSubscriberId(), 2);
                 continue;
             }
-            $helper->log("Update subscriber " . $subscriber->getSubscriberId());
+            $helper->log("Update subscriber " . $subscriber->getSubscriberId(), 2);
 
             $data = $emarsysHelper->getSubscriberData($subscriber);
             $result = $eClient->updateContactAndCreateIfNotExists($data);
@@ -97,7 +97,7 @@ class Aligent_Emarsys_Model_Cron {
     {
         try {
             $helper = $this->getHelper();
-            $helper->log("Harmony export starting");
+            $helper->log("Harmony export starting", 2);
             if(!$helper->getHarmonyCustomerExportLive()){
                 $fileName = Mage::getBaseDir('var') . '/harmony_dump.tab';
                 $helper->log("Harmony debugging mode to file $fileName", 2);
@@ -211,7 +211,7 @@ class Aligent_Emarsys_Model_Cron {
             $customers->getSelect()->where('(emarsys_sync_dirty = 1 OR emarsys_sync_dirty is null)');
         }
 
-        $this->getHelper()->log("Customers with SQL " . $customers->getSelect());
+        $this->getHelper()->log("Customers with SQL " . $customers->getSelect(), 2);
         return $customers;
     }
 
@@ -220,12 +220,12 @@ class Aligent_Emarsys_Model_Cron {
         $helper = $this->getHelper();
 
         if($fileName != 'php://temp'){
-            $helper->log("Creating $fileName");
+            $helper->log("Creating $fileName", 2);
             $handle = fopen($fileName, 'w');
             if(!$handle) throw new Exception("Unable to write to $fileName");
             fclose($handle);
         }
-        $helper->log("Opening handle to $fileName");
+        $helper->log("Opening handle to $fileName", 2);
         $handle = fopen($fileName, 'rw+');
         $outputFile = new Aligent_Emarsys_Model_HarmonyDiaryWriter($handle);
 
@@ -241,9 +241,9 @@ class Aligent_Emarsys_Model_Cron {
         while($data = $result->fetch() ){
             $customer = Mage::getModel('customer/customer');
             $customer->addData($data);
-            $helper->log("Processing customer " . $customer->getId());
+            $helper->log("Processing customer " . $customer->getId(), 2);
             if (!$helper->isSubscriptionEnabled($customer->getStore()->getId())) {
-                $helper->log("Skipping");
+                $helper->log("Skipping", 2);
                 $this->logProgress();
                 continue;
             }
@@ -258,7 +258,7 @@ class Aligent_Emarsys_Model_Cron {
                 $harmonyCustomer->fillMagentoCustomerFromData($customer, $syncRecord->getId(), $syncRecord->getHarmonyId());
                 $outputFile->write($harmonyCustomer->getDataArray());
             }else{
-                Mage::helper('aligent_emarsys')->log("Duplicate sync " . $syncRecord->getId());
+                Mage::helper('aligent_emarsys')->log("Duplicate sync " . $syncRecord->getId(), 2);
             }
             $this->logProgress();
         }
@@ -273,7 +273,7 @@ class Aligent_Emarsys_Model_Cron {
         try {
             $this->startProgress(sizeof($subscribers), true);
             foreach ($subscribers as $subscriber) {
-                $helper->log("Processing subscriber " . $subscriber->getSubscriberId());
+                $helper->log("Processing subscriber " . $subscriber->getSubscriberId(), 2);
                 if (!$helper->isSubscriptionEnabled($subscriber->getStoreId())) continue;
                 $syncRecord = $helper->ensureNewsletterSyncRecord($subscriber->getSubscriberId(),null,null,null,null,null,null,null, $subscriber->getStoreId());
                 if(!in_array($syncRecord->getId(), $this->_pendingHarmonyDataItems)){
@@ -282,7 +282,7 @@ class Aligent_Emarsys_Model_Cron {
                     $harmonyCustomer->fillMagentoSubscriber($subscriber);
                     $outputFile->write($harmonyCustomer->getDataArray());
                 }else{
-                    Mage::helper('aligent_emarsys')->log("Duplicate sync " . $syncRecord->getId());
+                    Mage::helper('aligent_emarsys')->log("Duplicate sync " . $syncRecord->getId(), 2);
                 }
                 $this->logProgress();
             }
@@ -290,7 +290,7 @@ class Aligent_Emarsys_Model_Cron {
             $data = stream_get_contents($handle);
             fclose($handle);
             $this->endProgress();
-            $helper->log("Size of data: " . sizeof($data));
+            $helper->log("Size of data: " . sizeof($data), 2);
             return $data;
         }catch(Exception $e){
             $helper->log("Error: " . $e->getMessage());
@@ -319,7 +319,7 @@ class Aligent_Emarsys_Model_Cron {
 
         $message = $percent . "%, " . $this->_count . " of " . $this->_total . ", estimate $toGo";
         str_pad($message, 100 , ' ', STR_PAD_LEFT);
-        $this->getHelper()->log($message);
+        $this->getHelper()->log($message, 2);
         if($this->_stdOut){
             fwrite($this->_stdOut, "\033[100D");
             fwrite($this->_stdOut, $message);
@@ -327,7 +327,7 @@ class Aligent_Emarsys_Model_Cron {
     }
 
     protected function endProgress(){
-        $this->getHelper()->log("Completed " . $this->_count . " in " . gmdate('H:i:s', microtime(true)-$this->_startTime));
+        $this->getHelper()->log("Completed " . $this->_count . " in " . gmdate('H:i:s', microtime(true)-$this->_startTime), 2);
         if($this->_stdOut){
             fwrite($this->_stdOut, "\033[100D");
             fwrite($this->_stdOut, "Completed in " . gmdate('H:i:s', microtime(true)-$this->_startTime) . "\n");

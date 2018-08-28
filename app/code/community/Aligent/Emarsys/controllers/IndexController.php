@@ -123,13 +123,13 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $helper->startEmarsysNewsletterIgnore();
             if($results->getReplyCode()==0){
                 $rows = $results->getData();
-                $helper->log("Begining importing Emarsys rows, " . sizeof($rows));
+                $helper->log("Begining importing Emarsys rows, " . sizeof($rows), 2);
                 foreach($rows as $row){
                     $theRow = $emClient->parseRawRow($row);
-                    $helper->log("Import " . $theRow->serialize());
+                    $helper->log("Import " . $theRow->serialize(), 2);
                     $this->syncEmarsysRow( $theRow );
                 }
-                $helper->log("Finished importing Emarsys rows");
+                $helper->log("Finished importing Emarsys rows", 2);
             }
             $helper->endEmarsysNewsletterIgnore();
         }
