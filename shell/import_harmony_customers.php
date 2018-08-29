@@ -155,7 +155,7 @@ class Aligent_Emarsys_Shell_Import_Harmony_Customers extends Mage_Shell_Abstract
 
         while(!feof($stream)){
             $count++;
-            $this->getHelper()->log("Processed row $count\n",2);
+            $this->getHelper()->log("Processed row $count\n", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
             $row = $reader->readLine();
             if($row['Email']=='') continue;
 

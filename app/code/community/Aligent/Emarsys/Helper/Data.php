@@ -51,6 +51,9 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
 
     protected $_syncStoresList = null;
 
+    const ALWAYS_LOG = 1;
+    const DEBUG_ONLY = 2;
+
     const XML_FEED_GIFTCARD_PRICE = 'aligent_emarsys/feed/default_giftcard_price';
     const XML_FEED_STOCK_FROM_SIMPLE = 'aligent_emarsys/feed/stock_from_simple';
     const XML_FEED_INCLUDE_SIMPLE_PARENTS = 'aligent_emarsys/feed/include_simple_parents';
@@ -357,7 +360,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return string
      */
     public function getEmarsysAPISubscriptionField($storeId = null){
-        $this->log("Get emarsys field for store $storeId\n");
+        $this->log("Get emarsys field for store $storeId\n", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
         $this->_emarsysSubscriptionField = Mage::getStoreConfig(self::XML_EMARSYS_API_SUBSCRIPTION_FIELD, $storeId);
         if($this->_emarsysSubscriptionField=='-1') $this->_emarsysSubscriptionField = '';
         return $this->_emarsysSubscriptionField;
@@ -918,26 +921,26 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         }
 
         $newsletter = Mage::getModel('newsletter/subscriber')->setStoreId($storeId);
-        $this->log("Find newsletter for customer " . $customer->getId());
-        $this->log(print_r($newsletter,true));
+        $this->log("Find newsletter for customer " . $customer->getId(), Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
+        $this->log(print_r($newsletter,true), Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
         $newsletter->load($customer->getId(), 'customer_id');
 
         if(!$newsletter->getId()){
-            $this->log("Can't find.  Try email '" . $customer->getEmail() . "'");
+            $this->log("Can't find.  Try email '" . $customer->getEmail() . "'", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
             $newsletter->loadByEmail($customer->getEmail(), $storeId);
         }
 
         if(!$newsletter->getId()){
-            $this->log("Nope.  Create it");
+            $this->log("Nope.  Create it", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
             $this->startEmarsysNewsletterIgnore();
             $newsletter = $this->createSubscription($customer);
             $this->endEmarsysNewsletterIgnore();
         }
-        $this->log("Ok, got ID " . $newsletter->getId());
+        $this->log("Ok, got ID " . $newsletter->getId(), Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
 
         // Ensure it's hooked to the customer
         if($newsletter->getCustomerId() != $customer->getId()){
-            $this->log("Hook " . $customer->getId() . " customer to " . $newsletter->getId() . " subscriber");
+            $this->log("Hook " . $customer->getId() . " customer to " . $newsletter->getId() . " subscriber", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
             Mage::helper('aligent_emarsys/lightweightDataHelper')->getWriter()->update(
                 $newsletter->getResource()->getMainTable(),
                 array('customer_id'=>$customer->getId()),
@@ -1129,8 +1132,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param $message
      * @param int $logLevel
      */
-    public function log($message, $logLevel = 1){
-        if($logLevel == 1 || $this->getEmarsysDebug() ){
+    public function log($message, $logLevel = self::ALWAYS_LOG){
+        if($logLevel == self::ALWAYS_LOG || $this->getEmarsysDebug() ){
             Mage::log($message, null, 'aligent_emarsys.log',true);
         }
     }

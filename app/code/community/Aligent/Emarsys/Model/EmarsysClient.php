@@ -117,10 +117,10 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
         $headers = array('Content-Type: application/json', 'X-WSSE: ' . $this->getAuthenticationSignature());
         $uri = $this->baseUrl . "export/$id/data/?offset=0&limit=1000000";
         try {
-            $this->log("Send to $uri");
+            $this->log("Send to $uri", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
             $responseJson = $this->client->send(HttpClient::GET, $uri, $headers, array());
-            $this->log("Response:");
-            $this->log($responseJson);
+            $this->log("Response:", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
+            $this->log($responseJson, Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
             $responseJson = $this->parseResponseCSV($responseJson);
             return new Snowcap\Emarsys\Response(array('replyCode'=>0,'replyText'=>'OK','data'=> $responseJson));
         } catch (\Exception $e) {
@@ -171,11 +171,11 @@ class Aligent_Emarsys_Model_EmarsysClient extends \Snowcap\Emarsys\Client {
      * @return \Snowcap\Emarsys\Response
      */
     protected function send($method = 'GET', $uri, array $body = array()){
-        $this->log("Send to $uri with $method");
-        $this->log($body, 2);
+        $this->log("Send to $uri with $method", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
+        $this->log($body, Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
         $result = parent::send($method, $uri, $body);
-        $this->log("Method returned", 1);
-        $this->log($result, 2);
+        $this->log("Method returned", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
+        $this->log($result, Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
         return $result;
     }
 
