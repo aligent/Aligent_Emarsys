@@ -109,6 +109,24 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </harmony_ftp_port>
+                        <harmony_ftp_pasv>
+                            <label>Passive Mode FTP</label>
+                            <sort_order>21</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_ftp_pasv>
+                        <harmony_ftp_sftp>
+                            <label>Use sFTP?</label>
+                            <sort_order>22</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </harmony_ftp_sftp>
                         <harmony_ftp_user translate="label">
                             <label>FTP Username</label>
                             <sort_order>30</sort_order>
