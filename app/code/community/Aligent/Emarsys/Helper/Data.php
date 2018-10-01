@@ -24,6 +24,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected $_harmonyFTPPort = null;
     protected $_harmonyFTPUser = null;
     protected $_harmonyFTPPass = null;
+    protected $_harmonyFTPPasv = null;
+    protected $_harmonyFTPSFTP = null;
     protected $_harmonyFTPImport = null;
     protected $_harmonyFTPExport = null;
     protected $_harmonyDebtor = null;
@@ -83,6 +85,8 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_HARMONY_FTP_PORT = 'aligent_emarsys/harmony_settings/harmony_ftp_port';
     const XML_EMARSYS_HARMONY_FTP_USER = 'aligent_emarsys/harmony_settings/harmony_ftp_user';
     const XML_EMARSYS_HARMONY_FTP_PASS = 'aligent_emarsys/harmony_settings/harmony_ftp_password';
+    const XML_EMARSYS_HARMONY_FTP_PASV = 'aligent_emarsys/harmony_settings/harmony_ftp_pasv';
+    const XML_EMARSYS_HARMONY_FTP_SFTP = 'aligent_emarsys/harmony_settings/harmony_ftp_sftp';
     const XML_EMARSYS_HARMONY_FTP_IMPORT = 'aligent_emarsys/harmony_settings/harmony_ftp_import_path';
     const XML_EMARSYS_HARMONY_FTP_EXPORT = 'aligent_emarsys/harmony_settings/harmony_ftp_export_path';
     const XML_EMARSYS_HARMONY_WEB_AGENT = 'aligent_emarsys/harmony_settings/web_agent';
@@ -426,6 +430,28 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
             $this->_harmonyFTPPass = $this->decrypt( Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_FTP_PASS) );
         }
         return $this->_harmonyFTPPass;
+    }
+
+    /**
+     * Returns whether or not passive mode FTP should be used
+     * @return bool
+     */
+    public function getHarmonyPasv(){
+        if($this->_harmonyFTPPasv === null){
+            $this->_harmonyFTPPasv = Mage::getStoreConfigFlag(self::XML_EMARSYS_HARMONY_FTP_PASV);
+        }
+        return $this->_harmonyFTPPasv;
+    }
+
+    /**
+     * Returns whether or not to use sFTP
+     * @return bool
+     */
+    public function getHarmonySFTP(){
+        if($this->_harmonyFTPSFTP === null){
+            $this->_harmonyFTPSFTP = Mage::getStoreConfig(self::XML_EMARSYS_HARMONY_FTP_SFTP);
+        }
+        return $this->_harmonyFTPSFTP;
     }
 
     /**

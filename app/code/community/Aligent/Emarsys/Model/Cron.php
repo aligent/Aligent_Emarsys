@@ -1,13 +1,5 @@
 <?php
 
-use FtpClient\FtpClient;
-
-/**
- * Created by PhpStorm.
- * User: kath.young
- * Date: 9/18/17
- * Time: 12:53 PM
- */
 class Aligent_Emarsys_Model_Cron {
     protected $_pendingHarmonyDataItems;
     protected $_pendingEmarsysDataItems;
@@ -129,26 +121,14 @@ class Aligent_Emarsys_Model_Cron {
     }
 
     protected function pushHarmonyExportData($fixedWidthData){
-        /** @var $helper Aligent_Emarsys_Helper_Data */
-        $helper = $this->getHelper();
-        $host = $helper->getHarmonyFTPServer();
-        $port = $helper->getHarmonyFTPPort();
-        $user = $helper->getHarmonyFTPUsername();
-        $pass = $helper->getHarmonyFTPPassword();
-        $exportDir = $helper->getHarmonyFTPExportDir();
-
         try{
-            $timeout = 15;
-            $client = new FtpClient();
-            $client->connect($host, false, $port, $timeout);
-            $client->login($user, $pass);
-            $client->chdir($exportDir);
-            $client->pasv(true);
+            $client = new Aligent_Emarsys_Model_HarmonyFTPClient();
+            $client->connect();
             $fileName = date('Y-m-d-H-i-s-') . 'magento';
             $dir = Mage::getBaseDir('var') . "/harmony_export";
             if(!file_exists($dir)) mkdir($dir);
             file_put_contents($dir . "/$fileName", $fixedWidthData);
-            $client->putFromString($fileName, $fixedWidthData);
+            $client->putExportFromString($fileName, $fixedWidthData);
             return true;
         }catch(\Exception $e){
             return false;
@@ -247,7 +227,7 @@ class Aligent_Emarsys_Model_Cron {
                 $this->logProgress();
                 continue;
             }
-            if($data->sync_id){
+            if(isset($data['sync_id']) && $data['sync_id'] !== '' && $data['sync_id'] !== 0){
                 $syncRecord = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($data->sync_id);
             }else{
                 $syncRecord = $helper->ensureCustomerSyncRecord($customer->getId(), false, false);
