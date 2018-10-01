@@ -349,7 +349,7 @@
                 <default_giftcard_price>100</default_giftcard_price>
             </feed>
             <harmony_settings>
-                <harmony_ftp_sftp>2</harmony_ftp_sftp>
+                <harmony_ftp_sftp>0</harmony_ftp_sftp>
             </harmony_settings>
         </aligent_emarsys>
     </default>
