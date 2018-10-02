@@ -46,14 +46,29 @@ class Aligent_Emarsys_Model_HarmonyFTPClient {
             'passive' => $this->_pasv
         );
         if($this->_sFTP){
-            return $this->_actualClient->open($args);
+            try{
+                $this->_actualClient->open($args);
+                return true;
+            }catch(\Exception $e){
+                return false;
+            }
         }else{
             try{
                 $this->_actualClient->connect($args);
+                return true;
             }catch(\FtpClient\FtpException $e){
                 return false;
             }
         }
+    }
+
+    /**
+     * Exposes the pwd method on the underlying client
+     * (Thankfully the same in both implementations!)
+     * @return string
+     */
+    public function pwd(){
+        return $this->_actualClient->pwd();
     }
 
     /**
