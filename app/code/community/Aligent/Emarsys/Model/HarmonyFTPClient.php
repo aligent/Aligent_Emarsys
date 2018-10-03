@@ -90,10 +90,7 @@ class Aligent_Emarsys_Model_HarmonyFTPClient {
      */
     public function putFromString($fileName, $fileContents){
         if($this->_sFTP){
-            $tmpfname = tempnam(sys_get_temp_dir(), 'alg');
-            file_put_contents($tmpfname, $fileContents);
-            $result = $this->_actualClient->write($fileName, $tmpfname);
-            unlink($tmpfname);
+            $result = $this->_actualClient->write($fileName, $fileContents);
             return $result;
         }else{
             return $this->_actualClient->putFromString($fileName, $fileContents);
