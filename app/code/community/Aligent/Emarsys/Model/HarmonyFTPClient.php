@@ -47,6 +47,7 @@ class Aligent_Emarsys_Model_HarmonyFTPClient {
         );
         if($this->_sFTP){
             try{
+                unset($args['passive']); // Passive mode sFTP is not a thing
                 $this->_actualClient->open($args);
                 return true;
             }catch(\Exception $e){
