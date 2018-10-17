@@ -7,9 +7,11 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
     public function preDispatch()
     {
         $this->getLayout()->setArea($this->_currentArea);
-        $this->setFlag('', self::FLAG_NO_START_SESSION, true); // Do not start standard session
-        $this->setFlag('', self::FLAG_NO_PRE_DISPATCH, true);
-        $this->setFlag('', self::FLAG_NO_POST_DISPATCH, true);
+        if($this->getRequest()->getActionName() == 'cookieupdate'){
+            $this->setFlag('',self::FLAG_NO_START_SESSION, true);
+            $this->setFlag('', self::FLAG_NO_PRE_DISPATCH, true);
+            $this->setFlag('', self::FLAG_NO_POST_DISPATCH, true);
+        }
 
         return parent::preDispatch();
     }
