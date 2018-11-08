@@ -228,7 +228,7 @@ class Aligent_Emarsys_Model_Cron {
                 continue;
             }
             if(isset($data['sync_id']) && $data['sync_id'] !== '' && $data['sync_id'] !== 0){
-                $syncRecord = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($data->sync_id);
+                $syncRecord = Mage::getModel('aligent_emarsys/remoteSystemSyncFlags')->load($data['sync_id']);
             }else{
                 $syncRecord = $helper->ensureCustomerSyncRecord($customer->getId(), false, false);
             }
