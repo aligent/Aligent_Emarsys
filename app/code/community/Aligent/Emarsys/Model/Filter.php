@@ -18,7 +18,6 @@ class Aligent_Emarsys_Model_Filter {
         /** @var Aligent_Emarsys_Helper_Data $helper */
         $helper = Mage::helper('aligent_emarsys');
 
-
         if($helper->getIncludeDisabled()){
             $currentStore = Mage::app()->getStore();
             Mage::app()->setCurrentStore('admin');
@@ -27,35 +26,22 @@ class Aligent_Emarsys_Model_Filter {
         $websiteIds = array($oStore->getWebsiteId());
         $storeId = $oStore->getStoreId();
 
-        $attrs = array('status','url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','special_price', 'brand');
-
-        $oProductModel = $this->getProductModel();
-        $oCollection = $oProductModel->getCollection();
-
-        $oSelect = $oCollection->getSelect();
-        $oSelect->columns('sku');
-
-        foreach($attrs as $attr){
-            $attrData = $this->getAttribute($attr);
-            $this->addAttributeJoin($oSelect, $attrData, $storeId);
-            $this->addAttributeJoin($oSelect, $attrData, 0);
-        }
+        $oCollection = Mage::getSingleton('catalog/product')->getCollection();
         $oCollection->addStoreFilter($storeId);
         $oCollection->addWebsiteFilter($websiteIds);
 
         $oSelect = $oCollection->getSelect();
         $vStockStatus = Mage::getModel('core/resource_setup', 'core_setup')->getTable('cataloginventory/stock_status');
         $vSuperLink = Mage::getModel('core/resource_setup', 'core_setup')->getTable('catalog/product_super_link');
-
-        $oSelect->joinLeft( array( 'slt' => $vSuperLink), 'e.entity_id=slt.product_id');
         $oSelect->joinLeft( array( 'sl' => $vSuperLink ), '`e`.`entity_id`=`sl`.`parent_id`');
+        $oSelect->joinLeft( array( 'slt' => $vSuperLink), 'e.entity_id=slt.product_id');
         $oSelect->joinLeft( array( 'pss' => $vStockStatus ),
             '`sl`.product_id=`pss`.`product_id` AND `pss`.website_id = ' . $oStore->getWebsiteId(),
             array(
                 'ps_stock_qty' => 'sum(`pss`.`qty`)',
                 'ps_availability' => 'max(`pss`.`stock_status`)'
             )
-        );
+        )->group('COALESCE(sl.parent_id, e.entity_id)');
 
         $oSelect->joinLeft( array( 'ss' => $vStockStatus ),
             '`e`.`entity_id`=`ss`.`product_id` AND `ss`.website_id = ' . $oStore->getWebsiteId(),
@@ -63,11 +49,27 @@ class Aligent_Emarsys_Model_Filter {
                 'stock_qty' => 'sum(`ss`.`qty`)',
                 'availability' => 'max(`ss`.`stock_status`)'
             )
-        )->group('COALESCE(`slt`.`parent_id`, `e`.`entity_id`)');
+        );
 
+        $oSelect->where('((type_id = ? and slt.parent_id is null) or (type_id != ?))','simple');
 
-        // Do not include simples, unless they have no parent.
-        $oSelect->where('`e`.`type_id` <> ? OR (`e`.`type_id` = ? AND `sl`.`parent_id` IS NULL)', 'simple');
+        $oSelect->reset(Varien_Db_Select::COLUMNS);
+        $oSelect->columns([
+            'sku' => 'sku',
+            'type_id' => 'type_id',
+            'entity_id' => 'entity_id',
+            'ps_stock_qty' => 'sum(ss.qty)',
+            'stock_qty' => 'sum(pss.qty)',
+            'ps_availability' => 'max(ss.stock_status)',
+            'availability' => 'max(pss.stock_status)'
+        ]);
+
+        $attrs = array('status','url_path','thumbnail', 'url_key','name','image_label','small_image','small_image_label','price','special_price', 'brand');
+        foreach($attrs as $attr){
+            $attrData = $this->getAttribute($attr);
+            $this->addAttributeJoin($oSelect, $attrData, $oStore->getWebsiteId());
+            $this->addAttributeJoin($oSelect, $attrData, 0);
+        }
 
         $vSql = (string) $oSelect;
         if($helper->getIncludeDisabled()){
