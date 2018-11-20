@@ -9,8 +9,16 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
         $this->getLayout()->setArea($this->_currentArea);
         if($this->getRequest()->getActionName() == 'cookieupdate'){
             $this->setFlag('',self::FLAG_NO_START_SESSION, true);
-            $this->setFlag('', self::FLAG_NO_PRE_DISPATCH, true);
-            $this->setFlag('', self::FLAG_NO_POST_DISPATCH, true);
+            $cookies = Mage::getSingleton('core/cookie');
+            $hasFe = $cookies->get('frontend');
+            if(!$hasFe){
+                $quote = Mage::getModel('sales/quote');
+                if(Mage::helper('aligent_emarsys')->isEnabled()){
+                    Mage::helper('aligent_emarsys')->updateCookieFromQuote($quote);
+                }
+                $this->getResponse()->setBody('{"success":true}')->sendResponse();
+                exit(0);
+            }
         }
 
         return parent::preDispatch();
