@@ -12,8 +12,8 @@ class Aligent_Emarsys_IndexController extends Mage_Core_Controller_Front_Action 
             $cookies = Mage::getSingleton('core/cookie');
             $hasFe = $cookies->get('frontend');
             if(!$hasFe){
-                $quote = Mage::getModel('sales/quote');
                 if(Mage::helper('aligent_emarsys')->isEnabled()){
+                    $quote = Mage::getModel('sales/quote');
                     Mage::helper('aligent_emarsys')->updateCookieFromQuote($quote);
                 }
                 $this->getResponse()->setBody('{"success":true}')->sendResponse();
