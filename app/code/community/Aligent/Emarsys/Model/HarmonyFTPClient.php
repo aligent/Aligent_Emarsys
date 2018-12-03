@@ -18,7 +18,7 @@ class Aligent_Emarsys_Model_HarmonyFTPClient {
     protected $_pasv;
     /** @var bool $_sFTP */
     protected $_sFTP;
-    /** @var Varien_Io_Sftp|FtpClient $_actualClient  */
+    /** @var Aligent_Emarsys_Model_PeclSFTPClient|FtpClient $_actualClient  */
     protected $_actualClient = null;
     /** @var int $_timeout */
     protected $_timeout = 15;
@@ -116,6 +116,26 @@ class Aligent_Emarsys_Model_HarmonyFTPClient {
      * FTP or sFTP
      */
     protected function _createClient(){
-        $this->_actualClient = $this->_sFTP ? new Varien_Io_Sftp() : new FtpClient();
+        $this->_actualClient = $this->_sFTP ? new Aligent_Emarsys_Model_PeclSFTPClient() : new FtpClient();
+    }
+
+    public function download($remoteFile, $localFile){
+        if($this->_sFTP){
+            $this->_actualClient->download($remoteFile, $localFile);
+        }else{
+            $this->_actualClient->get($localFile, $remoteFile, FTP_ASCII);
+        }
+    }
+
+    public function delete($remoteFile){
+        $this->_actualClient->delete($remoteFile);
+    }
+
+    public function ls(){
+        if($this->_sFTP){
+            return $this->_actualClient->ls();
+        }else{
+            return $this->_actualClient->rawlist();
+        }
     }
 }
