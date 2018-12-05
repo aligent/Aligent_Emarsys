@@ -82,7 +82,7 @@ class Aligent_Emarsys_Model_PeclSFTPClient {
     }
 
     public function delete($remoteFile){
-        $this->_execCmd("unlink " . $this->_basePath . $this->_cwd . "/$remoteFile");
+        $this->_execCmd("rm " . $this->_basePath . $this->_cwd . "/$remoteFile");
     }
 
     protected function _execCmd($cmd)
