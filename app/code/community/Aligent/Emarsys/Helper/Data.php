@@ -988,7 +988,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     public function findCustomerSyncRecord($id){
         $customer = Mage::getModel('customer/customer')->load($id);
         if(!$customer->getId()){
-            throw new InvalidArgumentException("Invalid customer ID passed");
+            throw new InvalidArgumentException("Invalid customer ID passed ($id)");
         }
         $newsletter = $this->ensureCustomerNewsletter($customer);
 
@@ -1129,7 +1129,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         $country = ($order->getShippingAddress()) ? $order->getShippingAddress()->getCountry() : null;
 
         // Is there a customer ID?
-        if($order->getCustomerIsGuest()){
+        if($order->getCustomerIsGuest() || !$order->getCustomerId()){
             // Ok, let's try to find a subscriber
             $subscriber = Mage::getModel('newsletter/subscriber');
             $subscriber->loadByEmail($order->getCustomerEmail(), $storeId);
