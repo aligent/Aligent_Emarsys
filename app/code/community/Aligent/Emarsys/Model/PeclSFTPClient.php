@@ -36,8 +36,14 @@ class Aligent_Emarsys_Model_PeclSFTPClient {
     }
 
     public function cd($dir){
+        $currentStripped = (substr($this->_cwd, 0, 1)=='/') ? substr($this->_cwd, 1, strlen($this->_cwd)) : $this->_cwd;
+        if($currentStripped == $dir){
+            Mage::helper('aligent_emarsys')->log("Asked to change to $dir from $currentStripped, skipping", Aligent_Emarsys_Helper_Data::DEBUG_ONLY);
+            return;
+        }
         $realdir = ssh2_sftp_realpath($this->_sftp, $this->_basePath . $this->_cwd . "/$dir/");
-        $this->_cwd = str_replace($this->_basePath, "", $realdir);
+        $newDir = str_replace($this->_basePath, "", $realdir);
+        $this->_cwd = $newDir;
     }
 
     public function ls(){
