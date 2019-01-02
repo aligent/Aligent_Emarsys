@@ -483,6 +483,14 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </enabled>
+                        <per_store translate="label">
+                            <label>Per Store</label>
+                            <sort_order>15</sort_order>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>Enable if a subscription is per store (not default magento)</comment>
+                            <show_in_default>1</show_in_default>
+                        </per_store>
                         <base_url translate="label">
                             <label>Emarsys signup URL</label>
                             <sort_order>20</sort_order>

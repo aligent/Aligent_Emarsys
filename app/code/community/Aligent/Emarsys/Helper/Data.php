@@ -73,6 +73,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_SEND_WEBSITE_CODE_PATH = 'aligent_emarsys/settings/send_website_code';
 
     const XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH = 'aligent_emarsys/subscription/enabled';
+    const XML_EMARSYS_SUBSCRIPTION_PER_STORE_PATH = 'aligent_emarsys/subscription/per_store';
     const XML_EMARSYS_SUBSCRIPTION_BASE_URL_PATH = 'aligent_emarsys/subscription/base_url';
     const XML_EMARSYS_SUBSCRIPTION_CURL_TIMEOUT_PATH = 'aligent_emarsys/subscription/curl_timeout';
 
@@ -645,6 +646,15 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
      */
     public function isSubscriptionEnabled( $storeId = null ) {
         return Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH, $storeId);
+    }
+
+    /**
+     * Should subscription care about store scope
+     *
+     * @return bool
+     */
+    public function isScopeIdUsedForSubscription() {
+        return Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_PER_STORE_PATH);
     }
 
     /**
