@@ -691,7 +691,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         $cookieContents = Mage::helper('core')->jsonDecode(Mage::getModel('core/cookie')->get($this->getCookieName()));
 
         if ($cookieContents === null) {
-            $cookieContents = array();
+            $cookieContents = array(
+                self::KEY_COOKIE_USER => $this->getEmptyUser(),
+                self::KEY_COOKIE_CART => array()
+            );
         }
 
         return (array)$cookieContents;
@@ -705,7 +708,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected function setCookie($cookie=null)
     {
         if ($cookie === null) {
-            $cookie = array();
+            $cookie = array(
+                self::KEY_COOKIE_USER => $this->getEmptyUser(),
+                self::KEY_COOKIE_CART => array()
+            );
         }
         // Set HTTP to false to allow JS to access the cookie after logout
         Mage::getModel('core/cookie')->set($this->getCookieName(), Mage::helper('core')->jsonEncode($cookie), null, null, null, null, false);
