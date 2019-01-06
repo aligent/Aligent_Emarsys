@@ -73,6 +73,7 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_EMARSYS_SEND_WEBSITE_CODE_PATH = 'aligent_emarsys/settings/send_website_code';
 
     const XML_EMARSYS_SUBSCRIPTION_ENABLED_PATH = 'aligent_emarsys/subscription/enabled';
+    const XML_EMARSYS_SUBSCRIPTION_PER_STORE_PATH = 'aligent_emarsys/subscription/per_store';
     const XML_EMARSYS_SUBSCRIPTION_BASE_URL_PATH = 'aligent_emarsys/subscription/base_url';
     const XML_EMARSYS_SUBSCRIPTION_CURL_TIMEOUT_PATH = 'aligent_emarsys/subscription/curl_timeout';
 
@@ -648,6 +649,15 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     }
 
     /**
+     * Should subscription care about store scope
+     *
+     * @return bool
+     */
+    public function isScopeIdUsedForSubscription() {
+        return Mage::getStoreConfigFlag(self::XML_EMARSYS_SUBSCRIPTION_PER_STORE_PATH);
+    }
+
+    /**
      * Get the subscription base URL for emarsys
      *
      * @return string
@@ -681,7 +691,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
         $cookieContents = Mage::helper('core')->jsonDecode(Mage::getModel('core/cookie')->get($this->getCookieName()));
 
         if ($cookieContents === null) {
-            $cookieContents = array();
+            $cookieContents = array(
+                self::KEY_COOKIE_USER => $this->getEmptyUser(),
+                self::KEY_COOKIE_CART => array()
+            );
         }
 
         return (array)$cookieContents;
@@ -695,7 +708,10 @@ class Aligent_Emarsys_Helper_Data extends Mage_Core_Helper_Abstract {
     protected function setCookie($cookie=null)
     {
         if ($cookie === null) {
-            $cookie = array();
+            $cookie = array(
+                self::KEY_COOKIE_USER => $this->getEmptyUser(),
+                self::KEY_COOKIE_CART => array()
+            );
         }
         // Set HTTP to false to allow JS to access the cookie after logout
         Mage::getModel('core/cookie')->set($this->getCookieName(), Mage::helper('core')->jsonEncode($cookie), null, null, null, null, false);

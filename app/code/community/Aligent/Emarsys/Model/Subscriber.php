@@ -27,7 +27,18 @@ class Aligent_Emarsys_Model_Subscriber extends Mage_Newsletter_Model_Subscriber 
      */
     public function loadByEmail($subscriberEmail, $storeId = null)
     {
+        // If subscription is not on a per store basis use default Magento behaviour.
+        if (!$this->helper()->isScopeIdUsedForSubscription()) {
+            return parent::loadByEmail($subscriberEmail);
+        }
+
         if($storeId === null) $storeId = Mage::app()->getStore()->getId();
+
+        // Since cron runs in the admin store scope, and subscribing to the admin scope does not make sense, ignore admin scope.
+        if ($storeId == 0) {
+            return parent::loadByEmail($subscriberEmail);
+        }
+
         $item = $this->getCollection()->addFieldToFilter('store_id', $storeId)->addFieldToFilter('subscriber_email', $subscriberEmail)->getFirstItem();
 
         $this->addData($item->getData());
